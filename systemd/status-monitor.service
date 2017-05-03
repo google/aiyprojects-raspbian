@@ -1,0 +1,16 @@
+[Unit]
+Description=status monitor service
+DefaultDependencies=no
+After=local-fs.target sysinit.target
+Requires=status-led.service
+
+[Service]
+ExecStart=/usr/bin/python3 -u src/status-monitor.py
+WorkingDirectory=/home/pi/voice-recognizer-raspi
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=basic.target

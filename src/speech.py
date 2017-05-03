@@ -1,0 +1,445 @@
+# Copyright 2017 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Classes for speech interaction."""
+
+from abc import abstractmethod
+import collections
+import logging
+import os
+import tempfile
+import wave
+
+import google.auth
+import google.auth.exceptions
+import google.auth.transport.grpc
+import google.auth.transport.requests
+from google.cloud.grpc.speech.v1beta1 import cloud_speech_pb2 as cloud_speech
+from google.rpc import code_pb2 as error_code
+from google.assistant.embedded.v1alpha1 import embedded_assistant_pb2
+import grpc
+from six.moves import queue
+
+import i18n
+
+logger = logging.getLogger('speech')
+
+AUDIO_SAMPLE_SIZE = 2  # bytes per sample
+AUDIO_SAMPLE_RATE_HZ = 16000
+
+
+_Result = collections.namedtuple('_Result', ['transcript', 'response_audio'])
+
+
+class Error(Exception):
+    pass
+
+
+class _ChannelFactory(object):
+
+    """Creates gRPC channels with a given configuration."""
+
+    def __init__(self, api_host, credentials):
+        self._api_host = api_host
+        self._credentials = credentials
+
+        self._checked = False
+
+    def make_channel(self):
+        """Creates a secure channel."""
+
+        request = google.auth.transport.requests.Request()
+        target = self._api_host + ':443'
+
+        if not self._checked:
+            # Refresh now, to catch any errors early. Otherwise, they'll be
+            # raised and swallowed somewhere inside gRPC.
+            self._credentials.refresh(request)
+            self._checked = True
+
+        return google.auth.transport.grpc.secure_authorized_channel(
+            self._credentials, request, target)
+
+
+class GenericSpeechRequest(object):
+
+    """Common base class for Cloud Speech and Assistant APIs."""
+
+    # TODO(rodrigoq): Refactor audio logging.
+    # pylint: disable=attribute-defined-outside-init,too-many-instance-attributes
+
+    DEADLINE_SECS = 185
+
+    def __init__(self, api_host, credentials):
+        self._audio_queue = queue.Queue()
+        self._phrases = []
+        self._channel_factory = _ChannelFactory(api_host, credentials)
+        self._endpointer_cb = None
+        self._audio_logging_enabled = False
+        self._request_log_wav = None
+
+    def add_phrases(self, phrases):
+        """Makes the recognition more likely to recognize the given phrase(s).
+        phrases: an object with a method get_phrases() that returns a list of
+                 phrases.
+        """
+
+        self._phrases.extend(phrases.get_phrases())
+
+    def set_endpointer_cb(self, cb):
+        """Callback to invoke on end of speech."""
+        self._endpointer_cb = cb
+
+    def set_audio_logging_enabled(self, audio_logging_enabled=True):
+        self._audio_logging_enabled = audio_logging_enabled
+
+        if audio_logging_enabled:
+            self._audio_log_dir = tempfile.mkdtemp()
+            self._audio_log_ix = 0
+
+    def reset(self):
+        while True:
+            try:
+                self._audio_queue.get(False)
+            except queue.Empty:
+                return
+
+    def add_data(self, data):
+        self._audio_queue.put(data)
+
+    def end_audio(self):
+        self.add_data(None)
+
+    def _get_speech_context(self):
+        """Return a SpeechContext instance to bias recognition towards certain
+        phrases.
+        """
+        return cloud_speech.SpeechContext(
+            phrases=self._phrases,
+        )
+
+    @abstractmethod
+    def _make_service(self, channel):
+        """Create a service stub.
+        """
+        return
+
+    @abstractmethod
+    def _create_config_request(self):
+        """Create a config request for the given endpoint.
+
+        This is sent first to the server to configure the speech recognition.
+        """
+        return
+
+    @abstractmethod
+    def _create_audio_request(self, data):
+        """Create an audio request for the given endpoint.
+
+        This is sent to the server with audio to be recognized.
+        """
+        return
+
+    def _request_stream(self):
+        """Yields a config request followed by requests constructed from the
+        audio queue.
+        """
+        yield self._create_config_request()
+
+        while True:
+            data = self._audio_queue.get()
+
+            if not data:
+                return
+
+            if self._request_log_wav:
+                self._request_log_wav.writeframes(data)
+
+            yield self._create_audio_request(data)
+
+    @abstractmethod
+    def _create_response_stream(self, service, request_stream, deadline):
+        """Given a request stream, start the gRPC call to get the response
+        stream.
+        """
+        return
+
+    @abstractmethod
+    def _stop_sending_audio(self, resp):
+        """Return true if this response says user has stopped speaking.
+
+        This stops the request from sending further audio.
+        """
+        return
+
+    @abstractmethod
+    def _handle_response(self, resp):
+        """Handle a response from the remote API.
+
+        Args:
+            resp: StreamingRecognizeResponse instance
+        """
+        return
+
+    def _end_audio_request(self):
+        self.end_audio()
+        if self._endpointer_cb:
+            self._endpointer_cb()
+
+    def _handle_response_stream(self, response_stream):
+        for resp in response_stream:
+            if resp.error.code != error_code.OK:
+                self._end_audio_request()
+                raise Error('Server error: ' + resp.error.message)
+
+            if self._stop_sending_audio(resp):
+                self._end_audio_request()
+
+            self._handle_response(resp)
+
+        # Server has closed the connection
+        return self._finish_request() or ''
+
+    def _start_logging_request(self):
+        """Open a WAV file to log the request audio."""
+        self._audio_log_ix += 1
+        request_filename = '%s/request.%03d.wav' % (
+            self._audio_log_dir, self._audio_log_ix)
+        logger.info('Writing request to %s', request_filename)
+
+        self._request_log_wav = wave.open(request_filename, 'w')
+
+        self._request_log_wav.setnchannels(1)
+        self._request_log_wav.setsampwidth(AUDIO_SAMPLE_SIZE)
+        self._request_log_wav.setframerate(AUDIO_SAMPLE_RATE_HZ)
+
+    def _finish_request(self):
+        """Called after the final response is received."""
+
+        if self._request_log_wav:
+            self._request_log_wav.close()
+
+        return _Result(None, None)
+
+    def do_request(self):
+        """Establishes a connection and starts sending audio to the cloud
+        endpoint. Responses are handled by the subclass until one returns a
+        result.
+
+        Returns:
+            namedtuple with the following fields:
+                transcript: string with transcript of user query
+                response_audio: optionally, an audio response from the server
+
+        Raises speech.Error on error.
+        """
+        try:
+            service = self._make_service(self._channel_factory.make_channel())
+
+            response_stream = self._create_response_stream(
+                service, self._request_stream(), self.DEADLINE_SECS)
+
+            if self._audio_logging_enabled:
+                self._start_logging_request()
+
+            return self._handle_response_stream(response_stream)
+        except (
+                google.auth.exceptions.GoogleAuthError,
+                grpc.RpcError,
+        ) as exc:
+            raise Error('Exception in speech request') from exc
+
+
+class CloudSpeechRequest(GenericSpeechRequest):
+
+    """A transcription request to the Cloud Speech API.
+
+    Args:
+        credentials_file: path to service account credentials JSON file
+    """
+
+    SCOPE = 'https://www.googleapis.com/auth/cloud-platform'
+
+    def __init__(self, credentials_file):
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_file
+        credentials, _ = google.auth.default(scopes=[self.SCOPE])
+
+        super().__init__('speech.googleapis.com', credentials)
+
+        self.language_code = i18n.get_language_code()
+
+        if not hasattr(cloud_speech, 'StreamingRecognizeRequest'):
+            raise ValueError("cloud_speech_pb2.py doesn't have StreamingRecognizeRequest.")
+
+        self._transcript = None
+
+    def reset(self):
+        super().reset()
+        self._transcript = None
+
+    def _make_service(self, channel):
+        return cloud_speech.SpeechStub(channel)
+
+    def _create_config_request(self):
+        recognition_config = cloud_speech.RecognitionConfig(
+            # There are a bunch of config options you can specify. See
+            # https://goo.gl/KPZn97 for the full list.
+            encoding='LINEAR16',  # raw 16-bit signed LE samples
+            sample_rate=AUDIO_SAMPLE_RATE_HZ,
+            # For a list of supported languages see:
+            # https://cloud.google.com/speech/docs/languages.
+            language_code=self.language_code,  # a BCP-47 language tag
+            speech_context=self._get_speech_context(),
+        )
+        streaming_config = cloud_speech.StreamingRecognitionConfig(
+            config=recognition_config,
+            single_utterance=True,  # TODO(rodrigoq): find a way to handle pauses
+        )
+
+        return cloud_speech.StreamingRecognizeRequest(
+            streaming_config=streaming_config)
+
+    def _create_audio_request(self, data):
+        return cloud_speech.StreamingRecognizeRequest(audio_content=data)
+
+    def _create_response_stream(self, service, request_stream, deadline):
+        return service.StreamingRecognize(request_stream, deadline)
+
+    def _stop_sending_audio(self, resp):
+        """Check the endpointer type to see if an utterance has ended."""
+
+        if resp.endpointer_type:
+            endpointer_type = cloud_speech.StreamingRecognizeResponse.EndpointerType.Name(
+                resp.endpointer_type)
+            logger.info('endpointer_type: %s', endpointer_type)
+
+        END_OF_AUDIO = cloud_speech.StreamingRecognizeResponse.EndpointerType.Value('END_OF_AUDIO')
+        return resp.endpointer_type == END_OF_AUDIO
+
+    def _handle_response(self, resp):
+        """Store the last transcript we received."""
+        if resp.results:
+            self._transcript = ' '.join(
+                result.alternatives[0].transcript for result in resp.results)
+            logger.info('transcript: %s', self._transcript)
+
+    def _finish_request(self):
+        super()._finish_request()
+        return _Result(self._transcript, None)
+
+
+class AssistantSpeechRequest(GenericSpeechRequest):
+
+    """A request to the Assistant API, which returns audio and text."""
+
+    def __init__(self, credentials):
+
+        super().__init__('embeddedassistant.googleapis.com', credentials)
+
+        self._response_audio = b''
+        self._transcript = None
+
+    def reset(self):
+        super().reset()
+        self._response_audio = b''
+        self._transcript = None
+
+    def _make_service(self, channel):
+        return embedded_assistant_pb2.EmbeddedAssistantStub(channel)
+
+    def _create_config_request(self):
+        audio_in_config = embedded_assistant_pb2.AudioInConfig(
+            encoding='LINEAR16',
+            sample_rate_hertz=AUDIO_SAMPLE_RATE_HZ,
+        )
+        audio_out_config = embedded_assistant_pb2.AudioOutConfig(
+            encoding='LINEAR16',
+            sample_rate_hertz=AUDIO_SAMPLE_RATE_HZ,
+            volume_percentage=50,
+        )
+        converse_config = embedded_assistant_pb2.ConverseConfig(
+            audio_in_config=audio_in_config,
+            audio_out_config=audio_out_config,
+        )
+
+        return embedded_assistant_pb2.ConverseRequest(config=converse_config)
+
+    def _create_audio_request(self, data):
+        return embedded_assistant_pb2.ConverseRequest(audio_in=data)
+
+    def _create_response_stream(self, service, request_stream, deadline):
+        return service.Converse(request_stream, deadline)
+
+    def _stop_sending_audio(self, resp):
+        if resp.event_type:
+            logger.info('event_type: %s', resp.event_type)
+
+        return (resp.event_type ==
+                embedded_assistant_pb2.ConverseResponse.END_OF_UTTERANCE)
+
+    def _handle_response(self, resp):
+        """Accumulate audio and text from the remote end. It will be handled
+        in _finish_request().
+        """
+
+        if resp.result.spoken_request_text:
+            logger.info('transcript: %s', resp.result.spoken_request_text)
+            self._transcript = resp.result.spoken_request_text
+
+        self._response_audio += resp.audio_out.audio_data
+
+    def _finish_request(self):
+        super()._finish_request()
+
+        if self._response_audio and self._audio_logging_enabled:
+            self._log_audio_out(self._response_audio)
+
+        return _Result(self._transcript, self._response_audio)
+
+    def _log_audio_out(self, frames):
+        response_filename = '%s/response.%03d.wav' % (
+            self._audio_log_dir, self._audio_log_ix)
+        logger.info('Writing response to %s', response_filename)
+
+        response_wav = wave.open(response_filename, 'w')
+        response_wav.setnchannels(1)
+        response_wav.setsampwidth(AUDIO_SAMPLE_SIZE)
+        response_wav.setframerate(AUDIO_SAMPLE_RATE_HZ)
+        response_wav.writeframes(frames)
+        response_wav.close()
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+
+    # for testing: use audio from a file
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file', nargs='?', default='test_speech.raw')
+    args = parser.parse_args()
+
+    if os.path.exists('/home/pi/credentials.json'):
+        # Legacy fallback: old location of credentials.
+        req = CloudSpeechRequest('/home/pi/credentials.json')
+    else:
+        req = CloudSpeechRequest('/home/pi/cloud_speech.json')
+
+    with open(args.file, 'rb') as f:
+        while True:
+            chunk = f.read(64000)
+            if not chunk:
+                break
+            req.add_data(chunk)
+    req.end_audio()
+
+    print('down response:', req.do_request())

@@ -1,0 +1,22 @@
+# Default config file for the voice-recognizer service.
+# Should be installed to ~/.config/voice-recognizer.ini
+
+# Select the trigger: gpio (default), clap.
+# trigger = clap
+
+# Uncomment to enable the Cloud Speech API for local commands.
+# cloud-speech = true
+
+# Uncomment to change the language. The following are supported:
+# Embedded Assistant API [cloud-speech = false] (at launch)
+#   en-US
+# Cloud Speech API with local TTS [cloud-speech = true]
+#   de-DE en-GB en-US es-ES fr-FR it-IT
+#   (This is limited by the local TTS. Cloud Speech API supports many more.)
+# language = en-US
+
+# Path to client secrets for the Assistant API.
+assistant-secrets = ~/assistant.json
+
+# Path to service account credentials for the Cloud Speech API.
+cloud-speech-secrets = ~/cloud_speech.json

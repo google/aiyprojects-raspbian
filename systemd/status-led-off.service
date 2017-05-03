@@ -1,0 +1,12 @@
+[Unit]
+Description=status led startup update
+DefaultDependencies=no
+Before=shutdown.target
+Requires=status-led.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c '/bin/echo "stopping" >/tmp/status-led'
+
+[Install]
+WantedBy=reboot.target halt.target poweroff.target

@@ -1,0 +1,124 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2017-04-21 14:33+CEST\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: src/action.py:172
+msgid "Volume at %d %%."
+msgstr ""
+
+#: src/action.py:202
+msgid "ip address"
+msgstr ""
+
+#: src/action.py:204
+msgid "I do not have an ip address assigned to me."
+msgstr ""
+
+#: src/action.py:206
+msgid "volume up"
+msgstr ""
+
+#: src/action.py:207
+msgid "volume down"
+msgstr ""
+
+#: src/action.py:208
+msgid "max volume"
+msgstr ""
+
+#: src/action.py:210 src/action.py:211
+msgid "repeat after me"
+msgstr ""
+
+#: src/action.py:225
+msgid "We've been friends since we were both starter projects"
+msgstr ""
+
+#: src/action.py:229
+msgid "clap"
+msgstr ""
+
+#: src/action.py:229
+msgid "clap clap"
+msgstr ""
+
+#: src/action.py:230
+msgid "She taught me everything I know."
+msgstr ""
+
+#: src/action.py:231
+msgid "hello"
+msgstr ""
+
+#: src/action.py:231
+msgid "hello to you too"
+msgstr ""
+
+#: src/action.py:232
+msgid "tell me a joke"
+msgstr ""
+
+#: src/action.py:233
+msgid "What do you call an alligator in a vest? An investigator."
+msgstr ""
+
+#: src/action.py:234
+msgid "three laws of robotics"
+msgstr ""
+
+#: src/action.py:235
+msgid ""
+"The laws of robotics are\n"
+"0: A robot may not injure a human being or, through inaction, allow a human\n"
+"being to come to harm.\n"
+"1: A robot must obey orders given it by human beings except where such orders\n"
+"would conflict with the First Law.\n"
+"2: A robot must protect its own existence as long as such protection does not\n"
+"conflict with the First or Second Law."
+msgstr ""
+
+#: src/action.py:242
+msgid "A galaxy far, far, just kidding. I'm from Seattle."
+msgstr ""
+
+#: src/action.py:242
+msgid "where are you from"
+msgstr ""
+
+#: src/action.py:243
+msgid "A machine has no name"
+msgstr ""
+
+#: src/action.py:243
+msgid "your name"
+msgstr ""
+
+#: src/action.py:245
+msgid "time"
+msgstr ""
+
+#: src/main.py:279
+msgid "Unexpected error. Try again or check the logs."
+msgstr ""
+
+#: src/main.py:292
+msgid "I don’t know how to answer that."
+msgstr ""
+
+#: src/main.py:295
+msgid "Could you try that again?"
+msgstr ""
+

@@ -1,0 +1,14 @@
+[Unit]
+Description=Set time with ntpdate
+After=network.target
+
+[Service]
+# use -u to avoid conflict with ntpd
+ExecStart=/usr/sbin/ntpdate -u pool.ntp.org
+
+# we may not have network yet, so retry until success
+Restart=on-failure
+RestartSec=3s
+
+[Install]
+WantedBy=multi-user.target

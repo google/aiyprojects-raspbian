@@ -1,0 +1,5 @@
+# Default config file for the status-led service.
+# Should be installed to ~/.config/status-led.ini
+
+# GPIO pin (in BCM numbering) to use for the status LED (default 25)
+# gpio-pin = 25
