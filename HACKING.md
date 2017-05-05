@@ -11,7 +11,6 @@ echo "deb http://archive.raspbian.org/raspbian/ stretch main" | sudo tee /etc/ap
 echo 'APT::Default-Release "jessie";' | sudo tee /etc/apt/apt.conf.d/default-release >/dev/null
 sudo apt-get update
 sudo apt-get upgrade
-sudo rpi-update
 sudo reboot
 ```
 
