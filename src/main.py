@@ -110,6 +110,8 @@ def main():
     parser = configargparse.ArgParser(
         default_config_files=CONFIG_FILES,
         description="Act on voice commands using Google's speech recognition")
+    parser.add_argument('-B', '--audio-backend', default='alsa',
+                        help='Name of the audio backend {\'alsa\', \'pulse\'}')
     parser.add_argument('-I', '--input-device', default='default',
                         help='Name of the audio input device')
     parser.add_argument('-O', '--output-device', default='default',
@@ -137,7 +139,7 @@ def main():
     create_pid_file(args.pid_file)
     i18n.set_language_code(args.language, gettext_install=True)
 
-    player = audio.Player(args.output_device)
+    player = audio.Player(args.audio_backend, args.output_device)
 
     if args.cloud_speech:
         credentials_file = os.path.expanduser(args.cloud_speech_secrets)
@@ -150,7 +152,7 @@ def main():
         recognizer = speech.AssistantSpeechRequest(credentials)
 
     recorder = audio.Recorder(
-        input_device=args.input_device, channels=1,
+        backend=args.audio_backend, input_device=args.input_device, channels=1,
         bytes_per_sample=speech.AUDIO_SAMPLE_SIZE,
         sample_rate_hz=speech.AUDIO_SAMPLE_RATE_HZ)
     with recorder:

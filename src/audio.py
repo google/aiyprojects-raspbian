@@ -29,6 +29,29 @@ def sample_width_to_string(sample_width):
     """Convert sample width (bytes) to ALSA format string."""
     return {1: 's8', 2: 's16', 4: 's32'}[sample_width]
 
+def gen_audio_cmd(mode, backend, input_device, channels, bytes_per_sample, sample_rate_hz):
+    """Generate command line for helper."""
+    if backend == 'alsa':
+        return [
+            'a%s' % mode,
+            '-q',
+            '-t', 'raw',
+            '-D', input_device,
+            '-c', str(channels),
+            '-f', sample_width_to_string(bytes_per_sample),
+            '-r', str(sample_rate_hz),
+        ]
+    elif backend == 'pulse':
+        return [
+            'pa%s' % mode,
+            '--raw',
+            '--channels=%s' % str(channels),
+            '--format=%s' % sample_width_to_string(bytes_per_sample),
+            '--rate=%s' % str(sample_rate_hz),
+        ]
+    else:
+        raise "Unknown backend."
+
 
 class Recorder(threading.Thread):
 
@@ -39,7 +62,7 @@ class Recorder(threading.Thread):
 
     CHUNK_S = 0.1
 
-    def __init__(self, input_device='default',
+    def __init__(self, backend='alsa', input_device='default',
                  channels=1, bytes_per_sample=2, sample_rate_hz=16000):
         """Create a Recorder with the given audio format.
 
@@ -58,15 +81,8 @@ class Recorder(threading.Thread):
 
         self._chunk_bytes = int(self.CHUNK_S * sample_rate_hz) * channels * bytes_per_sample
 
-        self._cmd = [
-            'arecord',
-            '-q',
-            '-t', 'raw',
-            '-D', input_device,
-            '-c', str(channels),
-            '-f', sample_width_to_string(bytes_per_sample),
-            '-r', str(sample_rate_hz),
-        ]
+        self._cmd = gen_audio_cmd('record', backend, input_device, channels,
+                                  bytes_per_sample, sample_rate_hz)
         self._arecord = None
         self._closed = False
 
@@ -127,7 +143,8 @@ class Player(object):
 
     """Plays short audio clips from a buffer or file."""
 
-    def __init__(self, output_device='default'):
+    def __init__(self, backend='alsa', output_device='default'):
+        self._backend = backend
         self._output_device = output_device
 
     def play_bytes(self, audio_bytes, sample_rate_hz, bytes_per_sample=2):
@@ -138,15 +155,8 @@ class Player(object):
         sample_width: sample width in bytes (eg 2 for 16-bit audio)
         """
 
-        cmd = [
-            'aplay',
-            '-q',
-            '-t', 'raw',
-            '-D', self._output_device,
-            '-c', '1',
-            '-f', sample_width_to_string(bytes_per_sample),
-            '-r', str(sample_rate_hz),
-        ]
+        cmd = gen_audio_cmd('play', self._backend, self._output_device,
+                            1, bytes_per_sample, sample_rate_hz)
 
         aplay = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         aplay.stdin.write(audio_bytes)
