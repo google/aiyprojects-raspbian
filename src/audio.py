@@ -130,7 +130,7 @@ class Player(object):
     def __init__(self, output_device='default'):
         self._output_device = output_device
 
-    def play_bytes(self, audio_bytes, sample_rate, sample_width=2):
+    def play_bytes(self, audio_bytes, sample_rate_hz, bytes_per_sample=2):
         """Play audio from the given bytes-like object.
 
         audio_bytes: audio data (mono)
@@ -144,8 +144,8 @@ class Player(object):
             '-t', 'raw',
             '-D', self._output_device,
             '-c', '1',
-            '-f', sample_width_to_string(sample_width),
-            '-r', str(sample_rate),
+            '-f', sample_width_to_string(bytes_per_sample),
+            '-r', str(sample_rate_hz),
         ]
 
         aplay = subprocess.Popen(cmd, stdin=subprocess.PIPE)

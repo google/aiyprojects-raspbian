@@ -292,8 +292,8 @@ class SyncMicRecognizer(object):
         sample_rate_hz = speech.AUDIO_SAMPLE_RATE_HZ
         logger.info('Playing %.4f seconds of audio...',
                     len(audio_bytes) / (bytes_per_sample * sample_rate_hz))
-        self.player.play_bytes(audio_bytes, sample_width=bytes_per_sample,
-                               sample_rate=sample_rate_hz)
+        self.player.play_bytes(audio_bytes, bytes_per_sample=bytes_per_sample,
+                               sample_rate_hz=sample_rate_hz)
 
 
 if __name__ == '__main__':
