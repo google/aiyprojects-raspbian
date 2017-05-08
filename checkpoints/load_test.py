@@ -35,7 +35,7 @@ INACTIVE_STR = 'ActiveState=inactive'
 
 STOP_DELAY = 1.0
 
-VOICE_RECOGNIZER_PATH = '/home/pi/voice-recognizer-raspi'
+VOICE_RECOGNIZER_PATH = os.path.realpath(os.path.join(__file__, '..', '..'))
 PYTHON3 = VOICE_RECOGNIZER_PATH + '/env/bin/python3'
 AUDIO_PY = VOICE_RECOGNIZER_PATH + '/src/audio.py'
 SPEECH_PY = VOICE_RECOGNIZER_PATH + '/src/speech.py'
