@@ -4,26 +4,27 @@ We recommend using [the images](https://aiyprojects.withgoogle.com/voice) we
 provide. Those images are based on [Raspbian](https://www.raspberrypi.org/downloads/raspbian/),
 with a few customizations and are tested on the Raspberry Pi 3.
 
-If you prefer to set up Raspbian yourself, add a source for `stretch`, the
-testing version of Raspbian:
-``` shell
-echo "deb http://archive.raspbian.org/raspbian/ stretch main" | sudo tee /etc/apt/sources.list.d/stretch.list >/dev/null
-echo 'APT::Default-Release "jessie";' | sudo tee /etc/apt/apt.conf.d/default-release >/dev/null
-sudo apt-get update
-sudo apt-get upgrade
-sudo reboot
-```
-
-Next install the project dependencies and setup services and the ALSA
-configuration for the VoiceHAT hardware:
+If you prefer to setup Raspbian yourself, install the project dependencies and
+setup services:
 ``` shell
 cd ~/voice-recognizer-raspi
 scripts/install-deps.sh
 scripts/install-services.sh
-scripts/install-alsa-config.sh
 ```
 
-## Get service credentials
+## Installing the Voice HAT driver and config
+
+To use the Voice HAT, you'll need to upgrade your kernel to 4.9, then adjust the
+kernel and ALSA configuration:
+``` shell
+sudo apt-get update
+sudo apt-get install raspberrypi-kernel
+sudo scripts/configure-driver.sh
+sudo scripts/install-alsa-config.sh
+sudo reboot
+```
+
+## Get cloud credentials
 
 To access the cloud services you need to register a project and generate
 credentials for cloud APIs. This is documented in the
