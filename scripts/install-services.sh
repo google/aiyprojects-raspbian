@@ -19,9 +19,11 @@
 set -o errexit
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
+repo_path="$PWD"
 
 for service in systemd/*.service; do
-  cp $service /lib/systemd/system/
+  sed "s:/home/pi/voice-recognizer-raspi:${repo_path}:g" "$service" \
+    > "/lib/systemd/system/$(basename "$service")"
 done
 
 # voice-recognizer is not enabled by default, as it doesn't work until

@@ -27,7 +27,7 @@ if os.path.exists('/home/pi/credentials.json'):
 else:
     CREDENTIALS_PATH = '/home/pi/cloud_speech.json'
 
-VOICE_RECOGNIZER_PATH = '/home/pi/voice-recognizer-raspi'
+VOICE_RECOGNIZER_PATH = os.path.realpath(os.path.join(__file__, '..', '..'))
 PYTHON3 = VOICE_RECOGNIZER_PATH + '/env/bin/python3'
 SPEECH_PY = VOICE_RECOGNIZER_PATH + '/src/speech.py'
 SPEECH_PY_ENV = {
