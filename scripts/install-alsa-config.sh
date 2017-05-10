@@ -26,9 +26,9 @@ global_asoundrc=/etc/asound.conf
 for rcfile in "$asoundrc" "$global_asoundrc"; do
   if [[ -f "$rcfile" ]] ; then
     echo "Renaming $rcfile to $rcfile.bak..."
-    mv "$rcfile" "$rcfile.bak"
+    sudo mv "$rcfile" "$rcfile.bak"
   fi
 done
 
-cp scripts/asound.conf "$global_asoundrc"
+sudo cp scripts/asound.conf "$global_asoundrc"
 echo "Installed voiceHAT ALSA config at $global_asoundrc"
