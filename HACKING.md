@@ -9,7 +9,7 @@ setup services:
 ``` shell
 cd ~/voice-recognizer-raspi
 scripts/install-deps.sh
-scripts/install-services.sh
+sudo scripts/install-services.sh
 ```
 
 ## Installing the Voice HAT driver and config
