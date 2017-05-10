@@ -127,8 +127,10 @@ def main():
     parser.add_argument('--audio-logging', action='store_true',
                         help='Log all requests and responses to WAV files in /tmp')
     parser.add_argument('--assistant-secrets',
+                        default=os.path.expanduser('~/assistant.json'),
                         help='Path to client secrets for the Assistant API')
     parser.add_argument('--cloud-speech-secrets',
+                        default=os.path.expanduser('~/cloud_speech.json'),
                         help='Path to service account credentials for the '
                         'Cloud Speech API')
 
