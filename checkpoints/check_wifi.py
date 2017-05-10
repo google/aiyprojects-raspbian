@@ -33,7 +33,7 @@ def check_wifi_is_configured():
 
 def check_wifi_is_connected():
     """Check wlan0 has an IP address."""
-    output = subprocess.check_output(['ifconfig', 'wlan0']).decode('utf-8')
+    output = subprocess.check_output(['sudo', 'ifconfig', 'wlan0']).decode('utf-8')
 
     return 'inet addr' in output
 
