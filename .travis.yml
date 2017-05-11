@@ -1,0 +1,10 @@
+language: python
+python:
+- 3.4
+
+install: pip3 install pep8 pyflakes
+
+script:
+- pep8 --max-line-length=100 .
+- nosetests
+
