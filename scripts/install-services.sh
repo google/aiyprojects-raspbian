@@ -18,6 +18,11 @@
 
 set -o errexit
 
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root (use sudo)" 1>&2
+   exit 1
+fi
+
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 repo_path="$PWD"
 
@@ -28,9 +33,9 @@ done
 
 # voice-recognizer is not enabled by default, as it doesn't work until
 # credentials are set up, so we explicitly enable the other services.
-sudo systemctl enable alsa-init.service
-sudo systemctl enable ntpdate.service
-sudo systemctl enable status-led.service
-sudo systemctl enable status-led-on.service
-sudo systemctl enable status-led-off.service
-sudo systemctl enable status-monitor.service
+systemctl enable alsa-init.service
+systemctl enable ntpdate.service
+systemctl enable status-led.service
+systemctl enable status-led-on.service
+systemctl enable status-led-off.service
+systemctl enable status-monitor.service
