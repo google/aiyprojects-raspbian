@@ -63,8 +63,16 @@ OLD_SERVICE_CREDENTIALS = os.path.expanduser('~/credentials.json')
 ASSISTANT_CREDENTIALS = os.path.join(VR_CACHE_DIR, 'assistant_credentials.json')
 ASSISTANT_OAUTH_SCOPE = 'https://www.googleapis.com/auth/assistant-sdk-prototype'
 
-PID_FILE = '/run/user/%d/voice-recognizer.pid' % os.getuid()
+# Grab pid file info
+USER_ID = '%d' % os.getuid()
+GROUP_ID = '%d' % os.getgid()
+PID_PATH = '/run/user/' + USER_ID
+PID_FILE = PID_PATH + '/voice-recognizer.pid'
+PID_COMMAND = 'sudo mkdir ' + PID_PATH + ' && sudo chown -R ' + USER_ID + ':' + GROUP_ID + ' ' + PID_PATH
 
+# Create and own pid directory if it doesn't exist
+if not os.path.exists(PID_PATH):
+    os.system(PID_COMMAND)
 
 def try_to_get_credentials(client_secrets):
     """Try to get credentials, or print an error and quit on failure."""
