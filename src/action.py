@@ -200,6 +200,7 @@ class RepeatAfterMe(object):
 # Shuts down the pi or reboots with a response
 #
 
+
 class PowerCommand(object):
     """Shutdown or reboot the pi"""
 
@@ -219,9 +220,6 @@ class PowerCommand(object):
             self.say("Sorry I didn't identify that command")
 
 
-playradioshell = None
-radioState = None
-radioStation = None
 class playRadio(object):
 
     def __init__(self, say, keyword):
@@ -241,17 +239,19 @@ class playRadio(object):
         return radioState
 
     def get_station(self, station_name):
+        # replace the stream for the first line 'radio' with the stream for your default station
         stations = {
-            'radio':'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_one.m3u8',
-            'radio 1':'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_one.m3u8',
-            'radio 2':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio2_mf_p?s=1494265194',
-            'radio 3':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio3_mf_p?s=1494265402',
-            'radio 4':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio4fm_mf_p?s=1494265402',
-            'radio 5':'http://open.live.bbc.co.uk/mediaselector/5/redir/version/2.0/mediaset/http-icy-mp3-a-stream/proto/http/vpid/bbc_radio_five_live',
-            'radio 6':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_6music_mf_p?s=1494265223',
-            'radio 1xtra':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p?s=1494265403',
-            'radio 4 extra':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio4extra_mf_q?s=1494265404',
-            'radio nottingham':'http://as-hls-uk-live.bbcfmt.hs.llnwd.net/pool_7/live/bbc_radio_nottingham/bbc_radio_nottingham.isml/bbc_radio_nottingham-audio%3d320000.norewind.m3u8',
+            'radio': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_6music.m3u8',
+            'radio 1': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_one.m3u8',
+            'radio 2': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_two.m3u8',
+            'radio 3': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_three.m3u8',
+            'radio 4': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_fourfm.m3u8',
+            'radio 5': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_five_live.m3u8',
+            'radio 5 sports': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_five_live_sports_extra.m3u8',
+            'radio 6': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_6music.m3u8',
+            'radio 1xtra': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_1xtra.m3u8',
+            'radio 4 extra': 'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p?s=1494265403',
+            'radio nottingham': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_nottingham.m3u8',
                     }
         return stations[station_name]
 
@@ -270,7 +270,8 @@ class playRadio(object):
         try:
             station = self.get_station(voice_command.lower())
         except KeyError:
-            station = 'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_6music_mf_p?s=1494265223'
+            # replace this stream with the stream for your default station
+            station = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_6music.m3u8'
         logging.info("stream " + station)
 
         media = self.instance.media_new(station)
@@ -278,17 +279,15 @@ class playRadio(object):
         player.play()
         self.set_state("playing")
 
-        time.sleep(1)
-
     def pause():
         logging.info("pausing radio")
-        if player != None:
+        if player is not None:
             player.stop()
 
     def resume():
 
         radioState = playRadio.get_state()
-        logging.info("resuming radio " + radioState )
+        logging.info("resuming radio " + radioState)
         if radioState == "playing":
             player.play()
 
@@ -321,7 +320,7 @@ def make_actor(say):
 
     actor.add_keyword(_('power off'), PowerCommand(say, 'shutdown'))
     actor.add_keyword(_('reboot'), PowerCommand(say, 'reboot'))
-    actor.add_keyword(_('radio'), playRadio(say,_('radio')))
+    actor.add_keyword(_('radio'), playRadio(say, _('radio')))
 
     return actor
 
@@ -353,8 +352,13 @@ conflict with the First or Second Law."""))
 
     actor.add_keyword(_('time'), SpeakTime(say))
 
+# =========================================
+# Makers! Add commands to pause and resume your actions here
+# =========================================
+
 def pauseActors():
     playRadio.pause()
+
 
 def resumeActors():
     playRadio.resume()
