@@ -320,6 +320,8 @@ def make_actor(say):
 
     actor.add_keyword(_('power off'), PowerCommand(say, 'shutdown'))
     actor.add_keyword(_('reboot'), PowerCommand(say, 'reboot'))
+    actor.add_keyword(_('set timer'), setTimer(say,_('set timer for ')))
+    actor.add_keyword(_('set a timer'), setTimer(say,_('set a timer for ')))
     actor.add_keyword(_('radio'), playRadio(say, _('radio')))
 
     return actor
