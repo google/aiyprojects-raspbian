@@ -159,9 +159,8 @@ def do_checks():
     """Run all audio checks and print status."""
     if not check_voicehat_present():
         print(textwrap.fill(
-            """Failed to find the voiceHAT soundcard. Please try reinstalling the
-voiceHAT driver:"""))
-        print('    cd ~/drivers-raspi && sudo ./install.sh && sudo reboot')
+            """Failed to find the voiceHAT soundcard. Refer to HACKING.md for
+how to setup the voiceHAT driver: https://git.io/v99yK"""))
         return
 
     if not check_voicehat_is_first_card():
