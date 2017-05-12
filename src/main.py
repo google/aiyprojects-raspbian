@@ -267,6 +267,7 @@ class SyncMicRecognizer(object):
                 break
 
             logger.info('recognizing...')
+            action.pause_actors()
             try:
                 self._handle_result(self.recognizer.do_request())
             except speech.Error:
@@ -274,6 +275,7 @@ class SyncMicRecognizer(object):
                 self.say(_('Unexpected error. Try again or check the logs.'))
 
             self.recognizer_event.clear()
+            action.resume_actors()
             self.triggerer.start()
             self._status('ready')
 
