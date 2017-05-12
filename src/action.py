@@ -340,6 +340,31 @@ class setTimer(object):
         t = threading.Timer(length, self.say, ["Time is up"]).start()
 
 
+class playYoutube(object):
+
+    def __init__(self, say, keyword):
+        self.say = say
+        self.keyword = keyword
+
+    def run(self, voice_command):
+
+        track = voice_command.replace(self.keyword, '', 1)
+
+        try:
+
+            logging.info("looking for track %s", track)
+
+            p = subprocess.Popen(["/usr/local/bin/mpsyt",""],stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+
+            p.stdin.write(bytes('/' + track + '\n1\n', 'utf-8'))
+            p.stdin.flush()
+
+        except (ValueError, subprocess.SubprocessError):
+            logging.exception("Error playing track: " + track + " : " + subprocess.SubprocessError)
+
+    def pause():
+        pkill = subprocess.Popen(["/usr/bin/pkill","omxplayer"],stdin=subprocess.PIPE)
+
 # =========================================
 # Makers! Implement your own actions here.
 # =========================================
@@ -371,6 +396,7 @@ def make_actor(say):
     actor.add_keyword(_('set timer'), setTimer(say,_('set timer for ')))
     actor.add_keyword(_('set a timer'), setTimer(say,_('set a timer for ')))
     actor.add_keyword(_('radio'), playRadio(say, _('radio')))
+    actor.add_keyword(_('youtube'), playYoutube(say,_('youtube')))
 
     return actor
 
