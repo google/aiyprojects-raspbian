@@ -17,6 +17,8 @@
 import datetime
 import logging
 import subprocess
+import vlc
+import time
 
 import actionbase
 
@@ -216,6 +218,81 @@ class PowerCommand(object):
             logging.error("Error identifying power command.")
             self.say("Sorry I didn't identify that command")
 
+
+playradioshell = None
+radioState = None
+radioStation = None
+class playRadio(object):
+
+    def __init__(self, say, keyword):
+        self.say = say
+        self.keyword = keyword
+        self.instance = vlc.Instance()
+        global player
+        player = self.instance.media_player_new()
+        self.set_state("stopped")
+
+    def set_state(self, new_state):
+        logging.info("setting radio state " + new_state)
+        global radioState
+        radioState = new_state
+
+    def get_state():
+        return radioState
+
+    def get_station(self, station_name):
+        stations = {
+            'radio':'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_one.m3u8',
+            'radio 1':'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_one.m3u8',
+            'radio 2':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio2_mf_p?s=1494265194',
+            'radio 3':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio3_mf_p?s=1494265402',
+            'radio 4':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio4fm_mf_p?s=1494265402',
+            'radio 5':'http://open.live.bbc.co.uk/mediaselector/5/redir/version/2.0/mediaset/http-icy-mp3-a-stream/proto/http/vpid/bbc_radio_five_live',
+            'radio 6':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_6music_mf_p?s=1494265223',
+            'radio 1xtra':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p?s=1494265403',
+            'radio 4 extra':'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio4extra_mf_q?s=1494265404',
+            'radio nottingham':'http://as-hls-uk-live.bbcfmt.hs.llnwd.net/pool_7/live/bbc_radio_nottingham/bbc_radio_nottingham.isml/bbc_radio_nottingham-audio%3d320000.norewind.m3u8',
+                    }
+        return stations[station_name]
+
+    def run(self, voice_command):
+
+        if (voice_command == "radio stop") or (voice_command == "radio off"):
+
+            logging.info("radio stopped")
+            player.stop()
+            self.set_state("stopped")
+
+            return
+
+        logging.info("starting " + voice_command)
+        global station
+        try:
+            station = self.get_station(voice_command.lower())
+        except KeyError:
+            station = 'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_6music_mf_p?s=1494265223'
+        logging.info("stream " + station)
+
+        media = self.instance.media_new(station)
+        player.set_media(media)
+        player.play()
+        self.set_state("playing")
+
+        time.sleep(1)
+
+    def pause():
+        logging.info("pausing radio")
+        if player != None:
+            player.stop()
+
+    def resume():
+
+        radioState = playRadio.get_state()
+        logging.info("resuming radio " + radioState )
+        if radioState == "playing":
+            player.play()
+
+
 # =========================================
 # Makers! Implement your own actions here.
 # =========================================
@@ -244,6 +321,7 @@ def make_actor(say):
 
     actor.add_keyword(_('power off'), PowerCommand(say, 'shutdown'))
     actor.add_keyword(_('reboot'), PowerCommand(say, 'reboot'))
+    actor.add_keyword(_('radio'), playRadio(say,_('radio')))
 
     return actor
 
@@ -274,3 +352,9 @@ conflict with the First or Second Law."""))
     simple_command(_('your name'), _('A machine has no name'))
 
     actor.add_keyword(_('time'), SpeakTime(say))
+
+def pauseActors():
+    playRadio.pause()
+
+def resumeActors():
+    playRadio.resume()
