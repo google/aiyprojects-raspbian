@@ -618,12 +618,12 @@ conflict with the First or Second Law."""))
 # Makers! Add commands to pause and resume your actions here
 # =========================================
 
-def pauseActors():
+def pause_actors():
     playRadio.pause()
     playYoutube.pause()
     playPodcast.pause()
 
 
-def resumeActors():
+def resume_actors():
     playRadio.resume()
     playPodcast.resume()
