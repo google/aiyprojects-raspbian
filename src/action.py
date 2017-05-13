@@ -19,10 +19,7 @@ import logging
 import subprocess
 import vlc
 import time
-<<<<<<< HEAD
 import threading
-=======
->>>>>>> 2522d42... Added a podcast player
 import feedparser
 
 import actionbase
@@ -555,7 +552,6 @@ class playYoutube(object):
         if playshell is not None:
             playshell.kill()
 
->>>>>>> 2522d42... Added a podcast player
 # =========================================
 # Makers! Implement your own actions here.
 # =========================================
