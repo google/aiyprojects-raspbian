@@ -26,7 +26,8 @@ fi
 scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
 
 sudo apt-get -y install alsa-utils python3-all-dev python3-pip python3-numpy \
-  python3-scipy python3-virtualenv rsync sox libttspico-utils ntpdate
+  python3-scipy python3-virtualenv python3-rpi.gpio python3-pysocks \
+  rsync sox libttspico-utils ntpdate
 sudo pip3 install --upgrade pip virtualenv
 
 cd "${scripts_dir}/.."
