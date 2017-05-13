@@ -474,7 +474,6 @@ class playPodcast(object):
             podcastPlayer.play()
 
 
-<<<<<<< HEAD
 =======
 class setTimer(object):
 
