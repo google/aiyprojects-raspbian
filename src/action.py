@@ -20,6 +20,7 @@ import subprocess
 import vlc
 import time
 import threading
+import feedparser
 
 import actionbase
 
