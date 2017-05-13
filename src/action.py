@@ -474,7 +474,6 @@ class playPodcast(object):
             podcastPlayer.play()
 
 
-=======
 class setTimer(object):
 
     def __init__(self, say, keyword):
@@ -583,10 +582,7 @@ def make_actor(say):
     actor.add_keyword(_('set a timer'), setTimer(say,_('set a timer for ')))
     actor.add_keyword(_('podcast'), playPodcast(say, _('podcast')))
     actor.add_keyword(_('radio'), playRadio(say, _('radio')))
-<<<<<<< HEAD
-=======
     actor.add_keyword(_('youtube'), playYoutube(say,_('YouTube')))
->>>>>>> 2522d42... Added a podcast player
 
     return actor
 
