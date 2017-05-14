@@ -19,8 +19,8 @@ import logging
 import subprocess
 import vlc
 import time
-import threading
-from word2number import w2n
+import feedparser
+import random
 
 import actionbase
 
@@ -197,6 +197,7 @@ class RepeatAfterMe(object):
         to_repeat = voice_command.replace(self.keyword, '', 1)
         self.say(to_repeat)
 
+=======
 
 # Example: Set timer
 # ========================
@@ -209,30 +210,6 @@ class setTimer(object):
     def __init__(self, say, keyword):
         self.say = say
         self.keyword = keyword
-
-    def to_number(self, number_string):
-        number = {'one':1,
-                    'two':2,
-                    'three':3,
-                    'four':4,
-                    'five':5,
-                    'six':6,
-                    'seven':7,
-                    'eight':8,
-                    'nine':9,
-                    'ten':10,
-                    'eleven':11,
-                    'twelve':12,
-                    'thirteen':13,
-                    'fourteen':14,
-                    'fifteen':15,
-                    'sixteen':16,
-                    'seventeen':17,
-                    'eighteen':18,
-                    'nineteen':19,
-                    'twenty':20,
-                    }
-        return number[number_string]
 
     def run(self, voice_command):
 
@@ -256,7 +233,6 @@ class setTimer(object):
 # Shuts down the pi or reboots with a response
 #
 
-
 class PowerCommand(object):
     """Shutdown or reboot the pi"""
 
@@ -265,16 +241,15 @@ class PowerCommand(object):
         self.command = command
 
     def run(self, voice_command):
-        if (self.command == "shutdown"):
+        if self.command == "shutdown":
             self.say("Shutting down, goodbye")
             subprocess.call("sudo shutdown now", shell=True)
-        elif (self.command == "reboot"):
+        elif self.command == "reboot":
             self.say("Rebooting")
             subprocess.call("sudo shutdown -r now", shell=True)
         else:
             logging.error("Error identifying power command.")
             self.say("Sorry I didn't identify that command")
-
 
 class playRadio(object):
 
@@ -349,6 +324,165 @@ class playRadio(object):
         if radioState == "playing":
             player.play()
 
+class playPodcast(object):
+
+    def __init__(self, say, keyword):
+        self.say = say
+        self.keyword = keyword
+        self.instance = vlc.Instance()
+        global podcastPlayer
+        podcastPlayer = self.instance.media_player_new()
+        self.set_state("stopped")
+
+    def set_state(self, new_state):
+        logging.info("setting podcast state " + new_state)
+        global podcastState
+        podcastState = new_state
+
+    def get_state():
+        return podcastState
+
+    def get_url(self, podcast_name):
+        # add the rss feeds for the podcasts
+        urls = {
+            'friday night comedy': 'http://www.bbc.co.uk/programmes/p02pc9pj/episodes/downloads.rss',
+            'inside science': 'http://www.bbc.co.uk/programmes/b036f7w2/episodes/downloads.rss',
+            'radcliffe and maconie': 'http://www.bbc.co.uk/programmes/p02nrw8y/episodes/downloads.rss',
+            'introducing': 'http://www.bbc.co.uk/programmes/p02nrw4q/episodes/downloads.rss',
+            'radiolab': 'http://feeds.wnyc.org/radiolab',
+            'ninety nine percent invisible': 'http://feeds.99percentinvisible.org/99percentinvisible',
+            '99% invisible': 'http://feeds.99percentinvisible.org/99percentinvisible',
+            'all about android': 'http://feeds.twit.tv/aaa.xml',
+            'tech news today': 'http://feeds.twit.tv/tnt.xml',
+            'twig': 'http://feeds.twit.tv/twig.xml',
+            'this week in tech': 'http://feeds.twit.tv/twit.xml',
+            'theory of everything': 'https://www.npr.org/rss/podcast.php?id=510061',
+            'ted radio hour': 'https://www.npr.org/rss/podcast.php?id=510298',
+            'radio diaries': 'http://feed.radiodiaries.org/radio-diaries',
+            'science for the people': 'http://feeds.feedburner.com/SkepticallySpeaking',
+            'new statesman': 'http://rss.acast.com/newstatesman',
+            'seriously': 'http://rss.acast.com/srsly',
+            'this american life': 'http://feed.thisamericanlife.org/talpodcast',
+            'naked scientists': 'https://rss.acast.com/naked_scientists_podcast',
+            'infinite monkey cage': 'http://www.bbc.co.uk/programmes/b00snr0w/episodes/downloads.rss',
+            'science weekly': 'https://www.theguardian.com/science/series/science/podcast.xml',
+            'ted talks': 'https://feeds.feedburner.com/ted/googlehome/tedtalks',
+            'star talk': 'http://feeds.soundcloud.com/users/soundcloud:users:38128127/sounds.rss',
+            'startalk': 'http://feeds.soundcloud.com/users/soundcloud:users:38128127/sounds.rss',
+            'science friday': 'http://sciencefriday.com/feed/podcast/podcast-episode',
+            'stuff you should know': 'http://www.howstuffworks.com/podcasts/stuff-you-should-know.rss',
+            'car stuff': 'http://www.howstuffworks.com/podcasts/carstuff.rss',
+            'tech stuff': 'http://www.howstuffworks.com/podcasts/techstuff.rss',
+            'stuff to blow your mind': 'http://www.howstuffworks.com/podcasts/stuff-to-blow-your-mind.rss',
+            'forward thinking': 'http://www.howstuffworks.com/podcasts/fwthinking.rss',
+            'wireless nights': 'http://www.bbc.co.uk/programmes/b01sg4kg/episodes/downloads.rss',
+            'allusionist': 'http://feeds.theallusionist.org/Allusionist',
+            'illusionist': 'http://feeds.theallusionist.org/Allusionist',
+            'longform': 'http://longform.libsyn.com/rss',
+            'trumpcast': 'http://feeds.megaphone.fm/trumpcast',
+            'trump cast': 'http://feeds.megaphone.fm/trumpcast',
+            'invisibilia': 'https://www.npr.org/rss/podcast.php?id=510307',
+            'song exploder': 'http://feed.songexploder.net/songexploder',
+                                    }
+        return urls[podcast_name]
+
+    def run(self, voice_command):
+
+        voice_command = ((voice_command.replace(self.keyword, '', 1)).strip()).lower()
+
+        logging.info("podcast command:" + voice_command)
+
+        if (voice_command == "stop") or (voice_command == "off"):
+
+            logging.info("podcast stopped")
+            podcastPlayer.stop()
+            self.set_state("stopped")
+            return
+
+        if voice_command == "pause":
+            logging.info("podcast pausing")
+            try:
+                self.set_state("paused")
+                #podcastPlayer.pause()
+            except NameError:
+                logging.info("error pausing")
+                return
+            return
+
+        if voice_command == "resume":
+            logging.info("podcast resuming")
+            try:
+                podcastPlayer.play()
+                self.set_state("playing")
+            except NameError:
+                logging.info("error resuming")
+                return
+            return
+
+        if "random" in voice_command:
+            random_podcast = True
+            voice_command = (voice_command.replace("random", '', 1)).strip()
+        else:
+            random_podcast = False
+
+        self.set_state("stopped")
+        global podcast_url
+        podcast_url = None
+
+        try:
+            feedUrl = self.get_url(voice_command)
+        except KeyError:
+            self.say("Sorry podcast not found")
+            return
+        logging.info("podcast feed: " + feedUrl)
+
+        feed = feedparser.parse( feedUrl )
+
+        if random_podcast:
+            number_of_podcasts = len(feed['entries'])
+            logging.info("podcast feed length: " + str(number_of_podcasts))
+            podcast_number = random.randint(0,number_of_podcasts)
+        else:
+            podcast_number = 0
+
+
+        for link in feed.entries[podcast_number].links:
+            href = link.href
+            if ".mp3" in href:
+                podcast_url = href
+                break
+
+        logging.info("podcast url: " + podcast_url)
+
+        media = self.instance.media_new(podcast_url)
+        podcastPlayer.set_media(media)
+        podcastPlayer.play()
+        time.sleep(1)
+        playing = set([1,2,3,4])
+        state = podcastPlayer.get_state()
+        self.set_state("starting")
+        if state not in playing:
+           logging.info("error playing podcast " + podcast_url)
+           self.say("Sorry error playing " + podcast)
+           self.set_state("stopped")
+        self.set_state("playing")
+
+    def pause():
+        podcastState = playPodcast.get_state()
+        logging.info("pausing podcast state is " + podcastState)
+        if podcastState == "playing":
+            try:
+                podcastPlayer.pause()
+            except NameError:
+                return
+
+    def resume():
+        podcastState = playPodcast.get_state()
+        logging.info("resume podcast state is " + podcastState)
+        if podcastState == "playing":
+            logging.info("resuming podcast state is playing " + podcastState)
+            podcastPlayer.play()
+
 
 # =========================================
 # Makers! Implement your own actions here.
@@ -378,6 +512,7 @@ def make_actor(say):
 
     actor.add_keyword(_('power off'), PowerCommand(say, 'shutdown'))
     actor.add_keyword(_('reboot'), PowerCommand(say, 'reboot'))
+    actor.add_keyword(_('podcast'), playPodcast(say, _('podcast')))
     actor.add_keyword(_('set timer'), setTimer(say,_('set timer for ')))
     actor.add_keyword(_('set a timer'), setTimer(say,_('set a timer for ')))
     actor.add_keyword(_('radio'), playRadio(say, _('Radio')))
@@ -412,13 +547,16 @@ conflict with the First or Second Law."""))
 
     actor.add_keyword(_('time'), SpeakTime(say))
 
+
 # =========================================
 # Makers! Add commands to pause and resume your actions here
 # =========================================
 
 def pauseActors():
+    playPodcast.pause()
     playRadio.pause()
 
 
 def resumeActors():
+    playPodcast.resume()
     playRadio.resume()
