@@ -270,7 +270,6 @@ class playRadio(object):
         return radioState
 
     def get_station(self, station_name):
-        # replace the stream for the first line 'radio' with the stream for your default station
         stations = {
             '1': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_one.m3u8',
             '2': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_two.m3u8',
@@ -346,44 +345,12 @@ class playPodcast(object):
         # add the rss feeds for the podcasts
         urls = {
             'friday night comedy': 'http://www.bbc.co.uk/programmes/p02pc9pj/episodes/downloads.rss',
-            'inside science': 'http://www.bbc.co.uk/programmes/b036f7w2/episodes/downloads.rss',
-            'radcliffe and maconie': 'http://www.bbc.co.uk/programmes/p02nrw8y/episodes/downloads.rss',
-            'introducing': 'http://www.bbc.co.uk/programmes/p02nrw4q/episodes/downloads.rss',
-            'radiolab': 'http://feeds.wnyc.org/radiolab',
-            'ninety nine percent invisible': 'http://feeds.99percentinvisible.org/99percentinvisible',
-            '99% invisible': 'http://feeds.99percentinvisible.org/99percentinvisible',
-            'all about android': 'http://feeds.twit.tv/aaa.xml',
             'tech news today': 'http://feeds.twit.tv/tnt.xml',
             'twig': 'http://feeds.twit.tv/twig.xml',
             'this week in tech': 'http://feeds.twit.tv/twit.xml',
             'theory of everything': 'https://www.npr.org/rss/podcast.php?id=510061',
-            'ted radio hour': 'https://www.npr.org/rss/podcast.php?id=510298',
-            'radio diaries': 'http://feed.radiodiaries.org/radio-diaries',
-            'science for the people': 'http://feeds.feedburner.com/SkepticallySpeaking',
-            'new statesman': 'http://rss.acast.com/newstatesman',
-            'seriously': 'http://rss.acast.com/srsly',
             'this american life': 'http://feed.thisamericanlife.org/talpodcast',
-            'naked scientists': 'https://rss.acast.com/naked_scientists_podcast',
-            'infinite monkey cage': 'http://www.bbc.co.uk/programmes/b00snr0w/episodes/downloads.rss',
-            'science weekly': 'https://www.theguardian.com/science/series/science/podcast.xml',
-            'ted talks': 'https://feeds.feedburner.com/ted/googlehome/tedtalks',
-            'star talk': 'http://feeds.soundcloud.com/users/soundcloud:users:38128127/sounds.rss',
-            'startalk': 'http://feeds.soundcloud.com/users/soundcloud:users:38128127/sounds.rss',
-            'science friday': 'http://sciencefriday.com/feed/podcast/podcast-episode',
-            'stuff you should know': 'http://www.howstuffworks.com/podcasts/stuff-you-should-know.rss',
-            'car stuff': 'http://www.howstuffworks.com/podcasts/carstuff.rss',
-            'tech stuff': 'http://www.howstuffworks.com/podcasts/techstuff.rss',
-            'stuff to blow your mind': 'http://www.howstuffworks.com/podcasts/stuff-to-blow-your-mind.rss',
-            'forward thinking': 'http://www.howstuffworks.com/podcasts/fwthinking.rss',
-            'wireless nights': 'http://www.bbc.co.uk/programmes/b01sg4kg/episodes/downloads.rss',
-            'allusionist': 'http://feeds.theallusionist.org/Allusionist',
-            'illusionist': 'http://feeds.theallusionist.org/Allusionist',
-            'longform': 'http://longform.libsyn.com/rss',
-            'trumpcast': 'http://feeds.megaphone.fm/trumpcast',
-            'trump cast': 'http://feeds.megaphone.fm/trumpcast',
-            'invisibilia': 'https://www.npr.org/rss/podcast.php?id=510307',
-            'song exploder': 'http://feed.songexploder.net/songexploder',
-                                    }
+            }
         return urls[podcast_name]
 
     def run(self, voice_command):
