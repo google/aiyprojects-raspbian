@@ -28,7 +28,7 @@ sudo reboot
 
 To access the cloud services you need to register a project and generate
 credentials for cloud APIs. This is documented in the
-[setup instructions](https://aiyprojects.withgoogle.com/voice) on the
+[setup instructions](https://aiyprojects.withgoogle.com/voice#users-guide-1-1--connect-to-google-cloud-platform) on the
 webpage.
 
 # Making code changes
