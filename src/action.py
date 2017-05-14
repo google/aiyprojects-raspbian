@@ -20,6 +20,7 @@ import subprocess
 import vlc
 import time
 import feedparser
+import random
 
 import actionbase
 
@@ -267,7 +268,6 @@ class playPodcast(object):
             'startalk': 'http://feeds.soundcloud.com/users/soundcloud:users:38128127/sounds.rss',
             'science friday': 'http://sciencefriday.com/feed/podcast/podcast-episode',
             'stuff you should know': 'http://www.howstuffworks.com/podcasts/stuff-you-should-know.rss',
-            'science stuff': 'http://syndication.howstuffworks.com/rss/science',
             'car stuff': 'http://www.howstuffworks.com/podcasts/carstuff.rss',
             'tech stuff': 'http://www.howstuffworks.com/podcasts/techstuff.rss',
             'stuff to blow your mind': 'http://www.howstuffworks.com/podcasts/stuff-to-blow-your-mind.rss',
@@ -285,23 +285,49 @@ class playPodcast(object):
 
     def run(self, voice_command):
 
-        if (voice_command == "podcast stop") or (voice_command == "podcast off"):
+        voice_command = ((voice_command.replace(self.keyword, '', 1)).strip()).lower()
+
+        logging.info("podcast command:" + voice_command)
+
+        if (voice_command == "stop") or (voice_command == "off"):
 
             logging.info("podcast stopped")
             podcastPlayer.stop()
             self.set_state("stopped")
-
             return
+
+        if voice_command == "pause":
+            logging.info("podcast pausing")
+            try:
+                self.set_state("paused")
+                #podcastPlayer.pause()
+            except NameError:
+                logging.info("error pausing")
+                return
+            return
+
+        if voice_command == "resume":
+            logging.info("podcast resuming")
+            try:
+                podcastPlayer.play()
+                self.set_state("playing")
+            except NameError:
+                logging.info("error resuming")
+                return
+            return
+
+        if "random" in voice_command:
+            random_podcast = True
+            voice_command = (voice_command.replace("random", '', 1)).strip()
+        else:
+            random_podcast = False
 
         self.set_state("stopped")
         global podcast_url
         podcast_url = None
 
-        podcast = voice_command.replace(self.keyword, '', 1)
-        podcast = (podcast.strip()).lower()
-
         try:
-            feedUrl = self.get_url(podcast.lower())
+            feedUrl = self.get_url(voice_command)
         except KeyError:
             self.say("Sorry podcast not found")
             return
@@ -309,7 +335,15 @@ class playPodcast(object):
 
         feed = feedparser.parse( feedUrl )
 
-        for link in feed.entries[0].links:
+        if random_podcast:
+            number_of_podcasts = len(feed['entries'])
+            logging.info("podcast feed length: " + str(number_of_podcasts))
+            podcast_number = random.randint(0,number_of_podcasts)
+        else:
+            podcast_number = 0
+
+
+        for link in feed.entries[podcast_number].links:
             href = link.href
             if ".mp3" in href:
                 podcast_url = href
@@ -331,19 +365,19 @@ class playPodcast(object):
         self.set_state("playing")
 
     def pause():
-        try:
-            podcastPlayer
-        except NameError:
-            return
-        else:
-            logging.info("pausing podcast")
-            podcastPlayer.pause()
-
+        podcastState = playPodcast.get_state()
+        logging.info("pausing podcast state is " + podcastState)
+        if podcastState == "playing":
+            try:
+                podcastPlayer.pause()
+            except NameError:
+                return
 
     def resume():
         podcastState = playPodcast.get_state()
-        logging.info("resuming podcast " + podcastState)
+        logging.info("resume podcast state is " + podcastState)
         if podcastState == "playing":
+            logging.info("resuming podcast state is playing " + podcastState)
             podcastPlayer.play()
 
 
