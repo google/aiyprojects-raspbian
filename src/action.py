@@ -197,7 +197,6 @@ class RepeatAfterMe(object):
         to_repeat = voice_command.replace(self.keyword, '', 1)
         self.say(to_repeat)
 
-=======
 
 # Example: Set timer
 # ========================
