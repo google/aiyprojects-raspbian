@@ -296,17 +296,16 @@ class playRadio(object):
     def get_station(self, station_name):
         # replace the stream for the first line 'radio' with the stream for your default station
         stations = {
-            'radio': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_6music.m3u8',
-            'radio 1': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_one.m3u8',
-            'radio 2': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_two.m3u8',
-            'radio 3': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_three.m3u8',
-            'radio 4': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_fourfm.m3u8',
-            'radio 5': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_five_live.m3u8',
-            'radio 5 sports': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_five_live_sports_extra.m3u8',
-            'radio 6': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_6music.m3u8',
-            'radio 1xtra': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_1xtra.m3u8',
-            'radio 4 extra': 'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p?s=1494265403',
-            'radio nottingham': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_nottingham.m3u8',
+            '1': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_one.m3u8',
+            '2': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_two.m3u8',
+            '3': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_three.m3u8',
+            '4': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_fourfm.m3u8',
+            '5': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_five_live.m3u8',
+            '5 sports': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_five_live_sports_extra.m3u8',
+            '6': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_6music.m3u8',
+            '1xtra': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_1xtra.m3u8',
+            '4 extra': 'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p?s=1494265403',
+            'nottingham': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_nottingham.m3u8',
                     }
         return stations[station_name]
 
@@ -320,12 +319,15 @@ class playRadio(object):
 
             return
 
-        logging.info("starting " + voice_command)
+        logging.info("starting radio " + voice_command)
         global station
         try:
-            station = self.get_station(voice_command.lower())
+            voice_command = ((voice_command.replace(self.keyword, '', 1)).lower()).strip()
+            logging.info("searching for: " + voice_command)
+            station = self.get_station(voice_command)
         except KeyError:
             # replace this stream with the stream for your default station
+            self.say("Radio search not found. Playing radio 6")
             station = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_6music.m3u8'
         logging.info("stream " + station)
 
@@ -377,7 +379,7 @@ def make_actor(say):
     actor.add_keyword(_('reboot'), PowerCommand(say, 'reboot'))
     actor.add_keyword(_('set timer'), setTimer(say,_('set timer for ')))
     actor.add_keyword(_('set a timer'), setTimer(say,_('set a timer for ')))
-    actor.add_keyword(_('radio'), playRadio(say, _('radio')))
+    actor.add_keyword(_('radio'), playRadio(say, _('Radio')))
 
     return actor
 
