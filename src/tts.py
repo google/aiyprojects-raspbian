@@ -19,7 +19,6 @@ import logging
 import os
 import subprocess
 import tempfile
-import wave
 
 import numpy as np
 from scipy import signal
@@ -80,23 +79,10 @@ def say(player, words, eq_filter=None, lang='en-US'):
     os.close(fd)
 
     try:
-        subprocess.call(['pico2wave', '-l', lang, '-w', raw_wav, words.encode("utf-8")])
-        with wave.open(raw_wav, 'rb') as f:
-            raw_bytes = f.readframes(f.getnframes())
+        subprocess.call(['pico2wave', '--lang', lang, '-w', raw_wav, words])
+        subprocess.call(['play', raw_wav, '--no-show-progress', '--guard'])
     finally:
         os.unlink(raw_wav)
-
-    # Deserialize and apply equalization filter
-    eq_audio = np.frombuffer(raw_bytes, dtype=np.int16)
-    if eq_filter:
-        eq_audio = eq_filter(eq_audio)
-
-    # Clip and serialize
-    int16_info = np.iinfo(np.int16)
-    eq_audio = np.clip(eq_audio, int16_info.min, int16_info.max)
-    eq_bytes = eq_audio.astype(np.int16).tostring()
-
-    player.play_bytes(eq_bytes, sample_rate=SAMPLE_RATE)
 
 
 def main():
