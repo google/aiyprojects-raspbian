@@ -69,7 +69,14 @@ def create_say(player):
 
 
 def say(player, words, eq_filter=None, lang='en-US'):
-    """Say the given words with TTS."""
+    """Say the given words with TTS.
+
+    Args:
+      player: To play the text-to-speech audio.
+      words: string or utf-8 bytes to say aloud.
+      eq_filter: function (operates on a numpy int16 array) to equalize audio
+      lang: language for the text-to-speech engine.
+    """
 
     try:
         (fd, raw_wav) = tempfile.mkstemp(suffix='.wav', dir=TMP_DIR)
@@ -80,7 +87,12 @@ def say(player, words, eq_filter=None, lang='en-US'):
     os.close(fd)
 
     try:
-        subprocess.call(['pico2wave', '-l', lang, '-w', raw_wav, words.encode("utf-8")])
+        words = words.encode('utf-8')
+    except AttributeError:
+        pass
+
+    try:
+        subprocess.call(['pico2wave', '-l', lang, '-w', raw_wav, words])
         with wave.open(raw_wav, 'rb') as f:
             raw_bytes = f.readframes(f.getnframes())
     finally:
