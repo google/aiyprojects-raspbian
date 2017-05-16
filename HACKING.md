@@ -2,10 +2,22 @@
 
 We recommend using [the images](https://aiyprojects.withgoogle.com/voice) we
 provide. Those images are based on [Raspbian](https://www.raspberrypi.org/downloads/raspbian/),
-with a few customizations and are tested on the Raspberry Pi 3.
+with a few customizations and are tested on the Raspberry Pi 3. If you prefer
+to setup Raspbian yourself, there are some manual steps you need to take.
 
-If you prefer to setup Raspbian yourself, install the project dependencies and
-setup services:
+## Installing the dependencies
+
+First, make sure you have `git` installed and clone this repository in
+`~/voice-recognizer-raspi`:
+
+```shell
+sudo apt-get install git
+cd
+git clone https://github.com/google/aiyprojects-raspbian.git voice-recognizer-raspi
+```
+
+Then, install the project dependencies and setup the services:
+
 ``` shell
 cd ~/voice-recognizer-raspi
 scripts/install-deps.sh
@@ -16,6 +28,7 @@ sudo scripts/install-services.sh
 
 To use the Voice HAT, you'll need to upgrade your kernel to 4.9, then adjust the
 kernel and ALSA configuration:
+
 ``` shell
 sudo apt-get update
 sudo apt-get install raspberrypi-kernel
@@ -28,7 +41,7 @@ sudo reboot
 
 To access the cloud services you need to register a project and generate
 credentials for cloud APIs. This is documented in the
-[setup instructions](https://aiyprojects.withgoogle.com/voice) on the
+[setup instructions](https://aiyprojects.withgoogle.com/voice#users-guide-1-1--connect-to-google-cloud-platform) on the
 webpage.
 
 # Making code changes
@@ -39,7 +52,9 @@ Raspberry Pi by running:
 ``` shell
 make deploy
 ```
+
 To execute the script on the Raspberry Pi run, login to it and run:
+
 ``` shell
 cd ~/voice-recognizer-raspi
 source env/bin/activate
@@ -48,7 +63,7 @@ python3 src/main.py
 
 # I18N
 
-Strings wrapped with `_()` are marked for translation.
+Strings wrapped with `_()` are marked for translation:
 
 ``` shell
 # update catalog after string changed
