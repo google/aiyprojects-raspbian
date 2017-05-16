@@ -274,8 +274,11 @@ class SyncMicRecognizer(object):
                 self.say(_('Unexpected error. Try again or check the logs.'))
 
             self.recognizer_event.clear()
-            self.triggerer.start()
-            self._status('ready')
+            if self.recognizer.dialog_follow_on:
+                self.recognize()
+            else:
+                self.triggerer.start()
+                self._status('ready')
 
     def _handle_result(self, result):
         if result.transcript and self.actor.handle(result.transcript):
