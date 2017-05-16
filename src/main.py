@@ -68,7 +68,8 @@ USER_ID = '%d' % os.getuid()
 GROUP_ID = '%d' % os.getgid()
 PID_PATH = '/run/user/' + USER_ID
 PID_FILE = PID_PATH + '/voice-recognizer.pid'
-PID_COMMAND = 'sudo mkdir ' + PID_PATH + ' && sudo chown -R ' + USER_ID + ':' + GROUP_ID + ' ' + PID_PATH
+PID_COMMAND = 'sudo mkdir ' + PID_PATH + ' && sudo chown -R ' \
+  + USER_ID + ':' + GROUP_ID + ' ' + PID_PATH
 
 # Create and own pid directory if it doesn't exist
 if not os.path.exists(PID_PATH):
