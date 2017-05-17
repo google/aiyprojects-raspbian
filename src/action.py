@@ -206,10 +206,10 @@ class PowerCommand(object):
         self.command = command
 
     def run(self, voice_command):
-        if (self.command == "shutdown"):
+        if self.command == "shutdown":
             self.say("Shutting down, goodbye")
             subprocess.call("sudo shutdown now", shell=True)
-        elif (self.command == "reboot"):
+        elif self.command == "reboot":
             self.say("Rebooting")
             subprocess.call("sudo shutdown -r now", shell=True)
         else:
