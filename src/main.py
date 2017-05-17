@@ -72,8 +72,11 @@ PID_COMMAND = 'sudo mkdir ' + PID_PATH + ' && sudo chown -R ' \
   + USER_ID + ':' + GROUP_ID + ' ' + PID_PATH
 
 # Create and own pid directory if it doesn't exist
+
+
 if not os.path.exists(PID_PATH):
     os.system(PID_COMMAND)
+
 
 def try_to_get_credentials(client_secrets):
     """Try to get credentials, or print an error and quit on failure."""
