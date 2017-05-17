@@ -274,3 +274,14 @@ conflict with the First or Second Law."""))
     simple_command(_('your name'), _('A machine has no name'))
 
     actor.add_keyword(_('time'), SpeakTime(say))
+
+
+# =========================================
+# Makers! Add commands to pause and resume your actions here
+# =========================================
+
+def pauseActors():
+    """add your resume actions here"""
+
+def resumeActors():
+    """add your pause actions here"""
