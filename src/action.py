@@ -137,7 +137,7 @@ class SpeakShellCommandOutput(object):
     def run(self, voice_command):
         output = subprocess.check_output(self.shell_command, shell=True).strip()
         if output:
-            self.say(output)
+            self.say(output.decode('utf-8'))
         elif self.failure_text:
             self.say(self.failure_text)
 

@@ -80,7 +80,7 @@ def say(player, words, eq_filter=None, lang='en-US'):
     os.close(fd)
 
     try:
-        subprocess.call(['pico2wave', '-l', lang, '-w', raw_wav, words.encode("utf-8")])
+        subprocess.call(['pico2wave', '-l', lang, '-w', raw_wav, words.encode('utf-8')])
         with wave.open(raw_wav, 'rb') as f:
             raw_bytes = f.readframes(f.getnframes())
     finally:
