@@ -26,15 +26,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger('status-monitor')
 
-PID_FILE = '/run/user/%d/voice-recognizer.pid' % os.getuid()
-
 
 def get_pid(pid_file):
+    if not pid_file:
+        # Try the default locations of the pid file, as we don't know where
+        # the voice-recognizer created it.
+        pid_file = '/run/user/%d/voice-recognizer.pid' % os.getuid()
+        if not os.path.isfile(pid_file):
+            pid_file = '/tmp/voice-recognizer.pid'
+
     try:
         with open(pid_file, 'r') as pid:
-            return int(pid.read())
+            return int(pid.read()), pid_file
     except IOError:
-        return None
+        return None, pid_file
 
 
 def set_led_status(led_fifo):
@@ -43,13 +48,13 @@ def set_led_status(led_fifo):
 
 
 def check_liveness(pid_file, led_fifo):
-    pid = get_pid(pid_file)
+    pid, found_pid_file = get_pid(pid_file)
     if pid:
         if not os.path.exists("/proc/%d" % pid):
             logger.info("monitored process not running")
             set_led_status(led_fifo)
             try:
-                os.unlink(pid_file)
+                os.unlink(found_pid_file)
             except IOError:
                 pass
 
@@ -59,7 +64,7 @@ def main():
         description="Monitor liveness of processes and update led status.")
     parser.add_argument('-l', '--led-fifo', default='/tmp/status-led',
                         help='Status led control fifo')
-    parser.add_argument('-p', '--pid-file', default=PID_FILE,
+    parser.add_argument('-p', '--pid-file',
                         help='File containing our process id for monitoring')
     args = parser.parse_args()
 

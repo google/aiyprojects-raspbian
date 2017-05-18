@@ -63,8 +63,6 @@ OLD_SERVICE_CREDENTIALS = os.path.expanduser('~/credentials.json')
 ASSISTANT_CREDENTIALS = os.path.join(VR_CACHE_DIR, 'assistant_credentials.json')
 ASSISTANT_OAUTH_SCOPE = 'https://www.googleapis.com/auth/assistant-sdk-prototype'
 
-PID_FILE = '/run/user/%d/voice-recognizer.pid' % os.getuid()
-
 
 def try_to_get_credentials(client_secrets):
     """Try to get credentials, or print an error and quit on failure."""
@@ -102,6 +100,14 @@ User's Guide for more info.""")
 
 
 def create_pid_file(file_name):
+    if not file_name:
+        # Try the default locations of the pid file, preferring /run/user as
+        # it uses tmpfs.
+        pid_dir = '/run/user/%d' % os.getuid()
+        if not os.path.isdir(pid_dir):
+            pid_dir = '/tmp'
+        file_name = os.path.join(pid_dir, 'voice-recognizer.pid')
+
     with open(file_name, 'w') as pid_file:
         pid_file.write("%d" % os.getpid())
 
@@ -122,7 +128,7 @@ def main():
                         help='Language code to use for speech (default: en-US)')
     parser.add_argument('-l', '--led-fifo', default='/tmp/status-led',
                         help='Status led control fifo')
-    parser.add_argument('-p', '--pid-file', default=PID_FILE,
+    parser.add_argument('-p', '--pid-file',
                         help='File containing our process id for monitoring')
     parser.add_argument('--audio-logging', action='store_true',
                         help='Log all requests and responses to WAV files in /tmp')
