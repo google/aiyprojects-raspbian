@@ -28,12 +28,6 @@ repo_path="$PWD"
 
 # We want the uid of the user that runs sudo
 userid=$(id -u $SUDO_USER)
-rundir=/run/user/$userid
-
-# Ensure that the directory where the PID is created exists
-if [[ ! -e ${rundir} ]]; then
-  mkdir ${rundir} && chown $SUDO_USER:$SUDO_USER ${rundir}
-fi
 
 # Use systemd-tmpfiles and create the PID directory on boot if it doesn't exist
 sed -e "s:userid:${userid}:;s:username:$SUDO_USER:g" systemd/tmpfiles.d/create-run-dir.conf \
