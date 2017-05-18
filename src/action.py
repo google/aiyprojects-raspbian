@@ -257,7 +257,8 @@ class playRadio(object):
 
     def run(self, voice_command):
 
-        if (voice_command == "radio stop") or (voice_command == "radio off"):
+        voice_command = ((voice_command.replace(self.keyword, '', 1)).lower()).strip()
+        if (voice_command == "stop") or (voice_command == "off"):
 
             logging.info("radio stopped")
             player.stop()
@@ -268,7 +269,6 @@ class playRadio(object):
         logging.info("starting radio " + voice_command)
         global station
         try:
-            voice_command = ((voice_command.replace(self.keyword, '', 1)).lower()).strip()
             logging.info("searching for: " + voice_command)
             station = self.get_station(voice_command)
         except KeyError:
@@ -323,8 +323,6 @@ def make_actor(say):
 
     actor.add_keyword(_('power off'), PowerCommand(say, 'shutdown'))
     actor.add_keyword(_('reboot'), PowerCommand(say, 'reboot'))
-    actor.add_keyword(_('set timer'), setTimer(say,_('set timer for ')))
-    actor.add_keyword(_('set a timer'), setTimer(say,_('set a timer for ')))
     actor.add_keyword(_('radio'), playRadio(say, _('Radio')))
 
     return actor
@@ -361,9 +359,12 @@ conflict with the First or Second Law."""))
 # Makers! Add commands to pause and resume your actions here
 # =========================================
 
+
 def pauseActors():
     """add your resume actions here"""
     playRadio.pause()
+
+
 def resumeActors():
     """add your pause actions here"""
     playRadio.resume()
