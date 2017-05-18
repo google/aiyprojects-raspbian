@@ -73,7 +73,7 @@ def say(player, words, eq_filter=None, lang='en-US'):
 
     Args:
       player: To play the text-to-speech audio.
-      words: string or utf-8 bytes to say aloud.
+      words: string to say aloud.
       eq_filter: function (operates on a numpy int16 array) to equalize audio
       lang: language for the text-to-speech engine.
     """
@@ -87,12 +87,7 @@ def say(player, words, eq_filter=None, lang='en-US'):
     os.close(fd)
 
     try:
-        words = words.encode('utf-8')
-    except AttributeError:
-        pass
-
-    try:
-        subprocess.call(['pico2wave', '-l', lang, '-w', raw_wav, words])
+        subprocess.call(['pico2wave', '-l', lang, '-w', raw_wav, words.encode("utf-8")])
         with wave.open(raw_wav, 'rb') as f:
             raw_bytes = f.readframes(f.getnframes())
     finally:
