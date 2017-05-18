@@ -284,10 +284,8 @@ class SyncMicRecognizer(object):
             self._play_assistant_response(result.response_audio)
         elif result.transcript:
             logger.warning('%r was not handled', result.transcript)
-            self.say(_("I don’t know how to answer that."))
         else:
             logger.warning('no command recognized')
-            self.say(_("Could you try that again?"))
 
     def _play_assistant_response(self, audio_bytes):
         bytes_per_sample = speech.AUDIO_SAMPLE_SIZE
