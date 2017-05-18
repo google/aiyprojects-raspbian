@@ -257,16 +257,15 @@ class playRadio(object):
 
     def run(self, voice_command):
 
-        voice_command = ((voice_command.replace(self.keyword, '', 1)).lower()).strip()
-        if (voice_command == "stop") or (voice_command == "off"):
+        voice_command = ((voice_command.lower()).replace(self.keyword, '', 1)).strip()
 
+        if (voice_command == "stop") or (voice_command == "off"):
             logging.info("radio stopped")
             player.stop()
             self.set_state("stopped")
-
             return
 
-        logging.info("starting radio " + voice_command)
+        logging.info("starting radio: " + voice_command)
         global station
         try:
             logging.info("searching for: " + voice_command)
@@ -288,7 +287,6 @@ class playRadio(object):
             player.stop()
 
     def resume():
-
         radioState = playRadio.get_state()
         logging.info("resuming radio " + radioState)
         if radioState == "playing":
@@ -323,7 +321,7 @@ def make_actor(say):
 
     actor.add_keyword(_('power off'), PowerCommand(say, 'shutdown'))
     actor.add_keyword(_('reboot'), PowerCommand(say, 'reboot'))
-    actor.add_keyword(_('radio'), playRadio(say, _('Radio')))
+    actor.add_keyword(_('radio'), playRadio(say, _('radio')))
 
     return actor
 
