@@ -193,6 +193,7 @@ class RepeatAfterMe(object):
         to_repeat = voice_command.replace(self.keyword, '', 1)
         self.say(to_repeat)
 
+
 # Power: Shutdown or reboot the pi
 # ================================
 # Shuts down the pi or reboots with a response
