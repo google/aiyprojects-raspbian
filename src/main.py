@@ -100,7 +100,7 @@ User's Guide for more info.""")
 
 
 def create_pid_file(file_name):
-    if file_name is None:
+    if not file_name:
         # Try the default locations of the pid file, preferring /run/user as
         # it uses tmpfs.
         pid_dir = '/run/user/%d' % os.getuid()
