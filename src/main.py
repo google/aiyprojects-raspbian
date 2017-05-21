@@ -192,7 +192,7 @@ def do_recognition(args, recorder, recognizer, player):
         return
 
     mic_recognizer = SyncMicRecognizer(
-        actor, recognizer, recorder, player, say, triggerer, 
+        actor, recognizer, recorder, player, say, triggerer,
         led_fifo=args.led_fifo, trigger_sound=args.trigger_sound)
 
     with mic_recognizer:
@@ -214,8 +214,8 @@ class SyncMicRecognizer(object):
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, actor, recognizer, recorder, player, say, triggerer, 
-        led_fifo, trigger_sound):
+    def __init__(self, actor, recognizer, recorder, player, say, triggerer,
+                 led_fifo, trigger_sound):
         self.actor = actor
         self.player = player
         self.recognizer = recognizer
