@@ -139,6 +139,8 @@ def main():
                         default=os.path.expanduser('~/cloud_speech.json'),
                         help='Path to service account credentials for the '
                         'Cloud Speech API')
+    parser.add_argument('--trigger-sound', default=None,
+                        help='Sound when trigger is activated (WAV format)')
 
     args = parser.parse_args()
 
@@ -190,7 +192,8 @@ def do_recognition(args, recorder, recognizer, player):
         return
 
     mic_recognizer = SyncMicRecognizer(
-        actor, recognizer, recorder, player, say, triggerer, led_fifo=args.led_fifo)
+        actor, recognizer, recorder, player, say, triggerer,
+        led_fifo=args.led_fifo, trigger_sound=args.trigger_sound)
 
     with mic_recognizer:
         if sys.stdout.isatty():
@@ -211,7 +214,8 @@ class SyncMicRecognizer(object):
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, actor, recognizer, recorder, player, say, triggerer, led_fifo):
+    def __init__(self, actor, recognizer, recorder, player, say, triggerer,
+                 led_fifo, trigger_sound):
         self.actor = actor
         self.player = player
         self.recognizer = recognizer
@@ -222,6 +226,11 @@ class SyncMicRecognizer(object):
         self.triggerer.set_callback(self.recognize)
 
         self.running = False
+
+        if trigger_sound and os.path.exists(trigger_sound):
+            self.trigger_sound = trigger_sound
+        else:
+            self.trigger_sound = None
 
         if led_fifo and os.path.exists(led_fifo):
             self.led_fifo = led_fifo
@@ -255,6 +264,9 @@ class SyncMicRecognizer(object):
         if self.recognizer_event.is_set():
             # Duplicate trigger (eg multiple button presses)
             return
+
+        if self.trigger_sound:
+            self.player.play_wav(self.trigger_sound)
 
         self.recognizer.reset()
         self.recorder.add_processor(self.recognizer)

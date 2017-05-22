@@ -4,6 +4,9 @@
 # Select the trigger: gpio (default), clap.
 # trigger = clap
 
+# Select the trigger sound:
+# trigger-sound = path_to_your_sound.wav
+
 # Uncomment to enable the Cloud Speech API for local commands.
 # cloud-speech = true
 
