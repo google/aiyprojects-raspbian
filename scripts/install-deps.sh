@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-RUN_AS="pi"
-
 set -o errexit
 
+scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+
+# make sure we're running as the owner of the checkout directory
+RUN_AS="$(ls -ld "$scripts_dir" | awk 'NR==1 {print $3}')"
 if [ "$USER" != "$RUN_AS" ]
 then
     echo "This script must run as $RUN_AS, trying to change user..."
     exec sudo -u $RUN_AS $0
 fi
-
-scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
 
 sudo apt-get -y install alsa-utils python3-all-dev python3-pip python3-numpy \
   python3-scipy python3-virtualenv python3-rpi.gpio python3-pysocks \
@@ -32,9 +32,7 @@ sudo pip3 install --upgrade pip virtualenv
 
 cd "${scripts_dir}/.."
 virtualenv --system-site-packages -p python3 env
-env/bin/pip install google-assistant-sdk[auth_helpers]==0.1.0 \
-  grpc-google-cloud-speech-v1beta1==0.14.0 protobuf==3.1.0 \
-  configargparse==0.11.0
+env/bin/pip install -r requirements.txt
 
 for config in status-led.ini voice-recognizer.ini; do
   if [[ ! -f "${HOME}/.config/${config}" ]] ; then

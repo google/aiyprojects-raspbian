@@ -68,7 +68,14 @@ def create_say(player):
 
 
 def say(player, words, eq_filter=None, lang='en-US'):
-    """Say the given words with TTS."""
+    """Say the given words with TTS.
+
+    Args:
+      player: To play the text-to-speech audio.
+      words: string to say aloud.
+      eq_filter: function (operates on a numpy int16 array) to equalize audio
+      lang: language for the text-to-speech engine.
+    """
 
     try:
         (fd, raw_wav) = tempfile.mkstemp(suffix='.wav', dir=TMP_DIR)
