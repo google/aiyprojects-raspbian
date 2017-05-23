@@ -165,7 +165,7 @@ class Player(object):
 
         with wave.open(wav_path, 'r') as wav:
             if wav.getnchannels() != 1:
-                raise ValueError(wav_path + 'is not a mono file')
+                raise ValueError(wav_path + ' is not a mono file')
 
             frames = wav.readframes(wav.getnframes())
             self.play_bytes(frames, wav.getframerate(), wav.getsampwidth())
