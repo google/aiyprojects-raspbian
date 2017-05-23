@@ -19,6 +19,8 @@ import logging
 import subprocess
 import vlc
 import time
+import requests
+import re
 
 import actionbase
 
@@ -250,7 +252,7 @@ class playRadio(object):
             '5 sports': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_five_live_sports_extra.m3u8',
             '6': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_6music.m3u8',
             '1xtra': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_1xtra.m3u8',
-            '4 extra': 'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p?s=1494265403',
+            '4 extra': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_four_extra.m3u8',
             'nottingham': 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_nottingham.m3u8',
                     }
         return stations[station_name]
@@ -274,11 +276,16 @@ class playRadio(object):
             # replace this stream with the stream for your default station
             self.say("Radio search not found. Playing radio 6")
             station = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_6music.m3u8'
-        logging.info("stream " + station)
 
+        if station.endswith("m3u"):
+            logging.info("m3u reading manually")
+            content = requests.get(station, stream=True).text
+            url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', content)[0]
+            station = url.strip()
+
+        logging.info("stream " + station)
         media = self.instance.media_new(station)
         player.set_media(media)
-        player.play()
         self.set_state("playing")
 
     def pause():
