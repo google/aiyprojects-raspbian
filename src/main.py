@@ -227,9 +227,13 @@ class SyncMicRecognizer(object):
 
         self.running = False
 
-        if trigger_sound and os.path.exists(trigger_sound):
-            self.trigger_sound = trigger_sound
+        if trigger_sound and os.path.exists(os.path.expanduser(trigger_sound)):
+            self.trigger_sound = os.path.expanduser(trigger_sound)
         else:
+            if trigger_sound:
+                logger.warning(
+                    'File %s specified for --trigger-sound does not exist.',
+                    trigger_sound)
             self.trigger_sound = None
 
         if led_fifo and os.path.exists(led_fifo):
