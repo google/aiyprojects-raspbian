@@ -18,6 +18,9 @@ import datetime
 import logging
 import subprocess
 
+import phue
+from rgbxy import Converter
+
 import actionbase
 
 # =============================================================================
@@ -192,6 +195,44 @@ class RepeatAfterMe(object):
         # remove it before saying whatever is left.
         to_repeat = voice_command.replace(self.keyword, '', 1)
         self.say(to_repeat)
+
+
+# Example: Change Philips Light Color
+# ====================================
+#
+# This example will change the color of the named bulb to that of the
+# HEX RGB color and respond with 'ok'
+#
+# actor.add_keyword(_('change to ocean blue'), \
+# 		ChangeLightColor(say, "philips-hue", "Lounge Lamp", "0077be"))
+
+class ChangeLightColor(object):
+
+    """Change a Philips Hue bulb color."""
+
+    def __init__(self, say, bridge_address, bulb_name, hex_color):
+        self.converter = Converter()
+        self.say = say
+        self.hex_color = hex_color
+        self.bulb_name = bulb_name
+        self.bridge_address = bridge_address
+
+    def run(self):
+        bridge = self.find_bridge()
+        if bridge:
+            light = bridge.get_light_objects("name")[self.bulb_name]
+            light.on = True
+            light.xy = self.converter.hex_to_xy(self.hex_color)
+            self.say(_("Ok"))
+
+    def find_bridge(self):
+        try:
+            bridge = phue.Bridge(self.bridge_address)
+            bridge.connect()
+            return bridge
+        except phue.PhueRegistrationException:
+            logging.info("hue: No bridge registered, press button on bridge and try again")
+            self.say(_("No bridge registered, press button on bridge and try again"))
 
 
 # =========================================
