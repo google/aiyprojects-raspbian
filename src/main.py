@@ -132,6 +132,11 @@ def main():
                         help='File containing our process id for monitoring')
     parser.add_argument('--audio-logging', action='store_true',
                         help='Log all requests and responses to WAV files in /tmp')
+    parser.add_argument('--assistant-always-responds', action='store_true',
+                        help='Play Assistant responses for local actions.'
+                        ' You should make sure that you have IFTTT applets for'
+                        ' your actions to get the correct response, and also'
+                        ' that your actions do not call say().')
     parser.add_argument('--assistant-secrets',
                         default=os.path.expanduser('~/assistant.json'),
                         help='Path to client secrets for the Assistant API')
@@ -193,7 +198,8 @@ def do_recognition(args, recorder, recognizer, player):
 
     mic_recognizer = SyncMicRecognizer(
         actor, recognizer, recorder, player, say, triggerer,
-        led_fifo=args.led_fifo, trigger_sound=args.trigger_sound)
+        led_fifo=args.led_fifo, trigger_sound=args.trigger_sound,
+        assistant_always_responds=args.assistant_always_responds)
 
     with mic_recognizer:
         if sys.stdout.isatty():
@@ -215,7 +221,7 @@ class SyncMicRecognizer(object):
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, actor, recognizer, recorder, player, say, triggerer,
-                 led_fifo, trigger_sound):
+                 led_fifo, trigger_sound, assistant_always_responds):
         self.actor = actor
         self.player = player
         self.recognizer = recognizer
@@ -224,6 +230,7 @@ class SyncMicRecognizer(object):
         self.say = say
         self.triggerer = triggerer
         self.triggerer.set_callback(self.recognize)
+        self.assistant_always_responds = assistant_always_responds
 
         self.running = False
 
@@ -305,6 +312,8 @@ class SyncMicRecognizer(object):
     def _handle_result(self, result):
         if result.transcript and self.actor.handle(result.transcript):
             logger.info('handled local command: %s', result.transcript)
+            if result.response_audio and self.assistant_always_responds:
+                self._play_assistant_response(result.response_audio)
         elif result.response_audio:
             self._play_assistant_response(result.response_audio)
         elif result.transcript:
