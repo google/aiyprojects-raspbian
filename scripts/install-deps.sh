@@ -33,6 +33,7 @@ sudo pip3 install --upgrade pip virtualenv
 cd "${scripts_dir}/.."
 virtualenv --system-site-packages -p python3 env
 env/bin/pip install -r requirements.txt
+env/bin/pip install --upgrade https://github.com/googlesamples/assistant-sdk-python/releases/download/0.3.0/google_assistant_library-0.0.2-py2.py3-none-linux_armv7l.whl
 
 for config in status-led.ini voice-recognizer.ini; do
   if [[ ! -f "${HOME}/.config/${config}" ]] ; then

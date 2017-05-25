@@ -1,7 +1,7 @@
 # Default config file for the voice-recognizer service.
 # Should be installed to ~/.config/voice-recognizer.ini
 
-# Select the trigger: gpio (default), clap.
+# Select the trigger: gpio (default), clap, ok-google.
 # trigger = clap
 
 # Select the trigger sound:
