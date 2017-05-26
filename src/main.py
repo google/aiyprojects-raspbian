@@ -16,14 +16,19 @@
 """Main recognizer loop: wait for a trigger then perform and handle
 recognition."""
 
+import json
 import logging
 import os
+import os.path
 import sys
 import threading
 import time
 
 import configargparse
-from googlesamples.assistant import auth_helpers
+import google_auth_oauthlib.flow
+import google.auth.transport
+import google.oauth2.credentials
+
 
 import audio
 import action
@@ -68,8 +73,21 @@ def try_to_get_credentials(client_secrets):
     """Try to get credentials, or print an error and quit on failure."""
 
     if os.path.exists(ASSISTANT_CREDENTIALS):
-        return auth_helpers.load_credentials(
-            ASSISTANT_CREDENTIALS, scopes=[ASSISTANT_OAUTH_SCOPE])
+        migrate = False
+        with open(ASSISTANT_CREDENTIALS, 'r') as f:
+            credentials_data = json.load(f)
+            if 'access_token' in credentials_data:
+                migrate = True
+                del credentials_data['access_token']
+                credentials_data['scopes'] = [ASSISTANT_OAUTH_SCOPE]
+        if migrate:
+            with open(ASSISTANT_CREDENTIALS, 'w') as f:
+                json.dump(credentials_data, f)
+        credentials = google.oauth2.credentials.Credentials(token=None,
+                                                            **credentials_data)
+        http_request = google.auth.transport.requests.Request()
+        credentials.refresh(http_request)
+        return credentials
 
     if not os.path.exists(VR_CACHE_DIR):
         os.mkdir(VR_CACHE_DIR)
@@ -92,9 +110,25 @@ See the "Turn on the Assistant API" section of the Voice Recognizer
 User's Guide for more info.""")
         sys.exit(1)
 
-    credentials = auth_helpers.credentials_flow_interactive(
-        client_secrets, scopes=[ASSISTANT_OAUTH_SCOPE])
-    auth_helpers.save_credentials(ASSISTANT_CREDENTIALS, credentials)
+    flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
+        client_secrets,
+        scopes=[ASSISTANT_OAUTH_SCOPE])
+    if 'DISPLAY' in os.environ:
+        credentials = flow.run_local_server()
+    else:
+        credentials = flow.run_console()
+    credentials_data = {
+        'refresh_token': credentials.refresh_token,
+        'token_uri': credentials.token_uri,
+        'client_id': credentials.client_id,
+        'client_secret': credentials.client_secret,
+        'scopes': credentials.scopes
+    }
+    config_path = os.path.dirname(ASSISTANT_CREDENTIALS)
+    if not os.path.isdir(config_path):
+        os.makedirs(config_path)
+    with open(ASSISTANT_CREDENTIALS, 'w') as f:
+        json.dump(credentials_data, f)
     logging.info('OAuth credentials initialized: %s', ASSISTANT_CREDENTIALS)
     return credentials
 
