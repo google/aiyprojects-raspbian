@@ -103,7 +103,7 @@ def say(player, words, eq_filter=None, lang='en-US'):
     eq_audio = np.clip(eq_audio, int16_info.min, int16_info.max)
     eq_bytes = eq_audio.astype(np.int16).tostring()
 
-    player.play_bytes(eq_bytes, sample_rate=SAMPLE_RATE)
+    player.play_bytes(eq_bytes, sample_rate_hz=SAMPLE_RATE)
 
 
 def main():
