@@ -64,4 +64,4 @@ class FileTrigger(Trigger):
                 triggered = True # Exit loop
                 self.callback() # Trigger voice recognition
             else:
-                sleep(self.POLLING_TIME) # Wait as long as specified by POLLING_TIME in seconds
+                sleep(self.POLLING_TIME) # Wait POLLING_TIME in seconds
