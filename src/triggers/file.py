@@ -25,6 +25,7 @@ from triggers.trigger import Trigger  # Google AIY Trigger class
 import logging
 logger = logging.getLogger('trigger')
 
+
 # Create a new class for the FileTrigger
 class FileTrigger(Trigger):
 
@@ -60,8 +61,8 @@ class FileTrigger(Trigger):
         while not self.triggered:
             # If the trigger file exists
             if os.path.isfile(self.TRIGGER_FILE):
-                os.remove(self.TRIGGER_FILE) # Delete trigger file
-                triggered = True # Exit loop
-                self.callback() # Trigger voice recognition
+                os.remove(self.TRIGGER_FILE)  # Delete trigger file
+                triggered = True  # Exit loop
+                self.callback()  # Trigger voice recognition
             else:
-                sleep(self.POLLING_TIME) # Wait POLLING_TIME in seconds
+                sleep(self.POLLING_TIME)  # Wait POLLING_TIME in seconds
