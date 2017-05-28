@@ -14,11 +14,10 @@
   
 """Trigger based on the existence of a specific file."""
 
-  
-from time import sleep # This is used to prevent the file checker thread from running at 100% CPU
+from time import sleep # Sleep to prevent the file checker from using 100% CPU
 import os              # To monitor for files this will be required
 import stat            # For setting permissions on the trigger file directory
-import threading       # This keeps the file monitor as a separate thread from the voice recognizer
+import threading       # Separate file monitor thread from the voice recognizer
 
 from triggers.trigger import Trigger # Google AIY Trigger class
 
@@ -30,9 +29,10 @@ logger = logging.getLogger('trigger')
 class FileTrigger(Trigger):  
   
     """Trigger based on the existence of a specific file."""  
-  
+
     POLLING_TIME = 0.5 # The file monitor will wait 0.5s between file checks 
-    TRIGGER_FILE = r"/tmp/voice_recognizer/trigger" # This file will trigger voice recognition
+     # This file will trigger voice recognition
+    TRIGGER_FILE = r"/tmp/voice_recognizer/trigger"
     # TODO: specify a group to have access to the trigger file directory 
   
     def __init__(self): 
@@ -44,20 +44,24 @@ class FileTrigger(Trigger):
             logger.info('cleaning up pre-existing trigger file') 
             os.remove(self.TRIGGER_FILE) 
         # Create the trigger directory if needed 
-        trigger_dir = os.path.dirname(os.path.abspath(self.TRIGGER_FILE)) # Determine trigger direcotry
+        # Determine trigger directory
+        trigger_dir = os.path.dirname(os.path.abspath(self.TRIGGER_FILE))
         if not os.path.exists(trigger_dir): 
-            os.makedirs(trigger_dir) # Create directory and any parents required 
-            permissions = stat.S_IMODE(os.lstat(trigger_dir)[stat.ST_MODE]) # Store existing permissions on the trigger directory 
-            os.chmod(trigger_dir, permissions | stat.S_IWOTH) # Ensure the new directory is writeable by all
-  
-        threading.Thread(target=self.file_monitor_loop).start() # Start the file monitor infinite loop as a separate thread
-  
-    def file_monitor_loop(self): 
-        # Endless loop 
-        while True: 
-            # If the trigger file exists 
-            if os.path.isfile(self.TRIGGER_FILE): 
-                os.remove(self.TRIGGER_FILE) # Delete existing file 
-                self.callback() # Trigger voice recognition 
-            else: 
-                sleep(self.POLLING_TIME) # Wait as long as specified by POLLING_TIME in seconds before checking again
+            os.makedirs(trigger_dir) # Create directory and parents if required 
+            # Store existing permissions of the trigger directory
+            permissions = stat.S_IMODE(os.lstat(trigger_dir)[stat.ST_MODE])
+            # Make the trigger directory world writeable
+            os.chmod(trigger_dir, permissions | stat.S_IWOTH)
+        # Start the file monitor loop as a separate thread
+        threading.Thread(target=self.file_monitor_loop).start()
+
+    def file_monitor_loop(self):
+        # Loop until triggered
+        while not self.triggered:
+            # If the trigger file exists
+            if os.path.isfile(self.TRIGGER_FILE):
+                os.remove(self.TRIGGER_FILE) # Delete trigger file
+                triggered = True # Exit loop
+                self.callback() # Trigger voice recognition
+            else:
+                sleep(self.POLLING_TIME) # Wait as long as specified by POLLING_TIME in seconds
