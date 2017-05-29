@@ -55,12 +55,8 @@ class FileTrigger(Trigger):
         threading.Thread(target=self.file_monitor_loop).start()
 
     def file_monitor_loop(self):
-        # Loop until triggered
-        while not self.triggered:
-            # If the trigger file exists
-            if os.path.isfile(self.TRIGGER_FILE):
-                os.remove(self.TRIGGER_FILE)  # Delete trigger file
-                triggered = True  # Exit loop
-                self.callback()  # Trigger voice recognition
-            else:
-                sleep(self.POLLING_TIME)  # Wait POLLING_TIME in seconds
+        # Loop until the file exists
+        while not os.path.isfile(self.TRIGGER_FILE):
+            sleep(self.POLLING_TIME)  # Wait POLLING_TIME in seconds
+        os.remove(self.TRIGGER_FILE)  # Delete trigger file
+        self.callback()  # Trigger voice recognition
