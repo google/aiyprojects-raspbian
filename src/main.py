@@ -276,7 +276,6 @@ class SyncMicRecognizer(object):
             self.player.play_wav(self.trigger_sound)
 
         self.actor.userscripts.special_command('before-listen')
-
         self.recognizer.reset()
         self.recorder.add_processor(self.recognizer)
         self._status('listening')
