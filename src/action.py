@@ -199,10 +199,10 @@ class RepeatAfterMe(object):
 # =========================================
 
 
-def make_actor(say):
+def make_actor(args, say):
     """Create an actor to carry out the user's commands."""
 
-    actor = actionbase.Actor()
+    actor = actionbase.Actor(args)
 
     actor.add_keyword(
         _('ip address'), SpeakShellCommandOutput(
@@ -219,6 +219,8 @@ def make_actor(say):
     # =========================================
     # Makers! Add your own voice commands here.
     # =========================================
+
+    actor.userscripts.add_to_actor(actor, say)
 
     return actor
 

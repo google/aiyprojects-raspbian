@@ -139,6 +139,9 @@ def main():
                         default=os.path.expanduser('~/cloud_speech.json'),
                         help='Path to service account credentials for the '
                         'Cloud Speech API')
+    parser.add_argument('-u', '--user-script-directory',
+                        default=os.path.expanduser('~/aiy_voice_user_scripts'),
+                        help='Directory for user scripts run for user defined keywords.')
 
     args = parser.parse_args()
 
@@ -169,7 +172,7 @@ def do_recognition(args, recorder, recognizer, player):
     """Configure and run the recognizer."""
     say = tts.create_say(player)
 
-    actor = action.make_actor(say)
+    actor = action.make_actor(args, say)
 
     if args.cloud_speech:
         action.add_commands_just_for_cloud_speech_api(actor, say)
@@ -256,6 +259,7 @@ class SyncMicRecognizer(object):
             # Duplicate trigger (eg multiple button presses)
             return
 
+        self.actor.userscripts.special_command('before-listen')
         self.recognizer.reset()
         self.recorder.add_processor(self.recognizer)
         self._status('listening')
@@ -295,6 +299,7 @@ class SyncMicRecognizer(object):
             logger.warning('%r was not handled', result.transcript)
         else:
             logger.warning('no command recognized')
+        self.actor.userscripts.special_command('after-listen')
 
     def _play_assistant_response(self, audio_bytes):
         bytes_per_sample = speech.AUDIO_SAMPLE_SIZE
