@@ -23,3 +23,6 @@ assistant-secrets = ~/assistant.json
 
 # Path to service account credentials for the Cloud Speech API.
 cloud-speech-secrets = ~/cloud_speech.json
+
+# Directory for user scripts run for user defined keywords
+# user-script-directory = ~/aiy_voice_user_scripts

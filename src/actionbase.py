@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import user_scripts
+
 """Handle voice commands locally.
 
 This code lets you link keywords to actions. The actions are declared in
@@ -23,8 +26,9 @@ class Actor(object):
 
     """Passes commands on to a list of action handlers."""
 
-    def __init__(self):
+    def __init__(self, args):
         self.handlers = []
+        self.userscripts = user_scripts.script_list(os.path.expanduser(args.user_script_directory))
 
     def add_keyword(self, keyword, action):
         self.handlers.append(KeywordHandler(keyword, action))
