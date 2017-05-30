@@ -154,16 +154,9 @@ class script_list(object):
 		for script in self.scripts:
 			script.special_command(command)
 
-	def add_to_actor(self, actor, say):
-		"Add all the scripts and their keywords, to the AIY actor."
-		for script in self.scripts:
-			for keyword in script.get_keywords():
-				logger.info("Adding keyword (%s) - %s" %(keyword, script.get_description()))
-				if say:
-					script.set_say(say)
-				if actor:
-					actor.add_keyword(_(keyword), script)
-
+	def get_scripts(self):
+		"Return the list of user script objects."
+		return self.scripts
 
 if __name__ == "__main__":
 	# Test the module
@@ -172,6 +165,5 @@ if __name__ == "__main__":
 		sys.exit(0)
 	logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 	userscripts = script_list(sys.argv[1])
-	userscripts.add_to_actor(None, None)
 	userscripts.special_command('before-listen')
 	userscripts.special_command('after-listen')

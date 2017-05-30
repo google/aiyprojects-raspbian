@@ -286,7 +286,7 @@ def make_actor(args, say):
 
     actor.add_keyword(_('pi power off'), PowerCommand(say, 'shutdown'))
     actor.add_keyword(_('pi reboot'), PowerCommand(say, 'reboot'))
-    actor.userscripts.add_to_actor(actor, say)
+    actor.add_userscripts(say)
 
     return actor
 
