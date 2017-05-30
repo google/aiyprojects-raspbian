@@ -44,14 +44,14 @@ class TestKeywordHandler(unittest.TestCase):
         actionbase.KeywordHandler('FooBar', action).handle('frobnicate the foobar')
         self.assertEqual(action.voice_command, 'frobnicate the foobar')
 
-    def test_would_handle_returns_true(self):
+    def test_can_handle_returns_true(self):
         action = TestAction()
         handler = actionbase.KeywordHandler('FooBar', action)
-        self.assertTrue(handler.would_handle('frobnicate the foobar'))
+        self.assertTrue(handler.can_handle('frobnicate the foobar'))
 
-    def test_would_handle_does_nothing(self):
+    def test_can_handle_does_nothing(self):
         action = TestAction()
-        actionbase.KeywordHandler('FooBar', action).would_handle('frobnicate the foobar')
+        actionbase.KeywordHandler('FooBar', action).can_handle('frobnicate the foobar')
         self.assertIsNone(action.voice_command)
 
 
@@ -79,13 +79,13 @@ class TestActor(unittest.TestCase):
         self.assertIsNone(foo_action.voice_command)
         self.assertIsNotNone(bar_action.voice_command)
 
-    def test_would_handle_returns_true(self):
+    def test_can_handle_returns_true(self):
         actor = actionbase.Actor()
         foo_action = TestAction()
         actor.add_keyword('foo', foo_action)
-        self.assertTrue(actor.would_handle('moo foo'))
+        self.assertTrue(actor.can_handle('moo foo'))
 
-    def test_would_handle_does_nothing(self):
+    def test_can_handle_does_nothing(self):
         actor = actionbase.Actor()
         foo_action = TestAction()
         actor.add_keyword('foo', foo_action)

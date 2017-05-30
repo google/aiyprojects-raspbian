@@ -121,7 +121,7 @@ def main():
     parser.add_argument('-O', '--output-device', default='default',
                         help='Name of the audio output device')
     parser.add_argument('-T', '--trigger', default='gpio',
-                        help='Trigger to use {"clap", "gpio", "ok-google"}')
+                        choices=['clap', 'gpio', 'ok-google'], help='Trigger to use')
     parser.add_argument('--cloud-speech', action='store_true',
                         help='Use the Cloud Speech API instead of the Assistant API')
     parser.add_argument('-L', '--language', default='en-US',
@@ -194,11 +194,8 @@ def do_assistant_library(args, credentials, player, status_ui):
         from google.assistant.library import Assistant
         from google.assistant.library.event import EventType
     except ImportError:
-        print('ERROR: failed to import the Google Assistant Library')
-        print('You can find instructions to install it here:')
-        print('    https://developers.google.com/assistant/sdk/prototype/'
-              'getting-started-pi-python/run-sample'
-              '#get_the_library_and_sample_code')
+        print('ERROR: failed to import the Google Assistant Library. Please run:')
+        print('    env/bin/pip install -r requirements.txt')
         raise
 
     say = tts.create_say(player)
@@ -219,7 +216,7 @@ def do_assistant_library(args, credentials, player, status_ui):
             status_ui.status('thinking')
 
         elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and \
-                event.args and actor.would_handle(event.args['text']):
+                event.args and actor.can_handle(event.args['text']):
             if not args.assistant_always_responds:
                 assistant.stop_conversation()
             actor.handle(event.args['text'])
@@ -278,7 +275,7 @@ class StatusUi(object):
     """Gives the user status feedback.
 
     The LED and optionally a trigger sound tell the user when the box is
-    ready, listening and thinking.
+    ready, listening or thinking.
     """
 
     def __init__(self, player, led_fifo, trigger_sound):
