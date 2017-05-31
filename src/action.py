@@ -284,8 +284,8 @@ def make_actor(say):
     # Makers! Add your own voice commands here.
     # =========================================
 
-    actor.add_keyword(_('pi power off'), PowerCommand(say, 'shutdown'))
-    actor.add_keyword(_('pi reboot'), PowerCommand(say, 'reboot'))
+    actor.add_keyword(_('raspberry power off'), PowerCommand(say, 'shutdown'))
+    actor.add_keyword(_('raspberry reboot'), PowerCommand(say, 'reboot'))
 
     return actor
 
