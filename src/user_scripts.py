@@ -37,12 +37,18 @@ class user_script(object):
 	the script.  Keys are:
 		"description" - optional text string giving the script function
 		"keywords" - a list of words that trigger the script
-		"before-listen" - optional, before recognition command
-		"after-listen" - optional, after recognition command
+		"before-listen" - optional, parameter passed with this trigger
+		"after-listen" - optional, parameter passed with this trigger
 	When one of the keywords triggers, the script is called with the
 	full voice command, each word as a separate parameter.  Any text
 	written by the script to standard output will be spoken back using
 	text-to-voice.
+	If implemented by a user script, the "before-listen" and
+	"after-listen" triggers are passed as the first parameter followed
+	by the script defined parameter.  The user script can use these
+	triggers to take action before and after recognition takes place.
+	An example action could be to mute then un-mute audio, thus reducing
+	noise during recognition.
 	"""
 
 	def __init__(self, file_path):
