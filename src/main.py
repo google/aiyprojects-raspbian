@@ -146,8 +146,7 @@ def main():
                         'Cloud Speech API')
     parser.add_argument('--trigger-sound', default=None,
                         help='Sound when trigger is activated (WAV format)')
-    parser.add_argument('-u', '--user-script-directory',
-                        default=os.path.expanduser('~/aiy_voice_user_scripts'),
+    parser.add_argument('-u', '--user-script-directory', default=None,
                         help='Directory for user scripts run for user defined keywords.')
 
     args = parser.parse_args()

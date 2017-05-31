@@ -132,13 +132,16 @@ class script_list(object):
 	before and after recognition.
 	"""
 
-	def __init__(self, script_directory):
+	def __init__(self, directory_name):
 		"""Create a new user scripts object.
 		Scan the specified directory for scripts with a name containing
 		the text 'user_script'.  Each successfully created script
 		object is appended to the list.
 		"""
 		self.scripts = []
+		if not directory_name:
+			return
+		script_directory = os.path.expanduser(directory_name)
 		if os.path.isdir(script_directory):
 			if os.access(script_directory, os.R_OK):
 				logger.info("Scanning %s for user scripts" %(script_directory))
@@ -156,9 +159,10 @@ class script_list(object):
 
 	def special_command(self, command):
 		"Try the specified special action for each script."
-		logger.info("Calling %s action ..." %(command))
-		for script in self.scripts:
-			script.special_command(command)
+		if len(self.scripts):
+			logger.info("Calling %s action ..." %(command))
+			for script in self.scripts:
+				script.special_command(command)
 
 	def get_scripts(self):
 		"Return the list of user script objects."

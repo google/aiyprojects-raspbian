@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import user_scripts
 import logging
 
@@ -30,7 +29,7 @@ class Actor(object):
 
     def __init__(self, args):
         self.handlers = []
-        self.userscripts = user_scripts.script_list(os.path.expanduser(args.user_script_directory))
+        self.userscripts = user_scripts.script_list(args.user_script_directory)
 
     def add_keyword(self, keyword, action):
         self.handlers.append(KeywordHandler(keyword, action))
