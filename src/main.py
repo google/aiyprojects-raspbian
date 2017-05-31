@@ -205,7 +205,7 @@ installed with:
         sys.exit(1)
 
     say = tts.create_say(player)
-    actor = action.make_actor(say)
+    actor = action.make_actor(args, say)
 
     def process_event(event):
         logging.info(event)
@@ -216,9 +216,11 @@ installed with:
                 print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
 
         elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
+            actor.userscripts.special_command('before-listen')
             status_ui.status('listening')
 
         elif event.type == EventType.ON_END_OF_UTTERANCE:
+            actor.userscripts.special_command('after-listen')
             status_ui.status('thinking')
 
         elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and \
