@@ -41,6 +41,13 @@ class Actor(object):
                 script.set_say(say)
                 self.add_keyword(_(keyword), script)
 
+    def handle_state_trigger(self, trigger):
+        scripts = self.userscripts.get_scripts()
+        if scripts:
+            logger.info("Running %s state trigger ..." %(trigger))
+            for script in scripts:
+                script.state_trigger(trigger)
+
     def get_phrases(self):
         """Get a list of all phrases that are expected by the handlers."""
         return [phrase for h in self.handlers for phrase in h.get_phrases()]

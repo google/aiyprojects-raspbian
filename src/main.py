@@ -215,11 +215,11 @@ installed with:
                 print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
 
         elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
-            actor.userscripts.special_command('before-listen')
+            actor.handle_state_trigger('before-listen')
             status_ui.status('listening')
 
         elif event.type == EventType.ON_END_OF_UTTERANCE:
-            actor.userscripts.special_command('after-listen')
+            actor.handle_state_trigger('after-listen')
             status_ui.status('thinking')
 
         elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and \
@@ -360,7 +360,7 @@ class SyncMicRecognizer(object):
             # Duplicate trigger (eg multiple button presses)
             return
 
-        self.actor.userscripts.special_command('before-listen')
+        self.actor.handle_state_trigger('before-listen')
 
         self.status_ui.status('listening')
         self.recognizer.reset()
@@ -403,7 +403,8 @@ class SyncMicRecognizer(object):
             logger.warning('%r was not handled', result.transcript)
         else:
             logger.warning('no command recognized')
-        self.actor.userscripts.special_command('after-listen')
+
+        self.actor.handle_state_trigger('after-listen')
 
     def _play_assistant_response(self, audio_bytes):
         bytes_per_sample = speech.AUDIO_SAMPLE_SIZE

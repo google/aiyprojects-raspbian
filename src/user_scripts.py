@@ -44,11 +44,11 @@ class user_script(object):
 	written by the script to standard output will be spoken back using
 	text-to-voice.
 	If implemented by a user script, the "before-listen" and
-	"after-listen" triggers are passed as the first parameter followed
-	by the script defined parameter.  The user script can use these
-	triggers to take action before and after recognition takes place.
-	An example action could be to mute then un-mute audio, thus reducing
-	noise during recognition.
+	"after-listen" states based triggers are passed as the first
+	parameter followed by the script defined parameter.  The user
+	script can use these triggers to take action before and after
+	recognition takes place. An example action could be to mute then
+	un-mute audio, thus reducing noise during recognition.
 	"""
 
 	def __init__(self, file_path):
@@ -64,7 +64,7 @@ class user_script(object):
 			try:
 				self.info = json.loads(raw_info.decode("utf-8"))
 			except BaseException as e:
-				logger.exception("Error parsing info for command [%s]: [%s]" %(self.file_path, str(e)))
+				logger.exception("Error parsing info for user script [%s]: [%s]" %(self.file_path, str(e)))
 			else:
 				if len(self.get_keywords()):
 					self.ready = True
@@ -85,10 +85,10 @@ class user_script(object):
 		"Return the script description."
 		return self.info.get("description", "<no description>")
 
-	def special_command(self, command):
-		"If 'command' is registered as a handler, call the user script."
-		if command in self.info:
-			self.run_script("%s %s" %(command, self.info[command]))
+	def state_trigger(self, trigger):
+		"If 'trigger' is registered as a handler, call the user script."
+		if trigger in self.info:
+			self.run_script("%s %s" %(trigger, self.info[trigger]))
 
 	def run_script(self, arg_string=''):
 		"Run the user script with the specified arguments."
@@ -157,13 +157,6 @@ class script_list(object):
 		else:
 			logger.error("directory [%s] does not exist" %(script_directory))
 
-	def special_command(self, command):
-		"Try the specified special action for each script."
-		if len(self.scripts):
-			logger.info("Calling %s action ..." %(command))
-			for script in self.scripts:
-				script.special_command(command)
-
 	def get_scripts(self):
 		"Return the list of user script objects."
 		return self.scripts
@@ -175,5 +168,7 @@ if __name__ == "__main__":
 		sys.exit(0)
 	logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 	userscripts = script_list(sys.argv[1])
-	userscripts.special_command('before-listen')
-	userscripts.special_command('after-listen')
+	for script in userscripts.get_scripts():
+		print("Keywords:", script.get_keywords(), "Description:", script.get_description())
+		script.state_trigger('before-listen')
+		script.state_trigger('after-listen')
