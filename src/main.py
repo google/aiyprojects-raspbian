@@ -194,9 +194,12 @@ def do_assistant_library(args, credentials, player, status_ui):
         from google.assistant.library import Assistant
         from google.assistant.library.event import EventType
     except ImportError:
-        print('ERROR: failed to import the Google Assistant Library. Please run:')
-        print('    env/bin/pip install -r requirements.txt')
-        raise
+        print('''
+ERROR: failed to import the Google Assistant Library. This is required for
+"OK Google" hotwording, but is only available for Raspberry Pi 2/3. It can be
+installed with:
+    env/bin/pip install google-assistant-library==0.0.2''')
+        sys.exit(1)
 
     say = tts.create_say(player)
     actor = action.make_actor(say)
