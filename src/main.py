@@ -18,14 +18,15 @@ recognition."""
 
 import logging
 import os
+import os.path
 import sys
 import threading
 import time
 
 import configargparse
-from googlesamples.assistant import auth_helpers
 
 import audio
+import auth_helpers
 import action
 import i18n
 import speech
@@ -60,16 +61,16 @@ CONFIG_FILES = [
 OLD_CLIENT_SECRETS = os.path.expanduser('~/client_secrets.json')
 OLD_SERVICE_CREDENTIALS = os.path.expanduser('~/credentials.json')
 
-ASSISTANT_CREDENTIALS = os.path.join(VR_CACHE_DIR, 'assistant_credentials.json')
-ASSISTANT_OAUTH_SCOPE = 'https://www.googleapis.com/auth/assistant-sdk-prototype'
+ASSISTANT_CREDENTIALS = (
+    os.path.join(VR_CACHE_DIR, 'assistant_credentials.json')
+)
 
 
 def try_to_get_credentials(client_secrets):
     """Try to get credentials, or print an error and quit on failure."""
 
     if os.path.exists(ASSISTANT_CREDENTIALS):
-        return auth_helpers.load_credentials(
-            ASSISTANT_CREDENTIALS, scopes=[ASSISTANT_OAUTH_SCOPE])
+        return auth_helpers.load_credentials(ASSISTANT_CREDENTIALS)
 
     if not os.path.exists(VR_CACHE_DIR):
         os.mkdir(VR_CACHE_DIR)
@@ -92,8 +93,7 @@ See the "Turn on the Assistant API" section of the Voice Recognizer
 User's Guide for more info.""")
         sys.exit(1)
 
-    credentials = auth_helpers.credentials_flow_interactive(
-        client_secrets, scopes=[ASSISTANT_OAUTH_SCOPE])
+    credentials = auth_helpers.credentials_flow_interactive(client_secrets)
     auth_helpers.save_credentials(ASSISTANT_CREDENTIALS, credentials)
     logging.info('OAuth credentials initialized: %s', ASSISTANT_CREDENTIALS)
     return credentials
