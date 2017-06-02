@@ -116,7 +116,7 @@ class user_script(object):
 			if exit_code == 0:
 				self.say(output.decode('utf-8'))
 			else:
-				self.say('Oh dear, user script failed with error code %d', exit_code)
+				self.say('Oh dear, user script failed with error code %d' %(exit_code))
 		else:
 			logger.error("Need to call set_say() function.")
 
