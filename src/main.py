@@ -256,6 +256,10 @@ def do_recognition(args, recorder, recognizer, player, status_ui):
         import triggers.clap
         triggerer = triggers.clap.ClapTrigger(recorder)
         msg = 'Clap your hands'
+    elif args.trigger == 'file':
+        import triggers.file
+        triggerer = triggers.file.FileTrigger()
+        msg = 'Trigger on existence of a specific file'
     else:
         logger.error("Unknown trigger '%s'", args.trigger)
         return
