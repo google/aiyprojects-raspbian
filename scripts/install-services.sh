@@ -26,6 +26,13 @@ fi
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 repo_path="$PWD"
 
+# We want the uid of the user that runs sudo
+userid=$(id -u $SUDO_USER)
+
+# Use systemd-tmpfiles and create the PID directory on boot if it doesn't exist
+sed -e "s:userid:${userid}:;s:username:$SUDO_USER:g" systemd/tmpfiles.d/create-run-dir.conf \
+  > /etc/tmpfiles.d/create-run-dir.conf
+
 for service in systemd/*.service; do
   sed "s:/home/pi/voice-recognizer-raspi:${repo_path}:g" "$service" \
     > "/lib/systemd/system/$(basename "$service")"
