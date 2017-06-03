@@ -53,13 +53,14 @@ class user_script(object):
 
 	def __init__(self, file_path):
 		"""Create a new user script object.
-		Call the user script without parameters to get it configuration.
+		Call the user script without parameters to get information
+		about the script.
 		"""
 		self.file_path = file_path
 		self.info = {}
 		self.say = None
 		self.ready = False
-		(exit_code, raw_info) = self.run_script()
+		(exit_code, raw_info) = self._run_script()
 		if exit_code == 0:
 			try:
 				self.info = json.loads(raw_info.decode("utf-8"))
@@ -88,9 +89,9 @@ class user_script(object):
 	def state_trigger(self, trigger):
 		"If 'trigger' is registered as a handler, call the user script."
 		if trigger in self.info:
-			self.run_script("%s %s" %(trigger, self.info[trigger]))
+			self._run_script("%s %s" %(trigger, self.info[trigger]))
 
-	def run_script(self, arg_string=''):
+	def _run_script(self, arg_string=''):
 		"Run the user script with the specified arguments."
 		args = arg_string.split()
 		args.insert(0, self.file_path)
@@ -111,7 +112,7 @@ class user_script(object):
 		The script is run and passed each word from the voice command as
 		a parameter.  The output from the script is spoken back.
 		"""
-		(exit_code, output) = self.run_script(voice_command)
+		(exit_code, output) = self._run_script(voice_command)
 		if self.say:
 			if exit_code == 0:
 				self.say(output.decode('utf-8'))
