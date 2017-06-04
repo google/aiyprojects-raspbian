@@ -65,14 +65,14 @@ class user_script(object):
 			try:
 				self.info = json.loads(raw_info.decode("utf-8"))
 			except BaseException as e:
-				logger.exception("Error parsing info for user script [%s]: [%s]" %(self.file_path, str(e)))
+				logger.exception("Error parsing info for user script [%s]: [%s]" % (self.file_path, str(e)))
 			else:
 				if len(self.get_keywords()):
 					self.ready = True
 				else:
-					logger.error("Need at least one keyword for %s" %(file_path))
+					logger.error("Need at least one keyword for %s" % (file_path))
 		else:
-			logger.error("Error code for %s :%d" %(file_path, exit_code))
+			logger.error("Error code for %s :%d" % (file_path, exit_code))
 
 	def is_ready(self):
 		"Return true if the user script was set up successfully."
@@ -89,7 +89,7 @@ class user_script(object):
 	def state_trigger(self, trigger):
 		"If 'trigger' is registered as a handler, call the user script."
 		if trigger in self.info:
-			self._run_script("%s %s" %(trigger, self.info[trigger]))
+			self._run_script("%s %s" % (trigger, self.info[trigger]))
 
 	def _run_script(self, arg_string=''):
 		"Run the user script with the specified arguments."
@@ -100,7 +100,7 @@ class user_script(object):
 			(output, err) = p.communicate()
 			exit_code = p.wait()
 		except BaseException as e:
-			return (1, "Error: %s" %(str(e)))
+			return (1, "Error: %s" % (str(e)))
 		return (exit_code, output)
 
 	def set_say(self, say):
@@ -117,10 +117,9 @@ class user_script(object):
 			if exit_code == 0:
 				self.say(output.decode('utf-8'))
 			else:
-				self.say('Oh dear, user script failed with error code %d' %(exit_code))
+				self.say('Oh dear, user script failed with error code %d' % (exit_code))
 		else:
 			logger.error("Need to call set_say() function.")
-
 
 
 class script_list(object):
@@ -145,7 +144,7 @@ class script_list(object):
 		script_directory = os.path.expanduser(directory_name)
 		if os.path.isdir(script_directory):
 			if os.access(script_directory, os.R_OK):
-				logger.info("Scanning %s for user scripts" %(script_directory))
+				logger.info("Scanning %s for user scripts" % (script_directory))
 				for f in os.listdir(script_directory):
 					if 'user_script' in f:
 						file_path = os.path.join(script_directory, f)
@@ -154,9 +153,9 @@ class script_list(object):
 							if script.is_ready():
 								self.scripts.append(script)
 			else:
-				logger.error("directory [%s] is not readable" %(script_directory))
+				logger.error("directory [%s] is not readable" % (script_directory))
 		else:
-			logger.error("directory [%s] does not exist" %(script_directory))
+			logger.error("directory [%s] does not exist" % (script_directory))
 
 	def get_scripts(self):
 		"Return the list of user script objects."
@@ -165,7 +164,7 @@ class script_list(object):
 if __name__ == "__main__":
 	# Test the module
 	if len(sys.argv) < 2:
-		print("Test using: %s <user script directory>" %(os.path.basename(sys.argv[0])))
+		print("Test using: %s <user script directory>" % (os.path.basename(sys.argv[0])))
 		sys.exit(0)
 	logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 	userscripts = script_list(sys.argv[1])

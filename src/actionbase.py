@@ -23,6 +23,7 @@ action.py.
 
 logger = logging.getLogger(__name__)
 
+
 class Actor(object):
 
     """Passes commands on to a list of action handlers."""
@@ -38,7 +39,7 @@ class Actor(object):
         for script in self.user_scripts.get_scripts():
             script.set_say(say)
             for keyword in script.get_keywords():
-                logger.info("Adding keyword (%s) - %s" %(keyword, script.get_description()))
+                logger.info("Adding keyword (%s) - %s" % (keyword, script.get_description()))
                 self.add_keyword(_(keyword), script)
 
     def handle_state_trigger(self, trigger):
@@ -47,7 +48,7 @@ class Actor(object):
         except AttributeError:
             return
         if scripts:
-            logger.info("Running %s state trigger ..." %(trigger))
+            logger.info("Running %s state trigger ..." % (trigger))
             for script in scripts:
                 script.state_trigger(trigger)
 
