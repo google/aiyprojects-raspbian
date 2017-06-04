@@ -40,7 +40,7 @@ class Actor(object):
             script.set_say(say)
             for keyword in script.get_keywords():
                 logger.info("Adding keyword (%s) - %s" % (keyword, script.get_description()))
-                self.add_keyword(_(keyword), script)
+                self.add_keyword(keyword, script)
 
     def handle_state_trigger(self, trigger):
         try:
