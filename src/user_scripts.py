@@ -65,7 +65,8 @@ class user_script(object):
 			try:
 				self.info = json.loads(raw_info.decode("utf-8"))
 			except BaseException as e:
-				logger.exception("Error parsing info for user script [%s]: [%s]" % (self.file_path, str(e)))
+				logger.exception("Error parsing info for user script [%s]: [%s]"
+					% (self.file_path, str(e)))
 			else:
 				if len(self.get_keywords()):
 					self.ready = True
