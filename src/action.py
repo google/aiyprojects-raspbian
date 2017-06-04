@@ -266,7 +266,10 @@ class PowerCommand(object):
 def make_actor(args, say):
     """Create an actor to carry out the user's commands."""
 
-    actor = actionbase.Actor(args)
+    actor = actionbase.Actor()
+
+    if args.user_script_directory:
+        actor.add_user_scripts(args.user_script_directory, say)
 
     actor.add_keyword(
         _('ip address'), SpeakShellCommandOutput(
@@ -283,8 +286,6 @@ def make_actor(args, say):
     # =========================================
     # Makers! Add your own voice commands here.
     # =========================================
-
-    actor.add_userscripts(say)
 
     actor.add_keyword(_('raspberry power off'), PowerCommand(say, 'shutdown'))
     actor.add_keyword(_('raspberry reboot'), PowerCommand(say, 'reboot'))

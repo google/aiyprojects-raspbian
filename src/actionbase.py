@@ -27,22 +27,25 @@ class Actor(object):
 
     """Passes commands on to a list of action handlers."""
 
-    def __init__(self, args):
+    def __init__(self):
         self.handlers = []
-        self.userscripts = user_scripts.script_list(args.user_script_directory)
 
     def add_keyword(self, keyword, action):
         self.handlers.append(KeywordHandler(keyword, action))
 
-    def add_userscripts(self, say):
-        for script in self.userscripts.get_scripts():
+    def add_user_scripts(self, user_script_dir, say):
+        self.user_scripts = user_scripts.script_list(user_script_dir)
+        for script in self.user_scripts.get_scripts():
             script.set_say(say)
             for keyword in script.get_keywords():
                 logger.info("Adding keyword (%s) - %s" %(keyword, script.get_description()))
                 self.add_keyword(_(keyword), script)
 
     def handle_state_trigger(self, trigger):
-        scripts = self.userscripts.get_scripts()
+        try:
+            scripts = self.user_scripts.get_scripts()
+        except AttributeError:
+            return
         if scripts:
             logger.info("Running %s state trigger ..." %(trigger))
             for script in scripts:
