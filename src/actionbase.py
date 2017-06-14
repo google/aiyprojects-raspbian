@@ -33,6 +33,16 @@ class Actor(object):
         """Get a list of all phrases that are expected by the handlers."""
         return [phrase for h in self.handlers for phrase in h.get_phrases()]
 
+    def can_handle(self, command):
+        """Check if command is handled without running the handlers.
+
+        Returns True if the command would be handled."""
+
+        for handler in self.handlers:
+            if handler.can_handle(command):
+                return True
+        return False
+
     def handle(self, command):
         """Pass command to handlers, stopping after one has handled the command.
 
@@ -55,9 +65,11 @@ class KeywordHandler(object):
     def get_phrases(self):
         return [self.keyword]
 
+    def can_handle(self, command):
+        return self.keyword in command.lower()
+
     def handle(self, command):
-        if self.keyword in command.lower():
+        if self.can_handle(command):
             self.action.run(command)
             return True
-        else:
-            return False
+        return False

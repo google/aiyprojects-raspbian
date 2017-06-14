@@ -1,7 +1,7 @@
 # Default config file for the voice-recognizer service.
 # Should be installed to ~/.config/voice-recognizer.ini
 
-# Select the trigger: gpio (default), clap.
+# Select the trigger: gpio (default), clap, ok-google.
 # trigger = clap
 
 # Select the trigger sound:
@@ -23,3 +23,8 @@ assistant-secrets = ~/assistant.json
 
 # Path to service account credentials for the Cloud Speech API.
 cloud-speech-secrets = ~/cloud_speech.json
+
+# Uncomment to play Assistant responses for local actions.  You should make
+# sure that you have IFTTT applets for your actions to get the correct
+# response, and also that your actions do not call say().
+# assistant-always-responds = true

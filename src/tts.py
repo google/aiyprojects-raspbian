@@ -35,9 +35,9 @@ SAMPLE_RATE = 16000
 # Parameters for the equalization filter. These remove low-frequency sound
 # from the result, avoiding resonance on the speaker and making the TTS easier
 # to understand. Calculated with:
-#   python3 src/tts.py --hpf-order 4 --hpf-freq-hz 1400 --hpf-gain-db 8
+#   python3 src/tts.py --hpf-order 4 --hpf-freq-hz 1400 --hpf-gain-db 4
 FILTER_A = np.array([1., -3.28274474, 4.09441957, -2.29386174, 0.48627065])
-FILTER_B = np.array([1.75161639, -7.00646555, 10.50969833, -7.00646555, 1.75161639])
+FILTER_B = np.array([1.10519522, -4.4207809, 6.63117135, -4.4207809, 1.10519522])
 
 logger = logging.getLogger('tts')
 

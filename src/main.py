@@ -121,7 +121,7 @@ def main():
     parser.add_argument('-O', '--output-device', default='default',
                         help='Name of the audio output device')
     parser.add_argument('-T', '--trigger', default='gpio',
-                        help='Trigger to use {\'clap\', \'gpio\'}')
+                        choices=['clap', 'gpio', 'ok-google'], help='Trigger to use')
     parser.add_argument('--cloud-speech', action='store_true',
                         help='Use the Cloud Speech API instead of the Assistant API')
     parser.add_argument('-L', '--language', default='en-US',
@@ -132,6 +132,11 @@ def main():
                         help='File containing our process id for monitoring')
     parser.add_argument('--audio-logging', action='store_true',
                         help='Log all requests and responses to WAV files in /tmp')
+    parser.add_argument('--assistant-always-responds', action='store_true',
+                        help='Play Assistant responses for local actions.'
+                        ' You should make sure that you have IFTTT applets for'
+                        ' your actions to get the correct response, and also'
+                        ' that your actions do not call say().')
     parser.add_argument('--assistant-secrets',
                         default=os.path.expanduser('~/assistant.json'),
                         help='Path to client secrets for the Assistant API')
@@ -159,15 +164,79 @@ def main():
             os.path.expanduser(args.assistant_secrets))
         recognizer = speech.AssistantSpeechRequest(credentials)
 
-    recorder = audio.Recorder(
-        input_device=args.input_device, channels=1,
-        bytes_per_sample=speech.AUDIO_SAMPLE_SIZE,
-        sample_rate_hz=speech.AUDIO_SAMPLE_RATE_HZ)
-    with recorder:
-        do_recognition(args, recorder, recognizer, player)
+    status_ui = StatusUi(player, args.led_fifo, args.trigger_sound)
+
+    # The ok-google trigger is handled with the Assistant Library, so we need
+    # to catch this case early.
+    if args.trigger == 'ok-google':
+        if args.cloud_speech:
+            print('trigger=ok-google only works with the Assistant, not with '
+                  'the Cloud Speech API.')
+            sys.exit(1)
+        do_assistant_library(args, credentials, player, status_ui)
+    else:
+        recorder = audio.Recorder(
+            input_device=args.input_device, channels=1,
+            bytes_per_sample=speech.AUDIO_SAMPLE_SIZE,
+            sample_rate_hz=speech.AUDIO_SAMPLE_RATE_HZ)
+        with recorder:
+            do_recognition(args, recorder, recognizer, player, status_ui)
 
 
-def do_recognition(args, recorder, recognizer, player):
+def do_assistant_library(args, credentials, player, status_ui):
+    """Run a recognizer using the Google Assistant Library.
+
+    The Google Assistant Library has direct access to the audio API, so this
+    Python code doesn't need to record audio.
+    """
+
+    try:
+        from google.assistant.library import Assistant
+        from google.assistant.library.event import EventType
+    except ImportError:
+        print('''
+ERROR: failed to import the Google Assistant Library. This is required for
+"OK Google" hotwording, but is only available for Raspberry Pi 2/3. It can be
+installed with:
+    env/bin/pip install google-assistant-library==0.0.2''')
+        sys.exit(1)
+
+    say = tts.create_say(player)
+    actor = action.make_actor(say)
+
+    def process_event(event):
+        logging.info(event)
+
+        if event.type == EventType.ON_START_FINISHED:
+            status_ui.status('ready')
+            if sys.stdout.isatty():
+                print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
+
+        elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
+            status_ui.status('listening')
+
+        elif event.type == EventType.ON_END_OF_UTTERANCE:
+            status_ui.status('thinking')
+
+        elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and \
+                event.args and actor.can_handle(event.args['text']):
+            if not args.assistant_always_responds:
+                assistant.stop_conversation()
+            actor.handle(event.args['text'])
+
+        elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
+            status_ui.status('ready')
+
+        elif event.type == EventType.ON_ASSISTANT_ERROR and \
+                event.args and event.args['is_fatal']:
+            sys.exit(1)
+
+    with Assistant(credentials) as assistant:
+        for event in assistant.start():
+            process_event(event)
+
+
+def do_recognition(args, recorder, recognizer, player, status_ui):
     """Configure and run the recognizer."""
     say = tts.create_say(player)
 
@@ -192,8 +261,8 @@ def do_recognition(args, recorder, recognizer, player):
         return
 
     mic_recognizer = SyncMicRecognizer(
-        actor, recognizer, recorder, player, say, triggerer,
-        led_fifo=args.led_fifo, trigger_sound=args.trigger_sound)
+        actor, recognizer, recorder, player, say, triggerer, status_ui,
+        args.assistant_always_responds)
 
     with mic_recognizer:
         if sys.stdout.isatty():
@@ -202,6 +271,45 @@ def do_recognition(args, recorder, recognizer, player):
         # wait for KeyboardInterrupt
         while True:
             time.sleep(1)
+
+
+class StatusUi(object):
+
+    """Gives the user status feedback.
+
+    The LED and optionally a trigger sound tell the user when the box is
+    ready, listening or thinking.
+    """
+
+    def __init__(self, player, led_fifo, trigger_sound):
+        self.player = player
+
+        if led_fifo and os.path.exists(led_fifo):
+            self.led_fifo = led_fifo
+        else:
+            if led_fifo:
+                logger.warning(
+                    'File %s specified for --led-fifo does not exist.',
+                    led_fifo)
+            self.led_fifo = None
+
+        if trigger_sound and os.path.exists(os.path.expanduser(trigger_sound)):
+            self.trigger_sound = os.path.expanduser(trigger_sound)
+        else:
+            if trigger_sound:
+                logger.warning(
+                    'File %s specified for --trigger-sound does not exist.',
+                    trigger_sound)
+            self.trigger_sound = None
+
+    def status(self, status):
+        if self.led_fifo:
+            with open(self.led_fifo, 'w') as led:
+                led.write(status + '\n')
+        logger.info('%s...', status)
+
+        if status == 'listening' and self.trigger_sound:
+            self.player.play_wav(self.trigger_sound)
 
 
 class SyncMicRecognizer(object):
@@ -215,7 +323,7 @@ class SyncMicRecognizer(object):
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, actor, recognizer, recorder, player, say, triggerer,
-                 led_fifo, trigger_sound):
+                 status_ui, assistant_always_responds):
         self.actor = actor
         self.player = player
         self.recognizer = recognizer
@@ -224,33 +332,18 @@ class SyncMicRecognizer(object):
         self.say = say
         self.triggerer = triggerer
         self.triggerer.set_callback(self.recognize)
+        self.status_ui = status_ui
+        self.assistant_always_responds = assistant_always_responds
 
         self.running = False
 
-        if trigger_sound and os.path.exists(os.path.expanduser(trigger_sound)):
-            self.trigger_sound = os.path.expanduser(trigger_sound)
-        else:
-            if trigger_sound:
-                logger.warning(
-                    'File %s specified for --trigger-sound does not exist.',
-                    trigger_sound)
-            self.trigger_sound = None
-
-        if led_fifo and os.path.exists(led_fifo):
-            self.led_fifo = led_fifo
-        else:
-            if led_fifo:
-                logger.warning(
-                    'File %s specified for --led-fifo does not exist.',
-                    led_fifo)
-            self.led_fifo = None
         self.recognizer_event = threading.Event()
 
     def __enter__(self):
         self.running = True
         threading.Thread(target=self._recognize).start()
         self.triggerer.start()
-        self._status('ready')
+        self.status_ui.status('ready')
 
     def __exit__(self, *args):
         self.running = False
@@ -258,29 +351,20 @@ class SyncMicRecognizer(object):
 
         self.recognizer.end_audio()
 
-    def _status(self, status):
-        if self.led_fifo:
-            with open(self.led_fifo, 'w') as led:
-                led.write(status + '\n')
-        logger.info('%s...', status)
-
     def recognize(self):
         if self.recognizer_event.is_set():
             # Duplicate trigger (eg multiple button presses)
             return
 
-        if self.trigger_sound:
-            self.player.play_wav(self.trigger_sound)
-
+        self.status_ui.status('listening')
         self.recognizer.reset()
         self.recorder.add_processor(self.recognizer)
-        self._status('listening')
         # Tell recognizer to run
         self.recognizer_event.set()
 
     def endpointer_cb(self):
         self.recorder.del_processor(self.recognizer)
-        self._status('thinking')
+        self.status_ui.status('thinking')
 
     def _recognize(self):
         while self.running:
@@ -300,11 +384,13 @@ class SyncMicRecognizer(object):
                 self.recognize()
             else:
                 self.triggerer.start()
-                self._status('ready')
+                self.status_ui.status('ready')
 
     def _handle_result(self, result):
         if result.transcript and self.actor.handle(result.transcript):
             logger.info('handled local command: %s', result.transcript)
+            if result.response_audio and self.assistant_always_responds:
+                self._play_assistant_response(result.response_audio)
         elif result.response_audio:
             self._play_assistant_response(result.response_audio)
         elif result.transcript:
