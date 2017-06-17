@@ -121,7 +121,7 @@ def main():
     parser.add_argument('-O', '--output-device', default='default',
                         help='Name of the audio output device')
     parser.add_argument('-T', '--trigger', default='gpio',
-                        choices=['clap', 'gpio', 'ok-google'], help='Trigger to use')
+                        choices=['clap', 'gpio', 'ok-google', 'hotword'], help='Trigger to use')
     parser.add_argument('--cloud-speech', action='store_true',
                         help='Use the Cloud Speech API instead of the Assistant API')
     parser.add_argument('-L', '--language', default='en-US',
@@ -256,6 +256,10 @@ def do_recognition(args, recorder, recognizer, player, status_ui):
         import triggers.clap
         triggerer = triggers.clap.ClapTrigger(recorder)
         msg = 'Clap your hands'
+    elif args.trigger == 'hotword':
+        import triggers.hotword
+        triggerer = triggers.hotword.HotwordTrigger(recorder)
+        msg = 'Say hotword'
     else:
         logger.error("Unknown trigger '%s'", args.trigger)
         return
