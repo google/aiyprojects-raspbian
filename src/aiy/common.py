@@ -11,10 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This library provides common drivers for the AIY projects.
-
-Drivers in this module requires GPIO.setmode(GPIO.BCM).
-"""
+"""This library provides common drivers for the AIY projects."""
 
 import itertools
 import os
@@ -55,6 +52,7 @@ class Button(object):
         self.expected_value = polarity == GPIO.RISING
         self.debounce_time = debounce_time
 
+        GPIO.setmode(GPIO.BCM)
         GPIO.setup(channel, GPIO.IN, pull_up_down=pull_up_down)
 
         self.callback = None
@@ -135,6 +133,7 @@ class LED:
         self.state = None
         self.sleep = 0
 
+        GPIO.setmode(GPIO.BCM)
         GPIO.setup(channel, GPIO.OUT)
         self.pwm = GPIO.PWM(channel, 100)
 
@@ -176,7 +175,7 @@ class LED:
                 return
             if state:
                 if not self._parse_state(state):
-                    print('unsupported state: %d' % state)
+                    raise ValueError('unsupported state: %d' % state)
             if self.iterator:
                 self.pwm.ChangeDutyCycle(next(self.iterator))
                 time.sleep(self.sleep)
