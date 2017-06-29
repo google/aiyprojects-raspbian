@@ -286,6 +286,7 @@ class playRadio(object):
         logging.info("stream " + station)
         media = self.instance.media_new(station)
         player.set_media(media)
+        player.play()
         self.set_state("playing")
 
     def pause():
