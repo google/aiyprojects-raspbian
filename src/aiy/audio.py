@@ -22,7 +22,7 @@ import subprocess
 import threading
 import wave
 
-logger = logging.getLogger('audio')
+logger = logging.getLogger('aiy.audio')
 
 
 def sample_width_to_string(sample_width):
@@ -35,6 +35,11 @@ class Recorder(threading.Thread):
     """Stream audio from microphone in a background thread and run processing
     callbacks. It reads audio in a configurable format from the microphone,
     then converts it to a known format before passing it to the processors.
+
+    This driver accumulates input (audio samples) in a local buffer. Once the
+    buffer contains more than CHUNK_S seconds, it passes the chunk to all
+    processors. An audio processor defines a 'add_data' method that receives
+    the chunk of audio samples to process.
     """
 
     CHUNK_S = 0.1
@@ -56,7 +61,8 @@ class Recorder(threading.Thread):
 
         self._processors = []
 
-        self._chunk_bytes = int(self.CHUNK_S * sample_rate_hz) * channels * bytes_per_sample
+        self._chunk_bytes = (int(self.CHUNK_S * sample_rate_hz)
+                             * channels * bytes_per_sample)
 
         self._cmd = [
             'arecord',
@@ -183,7 +189,8 @@ class WavDump(object):
         self._wav.setframerate(sample_rate_hz)
 
         self._n_bytes = 0
-        self._total_bytes = int(duration * sample_rate_hz) * channels * bytes_per_sample
+        self._total_bytes = (int(duration * sample_rate_hz)
+                             * channels * bytes_per_sample)
 
     def add_data(self, data):
         """Write frames to the file if they fit within the total size."""

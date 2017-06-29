@@ -36,7 +36,8 @@ SAMPLE_RATE = 16000
 # to understand. Calculated with:
 #   python3 src/tts.py --hpf-order 4 --hpf-freq-hz 1400 --hpf-gain-db 4
 FILTER_A = np.array([1., -3.28274474, 4.09441957, -2.29386174, 0.48627065])
-FILTER_B = np.array([1.10519522, -4.4207809, 6.63117135, -4.4207809, 1.10519522])
+FILTER_B = np.array(
+    [1.10519522, -4.4207809, 6.63117135, -4.4207809, 1.10519522])
 
 logger = logging.getLogger('tts')
 
@@ -64,7 +65,8 @@ def create_say(player):
     filter.
     """
     lang = i18n.get_language_code()
-    return functools.partial(say, player, eq_filter=create_eq_filter(), lang=lang)
+    return functools.partial(
+        say, player, eq_filter=create_eq_filter(), lang=lang)
 
 
 def say(player, words, eq_filter=None, lang='en-US'):
@@ -95,24 +97,28 @@ def say(player, words, eq_filter=None, lang='en-US'):
 def main():
     import argparse
 
-    import audio
+    import aiy.audio
 
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description='Test TTS wrapper')
     parser.add_argument('words', nargs='*', help='Words to say')
-    parser.add_argument('--hpf-order', type=int, help='Order of high-pass filter')
-    parser.add_argument('--hpf-freq-hz', type=int, help='Corner frequency of high-pass filter')
-    parser.add_argument('--hpf-gain-db', type=int, help='High-frequency gain of filter')
+    parser.add_argument(
+        '--hpf-order', type=int, help='Order of high-pass filter')
+    parser.add_argument(
+        '--hpf-freq-hz', type=int, help='Corner frequency of high-pass filter')
+    parser.add_argument(
+        '--hpf-gain-db', type=int, help='High-frequency gain of filter')
     args = parser.parse_args()
 
     if args.words:
         words = ' '.join(args.words)
-        player = audio.Player()
+        player = aiy.audio.Player()
         create_say(player)(words)
 
     if args.hpf_order:
-        print_eq_coefficients(args.hpf_order, args.hpf_freq_hz, args.hpf_gain_db)
+        print_eq_coefficients(
+            args.hpf_order, args.hpf_freq_hz, args.hpf_gain_db)
 
 
 if __name__ == '__main__':
