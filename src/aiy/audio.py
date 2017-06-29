@@ -61,8 +61,8 @@ class Recorder(threading.Thread):
 
         self._processors = []
 
-        self._chunk_bytes = (int(self.CHUNK_S * sample_rate_hz)
-                             * channels * bytes_per_sample)
+        self._chunk_bytes = (int(self.CHUNK_S * sample_rate_hz) *
+                             channels * bytes_per_sample)
 
         self._cmd = [
             'arecord',
@@ -189,8 +189,8 @@ class WavDump(object):
         self._wav.setframerate(sample_rate_hz)
 
         self._n_bytes = 0
-        self._total_bytes = (int(duration * sample_rate_hz)
-                             * channels * bytes_per_sample)
+        self._total_bytes = (int(duration * sample_rate_hz) *
+                             channels * bytes_per_sample)
 
     def add_data(self, data):
         """Write frames to the file if they fit within the total size."""
