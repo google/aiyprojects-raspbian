@@ -20,29 +20,28 @@ import time
 import aiy.common
 import RPi.GPIO as GPIO
 
-logger = logging.getLogger("led")
+logger = logging.getLogger('led')
 
-CONFIG_DIR = os.getenv("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
+CONFIG_DIR = os.getenv('XDG_CONFIG_HOME') or os.path.expanduser('~/.config')
 CONFIG_FILES = [
-    "/etc/status-led.ini",
-    os.path.join(CONFIG_DIR, "status-led.ini")
+    '/etc/status-led.ini',
+    os.path.join(CONFIG_DIR, 'status-led.ini')
 ]
 
 
 def main():
     logging.basicConfig(
         level=logging.INFO,
-        format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s")
+        format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
+    )
 
     import configargparse
     parser = configargparse.ArgParser(
-        default_config_files=CONFIG_FILES, description="Status LED daemon")
-    parser.add_argument(
-        "-G",
-        "--gpio-pin",
-        default=25,
-        type=int,
-        help="GPIO pin for the LED (default: 25)")
+        default_config_files=CONFIG_FILES,
+        description="Status LED daemon"
+    )
+    parser.add_argument('-G', '--gpio-pin', default=25, type=int,
+                        help='GPIO pin for the LED (default: 25)')
     args = parser.parse_args()
 
     led = None
@@ -80,5 +79,5 @@ def main():
         GPIO.cleanup()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
