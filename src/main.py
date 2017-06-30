@@ -75,15 +75,14 @@ def try_to_get_credentials(client_secrets):
     if not os.path.exists(VR_CACHE_DIR):
         os.mkdir(VR_CACHE_DIR)
 
-    if not os.path.exists(client_secrets) and os.path.exists(
-       OLD_CLIENT_SECRETS):
+    if not os.path.exists(client_secrets) and os.path.exists(OLD_CLIENT_SECRETS):
         client_secrets = OLD_CLIENT_SECRETS
 
     if not os.path.exists(client_secrets):
         print('You need client secrets to use the Assistant API.')
         print('Follow these instructions:')
-        print('    https://developers.google.com/api-client-library/python'
-              '/auth/installed-app#creatingcred')
+        print('    https://developers.google.com/api-client-library/python/auth/installed-app'
+              '#creatingcred')
         print('and put the file at', client_secrets)
         sys.exit(1)
 
@@ -122,21 +121,17 @@ def main():
     parser.add_argument('-O', '--output-device', default='default',
                         help='Name of the audio output device')
     parser.add_argument('-T', '--trigger', default='gpio',
-                        choices=['clap', 'gpio', 'ok-google'],
-                        help='Trigger to use')
+                        choices=['clap', 'gpio', 'ok-google'], help='Trigger to use')
     parser.add_argument('--cloud-speech', action='store_true',
-                        help='Use the Cloud Speech API instead of the'
-                        ' Assistant API')
+                        help='Use the Cloud Speech API instead of the Assistant API')
     parser.add_argument('-L', '--language', default='en-US',
-                        help='Language code to use for speech'
-                        ' (default: en-US)')
+                        help='Language code to use for speech (default: en-US)')
     parser.add_argument('-l', '--led-fifo', default='/tmp/status-led',
                         help='Status led control fifo')
     parser.add_argument('-p', '--pid-file',
                         help='File containing our process id for monitoring')
     parser.add_argument('--audio-logging', action='store_true',
-                        help='Log all requests and responses'' to WAV files in'
-                        ' /tmp')
+                        help='Log all requests and responses to WAV files in /tmp')
     parser.add_argument('--assistant-always-responds', action='store_true',
                         help='Play Assistant responses for local actions.'
                         ' You should make sure that you have IFTTT applets for'
@@ -161,8 +156,7 @@ def main():
 
     if args.cloud_speech:
         credentials_file = os.path.expanduser(args.cloud_speech_secrets)
-        if not os.path.exists(credentials_file) and os.path.exists(
-           OLD_SERVICE_CREDENTIALS):
+        if not os.path.exists(credentials_file) and os.path.exists(OLD_SERVICE_CREDENTIALS):
             credentials_file = OLD_SERVICE_CREDENTIALS
         recognizer = speech.CloudSpeechRequest(credentials_file)
     else:
@@ -216,8 +210,7 @@ installed with:
         if event.type == EventType.ON_START_FINISHED:
             status_ui.status('ready')
             if sys.stdout.isatty():
-                print('Say "OK, Google" then speak,'
-                      ' or press Ctrl+C to quit...')
+                print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
 
         elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
             status_ui.status('listening')

@@ -37,7 +37,7 @@ STOP_DELAY = 1.0
 
 VOICE_RECOGNIZER_PATH = os.path.realpath(os.path.join(__file__, '..', '..'))
 PYTHON3 = VOICE_RECOGNIZER_PATH + '/env/bin/python3'
-AUDIO_PY = VOICE_RECOGNIZER_PATH + '/src/aiy.audio.py'
+AUDIO_PY = VOICE_RECOGNIZER_PATH + '/src/aiy/audio.py'
 SPEECH_PY = VOICE_RECOGNIZER_PATH + '/src/speech.py'
 SPEECH_PY_ENV = {
     'VIRTUAL_ENV': VOICE_RECOGNIZER_PATH + '/env',
@@ -61,8 +61,7 @@ def check_credentials_valid():
 
 def is_service_active():
     """Returns True if the voice-recognizer service is active."""
-    output = subprocess.check_output(['systemctl', 'show',
-                                      SERVICE_NAME]).decode('utf-8')
+    output = subprocess.check_output(['systemctl', 'show', SERVICE_NAME]).decode('utf-8')
 
     if ACTIVE_STR in output:
         return True
@@ -83,8 +82,7 @@ def stop_service():
     if not is_service_active():
         return False
 
-    subprocess.check_call(['sudo', 'systemctl', 'stop', SERVICE_NAME],
-                          stdout=subprocess.PIPE)
+    subprocess.check_call(['sudo', 'systemctl', 'stop', SERVICE_NAME], stdout=subprocess.PIPE)
     time.sleep(STOP_DELAY)
     if is_service_active():
         print('WARNING: failed to stop service, mic may not work.')
@@ -95,8 +93,7 @@ def stop_service():
 
 def start_service():
     """Start the voice-recognizer again."""
-    subprocess.check_call(['sudo', 'systemctl', 'start', SERVICE_NAME],
-                          stdout=subprocess.PIPE)
+    subprocess.check_call(['sudo', 'systemctl', 'start', SERVICE_NAME], stdout=subprocess.PIPE)
 
 
 def check_speech_reco():
@@ -162,15 +159,14 @@ def main():
     """Run all checks and print status."""
     if not os.path.exists(CREDENTIALS_PATH):
         print(
-            """Please follow these instructions to get Google Cloud
-            credentials:
+            """Please follow these instructions to get Google Cloud credentials:
 https://cloud.google.com/speech/docs/getting-started#set_up_your_project
 and save them to""", CREDENTIALS_PATH)
         return
 
     if not check_credentials_valid():
-        print(CREDENTIALS_PATH,
-              """is not valid, please check that you have downloaded JSON
+        print(
+            CREDENTIALS_PATH, """is not valid, please check that you have downloaded JSON
 service credentials.""")
         return
 

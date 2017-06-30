@@ -59,8 +59,7 @@ def get_sound_cards():
 
 def is_service_active():
     """Returns True if the voice-recognizer service is active."""
-    output = subprocess.check_output(['systemctl', 'show',
-                                      SERVICE_NAME]).decode('utf-8')
+    output = subprocess.check_output(['systemctl', 'show', SERVICE_NAME]).decode('utf-8')
 
     if ACTIVE_STR in output:
         return True
@@ -97,8 +96,7 @@ def stop_service():
     if not is_service_active():
         return False
 
-    subprocess.check_call(
-        ['sudo', 'systemctl', 'stop', SERVICE_NAME], stdout=subprocess.PIPE)
+    subprocess.check_call(['sudo', 'systemctl', 'stop', SERVICE_NAME], stdout=subprocess.PIPE)
     time.sleep(STOP_DELAY)
     if is_service_active():
         print('WARNING: failed to stop service, mic may not work.')
@@ -109,8 +107,7 @@ def stop_service():
 
 def start_service():
     """Start the voice-recognizer again."""
-    subprocess.check_call(
-        ['sudo', 'systemctl', 'start', SERVICE_NAME], stdout=subprocess.PIPE)
+    subprocess.check_call(['sudo', 'systemctl', 'start', SERVICE_NAME], stdout=subprocess.PIPE)
 
 
 def check_voicehat_present():
