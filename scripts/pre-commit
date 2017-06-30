@@ -6,13 +6,13 @@ which >/dev/null pep8 || (echo "please install pep8"; exit 1)
 files=$(git diff --name-only --staged --diff-filter=ACMRTUXB | egrep "*.py$")
 
 if test -n "$files"; then
-  pep8 --max-line-length=120 $files
+  pep8 --max-line-length=100 $files
   res=$?
   if [ $res -ne 0 ]; then
     echo
-    autopep8 --max-line-length=120 --diff $files
+    autopep8 --max-line-length=100 --diff $files
     echo
-    echo "To fix run: autopep8 --max-line-length=120 -i $files"
+    echo "To fix run: autopep8 --max-line-length=100 -i $files"
   fi
   exit $res
 fi
