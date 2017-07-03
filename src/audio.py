@@ -74,7 +74,10 @@ class Recorder(threading.Thread):
         self._processors.append(processor)
 
     def del_processor(self, processor):
-        self._processors.remove(processor)
+        if processor in self._processors:
+            self._processors.remove(processor)
+        else:
+            logger.warn("processor was not found in the list")
 
     def run(self):
         """Reads data from arecord and passes to processors."""
