@@ -95,7 +95,7 @@ def say(player, words, eq_filter=None, lang='en-US'):
 def main():
     import argparse
 
-    import audio
+    import aiy.audio
 
     logging.basicConfig(level=logging.INFO)
 
@@ -108,7 +108,7 @@ def main():
 
     if args.words:
         words = ' '.join(args.words)
-        player = audio.Player()
+        player = aiy.audio.Player()
         create_say(player)(words)
 
     if args.hpf_order:
