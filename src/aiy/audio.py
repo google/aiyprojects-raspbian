@@ -35,6 +35,11 @@ class Recorder(threading.Thread):
     """Stream audio from microphone in a background thread and run processing
     callbacks. It reads audio in a configurable format from the microphone,
     then converts it to a known format before passing it to the processors.
+
+    This driver accumulates input (audio samples) in a local buffer. Once the
+    buffer contains more than CHUNK_S seconds, it passes the chunk to all
+    processors. An audio processor defines a 'add_data' method that receives
+    the chunk of audio samples to process.
     """
 
     CHUNK_S = 0.1

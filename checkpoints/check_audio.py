@@ -34,7 +34,7 @@ STOP_DELAY = 1.0
 
 VOICE_RECOGNIZER_PATH = os.path.realpath(os.path.join(__file__, '..', '..'))
 PYTHON3 = 'python3'
-AUDIO_PY = VOICE_RECOGNIZER_PATH + '/src/audio.py'
+AUDIO_PY = VOICE_RECOGNIZER_PATH + '/src/aiy/audio.py'
 
 TEST_SOUND_PATH = '/usr/share/sounds/alsa/Front_Center.wav'
 

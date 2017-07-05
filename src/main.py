@@ -25,7 +25,7 @@ import time
 
 import configargparse
 
-import audio
+import aiy.audio
 import auth_helpers
 import action
 import i18n
@@ -154,7 +154,7 @@ def main():
     create_pid_file(args.pid_file)
     i18n.set_language_code(args.language, gettext_install=True)
 
-    player = audio.Player(args.output_device)
+    player = aiy.audio.Player(args.output_device)
 
     if args.cloud_speech:
         credentials_file = os.path.expanduser(args.cloud_speech_secrets)
@@ -177,7 +177,7 @@ def main():
             sys.exit(1)
         do_assistant_library(args, credentials, player, status_ui)
     else:
-        recorder = audio.Recorder(
+        recorder = aiy.audio.Recorder(
             input_device=args.input_device, channels=1,
             bytes_per_sample=speech.AUDIO_SAMPLE_SIZE,
             sample_rate_hz=speech.AUDIO_SAMPLE_RATE_HZ)
