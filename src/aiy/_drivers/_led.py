@@ -20,6 +20,7 @@ import time
 
 import RPi.GPIO as GPIO
 
+
 class LED:
     """Starts a background thread to show patterns with the LED.
 

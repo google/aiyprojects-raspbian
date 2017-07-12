@@ -25,36 +25,38 @@ GPIO_LED = 25
 voicehat_button = None
 voicehat_led = None
 
+
 def get_button():
-  """Returns a driver to the VoiceHat button.
+    """Returns a driver to the VoiceHat button.
 
-  The button driver detects edges on GPIO_BUTTON. It can be used both
-  synchronously and asynchrously.
+    The button driver detects edges on GPIO_BUTTON. It can be used both
+    synchronously and asynchrously.
 
-  Synchronous usage:
-    button = aiy.voicehat.get_button()
-    button.wait_for_press()
-    # The above function does not return until the button is pressed.
-    my_recognizer.recognize()
-    ...
+    Synchronous usage:
+        button = aiy.voicehat.get_button()
+        button.wait_for_press()
+        # The above function does not return until the button is pressed.
+        my_recognizer.recognize()
+        ...
 
-  Asynchronous usage:
-    def on_button_press(_):
-      print('The button is pressed!')
+    Asynchronous usage:
+        def on_button_press(_):
+            print('The button is pressed!')
 
-    button = aiy.voicehat.get_button()
-    button.on_press(on_button_press)
-    # The console will print 'The button is pressed!' every time the button is
-    # pressed.
-    ...
-    # To cancel the callback, pass None:
-    button.on_press(None)
-    # Calling wait_for_press() also cancels any callback.
-  """
-  global voicehat_button
-  if voicehat_button is None:
-    voicehat_button = aiy._drivers._button.Button(channel=GPIO_BUTTON)
-  return voicehat_button
+        button = aiy.voicehat.get_button()
+        button.on_press(on_button_press)
+        # The console will print 'The button is pressed!' every time the button is
+        # pressed.
+        ...
+        # To cancel the callback, pass None:
+        button.on_press(None)
+        # Calling wait_for_press() also cancels any callback.
+    """
+    global voicehat_button
+    if voicehat_button is None:
+        voicehat_button = aiy._drivers._button.Button(channel=GPIO_BUTTON)
+    return voicehat_button
+
 
 # All supported LED animations.
 LED_OFF = aiy._drivers._led.LED.LED_OFF
@@ -67,20 +69,21 @@ LED_DECAY = aiy._drivers._led.LED.LED_DECAY
 LED_PULSE_SLOW = aiy._drivers._led.LED.LED_PULSE_SLOW
 LED_PULSE_QUICK = aiy._drivers._led.LED.LED_PULSE_QUICK
 
+
 def get_led():
-  """Returns a driver to control the VoiceHat LED light with various animations.
+    """Returns a driver to control the VoiceHat LED light with various animations.
 
-  led = aiy.voicehat.get_led()
+    led = aiy.voicehat.get_led()
 
-  # You may set any LED animation:
-  led.set_state(aiy.voicehat.LED_PULSE_QUICK)
-  led.set_state(aiy.voicehat.LED_BLINK)
+    # You may set any LED animation:
+    led.set_state(aiy.voicehat.LED_PULSE_QUICK)
+    led.set_state(aiy.voicehat.LED_BLINK)
 
-  # Or turn off the light but keep the driver running:
-  led.set_state(aiy.voicehat.LED_OFF)
-  """
-  global voicehat_led
-  if voicehat_led is None:
-    voicehat_led = aiy._drivers._led.LED(channel=GPIO_LED)
-    voicehat_led.start()
-  return voicehat_led
+    # Or turn off the light but keep the driver running:
+    led.set_state(aiy.voicehat.LED_OFF)
+    """
+    global voicehat_led
+    if voicehat_led is None:
+        voicehat_led = aiy._drivers._led.LED(channel=GPIO_LED)
+        voicehat_led.start()
+    return voicehat_led

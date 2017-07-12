@@ -21,6 +21,7 @@ import aiy.audio
 import aiy.cloudspeech
 import aiy.voicehat
 
+
 def main():
     recognizer = aiy.cloudspeech.get_recognizer()
     recognizer.expect_phrase('turn off the light')
@@ -30,6 +31,7 @@ def main():
     button = aiy.voicehat.get_button()
     led = aiy.voicehat.get_led()
     aiy.audio.get_recorder().start()
+
     while True:
         print('Press the button and speak')
         button.wait_for_press()
@@ -46,7 +48,7 @@ def main():
             elif 'blink' in text:
                 led.set_state(led.LED_BLINK)
             elif 'goodbye' in text:
-              os._exit(0)  #pylint: disable=protected-access
+                os._exit(0)
 
 
 if __name__ == '__main__':

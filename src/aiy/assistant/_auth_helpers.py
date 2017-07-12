@@ -84,6 +84,7 @@ def save_credentials(credentials_path, credentials):
             'scopes': credentials.scopes
         }, f)
 
+
 def try_to_get_credentials(client_secrets):
     """Try to get credentials, or print an error and quit on failure."""
 

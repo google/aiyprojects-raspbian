@@ -25,42 +25,47 @@ AUDIO_SAMPLE_RATE_HZ = 16000
 voicehat_recorder = None
 voicehat_player = None
 
-def get_player():
-  """Returns a driver to control the VoiceHat speaker.
 
-  The aiy modules automatically use this player. So usually you do not need to
-  use this. Instead, use 'aiy.audio.play_wave' if you would like to play some
-  audio.
-  """
-  global voicehat_player
-  if voicehat_player is None:
-    voicehat_player = aiy._drivers._player.Player()
-  return voicehat_player
+def get_player():
+    """Returns a driver to control the VoiceHat speaker.
+
+    The aiy modules automatically use this player. So usually you do not need to
+    use this. Instead, use 'aiy.audio.play_wave' if you would like to play some
+    audio.
+    """
+    global voicehat_player
+    if voicehat_player is None:
+        voicehat_player = aiy._drivers._player.Player()
+    return voicehat_player
+
 
 def get_recorder():
-  """Returns a driver to control the VoiceHat microphones.
+    """Returns a driver to control the VoiceHat microphones.
 
-  The aiy modules automatically use this recorder. So usually you do not need to
-  use this.
-  """
-  global voicehat_recorder
-  if voicehat_recorder is None:
-    voicehat_recorder = aiy._drivers._recorder.Recorder()
-  return voicehat_recorder
+    The aiy modules automatically use this recorder. So usually you do not need to
+    use this.
+    """
+    global voicehat_recorder
+    if voicehat_recorder is None:
+        voicehat_recorder = aiy._drivers._recorder.Recorder()
+    return voicehat_recorder
+
 
 def play_wave(wave_file):
-  """Plays the given wave file.
+    """Plays the given wave file.
 
-  The wave file has to be mono and small enough to be loaded in memory.
-  """
-  player = get_player()
-  player.play_wav(wave_file)
+    The wave file has to be mono and small enough to be loaded in memory.
+    """
+    player = get_player()
+    player.play_wav(wave_file)
+
 
 def play_audio(audio_data):
-  """Plays the given audio data."""
-  player = get_player()
-  player.play_bytes(audio_data, sample_width=AUDIO_SAMPLE_SIZE, sample_rate=AUDIO_SAMPLE_RATE_HZ)
+    """Plays the given audio data."""
+    player = get_player()
+    player.play_bytes(audio_data, sample_width=AUDIO_SAMPLE_SIZE, sample_rate=AUDIO_SAMPLE_RATE_HZ)
+
 
 def say(words, lang='en-US'):
-  """Says the given words in the given language with Google TTS engine."""
-  aiy._drivers._tts.say(aiy.audio.get_player(), words, lang=lang)
+    """Says the given words in the given language with Google TTS engine."""
+    aiy._drivers._tts.say(aiy.audio.get_player(), words, lang=lang)

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Helpers for ALSA tools, including aplay and arecord."""
 
+
 def sample_width_to_string(sample_width):
     """Convert sample width (bytes) to ALSA format string."""
     return {1: 's8', 2: 's16', 4: 's32'}[sample_width]

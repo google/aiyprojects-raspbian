@@ -26,58 +26,59 @@ cloudspeech_recognizer = None
 # Expected location of the CloudSpeech credentials file:
 CLOUDSPEECH_CREDENTIALS_FILE = os.path.expanduser('~/cloud_speech.json')
 
+
 class _CloudSpeechRecognizer(object):
-  """A speech recognizer backed by the Google CloudSpeech APIs.
-  """
-
-  def __init__(self, credentials_file):
-    self._request = aiy._apis._speech.CloudSpeechRequest(credentials_file)
-    self._recorder = aiy.audio.get_recorder()
-
-  def recognize(self):
-    """Recognizes the user's speech and transcript it into text.
-
-    This function listens to the user's speech via the VoiceHat speaker. Then it
-    contacts Google CloudSpeech APIs and returns a textual transcript if possible.
+    """A speech recognizer backed by the Google CloudSpeech APIs.
     """
-    self._request.reset()
-    self._request.set_endpointer_cb(self._endpointer_callback)
-    self._recorder.add_processor(self._request)
-    return self._request.do_request().transcript
 
-  def expect_phrase(self, phrase):
-    """Explicitly tells the engine that the phrase is more likely to appear.
+    def __init__(self, credentials_file):
+        self._request = aiy._apis._speech.CloudSpeechRequest(credentials_file)
+        self._recorder = aiy.audio.get_recorder()
 
-    This method is optional and makes speech recognition more accurate
-    especially when certain commands are expected.
+    def recognize(self):
+        """Recognizes the user's speech and transcript it into text.
 
-    For example, a light control system may want to add the following commands:
+        This function listens to the user's speech via the VoiceHat speaker. Then it
+        contacts Google CloudSpeech APIs and returns a textual transcript if possible.
+        """
+        self._request.reset()
+        self._request.set_endpointer_cb(self._endpointer_callback)
+        self._recorder.add_processor(self._request)
+        return self._request.do_request().transcript
 
-    recognizer.expect_phrase('light on')
-    recognizer.expect_phrase('light off')
-    """
-    self._request.add_phrase(phrase)
+    def expect_phrase(self, phrase):
+        """Explicitly tells the engine that the phrase is more likely to appear.
 
-  def _endpointer_callback(self):
-    self._recorder.remove_processor(self._request)
+        This method is optional and makes speech recognition more accurate
+        especially when certain commands are expected.
+
+        For example, a light control system may want to add the following commands:
+
+        recognizer.expect_phrase('light on')
+        recognizer.expect_phrase('light off')
+        """
+        self._request.add_phrase(phrase)
+
+    def _endpointer_callback(self):
+        self._recorder.remove_processor(self._request)
+
 
 def get_recognizer():
-  """Returns a recognizer that uses Google CloudSpeech APIs.
+    """Returns a recognizer that uses Google CloudSpeech APIs.
 
-  Sample usage:
-    button = aiy.voicehat.get_button()
-    recognizer = aiy.cloudspeech.get_recognizer()
-    while True:
-        print('Press the button and speak')
-        button.wait_for_press()
-        text = recognizer.recognize()
-        if 'light on' in text:
-            turn_on_light()
-        elif 'light off' in text:
-            turn_off_light()
-  """
-  global cloudspeech_recognizer
-  if cloudspeech_recognizer is None:
-    cloudspeech_recognizer = _CloudSpeechRecognizer(CLOUDSPEECH_CREDENTIALS_FILE)
-  return cloudspeech_recognizer
-
+    Sample usage:
+        button = aiy.voicehat.get_button()
+        recognizer = aiy.cloudspeech.get_recognizer()
+        while True:
+            print('Press the button and speak')
+            button.wait_for_press()
+            text = recognizer.recognize()
+            if 'light on' in text:
+                turn_on_light()
+            elif 'light off' in text:
+                turn_off_light()
+    """
+    global cloudspeech_recognizer
+    if cloudspeech_recognizer is None:
+        cloudspeech_recognizer = _CloudSpeechRecognizer(CLOUDSPEECH_CREDENTIALS_FILE)
+    return cloudspeech_recognizer

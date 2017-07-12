@@ -21,6 +21,7 @@ import aiy.assistant.grpc
 import aiy.audio
 import aiy.voicehat
 
+
 def main():
     assistant = aiy.assistant.grpc.get_assistant()
     button = aiy.voicehat.get_button()
@@ -31,12 +32,12 @@ def main():
         print('Listening...')
         text, audio = assistant.recognize()
         if text is not None:
-          if text == 'goodbye':
-            print('Bye!')
-            os._exit(0)
-          print('You said "', text, '"')
+            if text == 'goodbye':
+                print('Bye!')
+                os._exit(0)
+            print('You said "', text, '"')
         if audio is not None:
-          aiy.audio.play_audio(audio)
+            aiy.audio.play_audio(audio)
 
 
 if __name__ == '__main__':
