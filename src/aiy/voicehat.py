@@ -21,9 +21,12 @@ import aiy._drivers._led
 GPIO_BUTTON = 23
 GPIO_LED = 25
 
+# Import LED class to expose the LED constants.
+LED = aiy._drivers._led.LED
+
 # Global variables. They are lazily initialized.
-voicehat_button = None
-voicehat_led = None
+_voicehat_button = None
+_voicehat_led = None
 
 
 def get_button():
@@ -52,22 +55,10 @@ def get_button():
         button.on_press(None)
         # Calling wait_for_press() also cancels any callback.
     """
-    global voicehat_button
-    if voicehat_button is None:
-        voicehat_button = aiy._drivers._button.Button(channel=GPIO_BUTTON)
-    return voicehat_button
-
-
-# All supported LED animations.
-LED_OFF = aiy._drivers._led.LED.LED_OFF
-LED_ON = aiy._drivers._led.LED.LED_ON
-LED_BLINK = aiy._drivers._led.LED.LED_BLINK
-LED_BLINK_3 = aiy._drivers._led.LED.LED_BLINK_3
-LED_BEACON = aiy._drivers._led.LED.LED_BEACON
-LED_BEACON_DARK = aiy._drivers._led.LED.LED_BEACON_DARK
-LED_DECAY = aiy._drivers._led.LED.LED_DECAY
-LED_PULSE_SLOW = aiy._drivers._led.LED.LED_PULSE_SLOW
-LED_PULSE_QUICK = aiy._drivers._led.LED.LED_PULSE_QUICK
+    global _voicehat_button
+    if _voicehat_button is None:
+        _voicehat_button = aiy._drivers._button.Button(channel=GPIO_BUTTON)
+    return _voicehat_button
 
 
 def get_led():
@@ -76,14 +67,14 @@ def get_led():
     led = aiy.voicehat.get_led()
 
     # You may set any LED animation:
-    led.set_state(aiy.voicehat.LED_PULSE_QUICK)
-    led.set_state(aiy.voicehat.LED_BLINK)
+    led.set_state(aiy.voicehat.LED.PULSE_QUICK)
+    led.set_state(aiy.voicehat.LED.BLINK)
 
     # Or turn off the light but keep the driver running:
     led.set_state(aiy.voicehat.LED_OFF)
     """
-    global voicehat_led
-    if voicehat_led is None:
-        voicehat_led = aiy._drivers._led.LED(channel=GPIO_LED)
-        voicehat_led.start()
-    return voicehat_led
+    global _voicehat_led
+    if _voicehat_led is None:
+        _voicehat_led = aiy._drivers._led.LED(channel=GPIO_LED)
+        _voicehat_led.start()
+    return _voicehat_led

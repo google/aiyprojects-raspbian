@@ -27,19 +27,19 @@ class LED:
   Simple usage:
     my_led = LED(channel = 25)
     my_led.start()
-    my_led.set_state(LED_BEACON)
+    my_led.set_state(LED.BEACON)
     my_led.stop()
   """
 
-    LED_OFF = 0
-    LED_ON = 1
-    LED_BLINK = 2
-    LED_BLINK_3 = 3
-    LED_BEACON = 4
-    LED_BEACON_DARK = 5
-    LED_DECAY = 6
-    LED_PULSE_SLOW = 7
-    LED_PULSE_QUICK = 8
+    OFF = 0
+    ON = 1
+    BLINK = 2
+    BLINK_3 = 3
+    BEACON = 4
+    BEACON_DARK = 5
+    DECAY = 6
+    PULSE_SLOW = 7
+    PULSE_QUICK = 8
 
     def __init__(self, channel):
         self.animator = threading.Thread(target=self._animate)
@@ -102,40 +102,40 @@ class LED:
     def _parse_state(self, state):
         self.iterator = None
         self.sleep = 0.0
-        if state == self.LED_OFF:
+        if state == self.OFF:
             self.pwm.ChangeDutyCycle(0)
             return True
-        if state == self.LED_ON:
+        if state == self.ON:
             self.pwm.ChangeDutyCycle(100)
             return True
-        if state == self.LED_BLINK:
+        if state == self.BLINK:
             self.iterator = itertools.cycle([0, 100])
             self.sleep = 0.5
             return True
-        if state == self.LED_BLINK_3:
+        if state == self.BLINK_3:
             self.iterator = itertools.cycle([0, 100] * 3 + [0, 0])
             self.sleep = 0.25
             return True
-        if state == self.LED_BEACON:
+        if state == self.BEACON:
             self.iterator = itertools.cycle(
                 itertools.chain([30] * 100, [100] * 8, range(100, 30, -5)))
             self.sleep = 0.05
             return True
-        if state == self.LED_BEACON_DARK:
+        if state == self.BEACON_DARK:
             self.iterator = itertools.cycle(
                 itertools.chain([0] * 100, range(0, 30, 3), range(30, 0, -3)))
             self.sleep = 0.05
             return True
-        if state == self.LED_DECAY:
+        if state == self.DECAY:
             self.iterator = itertools.cycle(range(100, 0, -2))
             self.sleep = 0.05
             return True
-        if state == self.LED_PULSE_SLOW:
+        if state == self.PULSE_SLOW:
             self.iterator = itertools.cycle(
                 itertools.chain(range(0, 100, 2), range(100, 0, -2)))
             self.sleep = 0.1
             return True
-        if state == self.LED_PULSE_QUICK:
+        if state == self.PULSE_QUICK:
             self.iterator = itertools.cycle(
                 itertools.chain(range(0, 100, 5), range(100, 0, -5)))
             self.sleep = 0.05

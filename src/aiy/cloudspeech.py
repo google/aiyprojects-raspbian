@@ -21,7 +21,7 @@ import aiy.audio
 import aiy.voicehat
 
 # Global variables. They are lazily initialized.
-cloudspeech_recognizer = None
+_cloudspeech_recognizer = None
 
 # Expected location of the CloudSpeech credentials file:
 CLOUDSPEECH_CREDENTIALS_FILE = os.path.expanduser('~/cloud_speech.json')
@@ -78,7 +78,7 @@ def get_recognizer():
             elif 'light off' in text:
                 turn_off_light()
     """
-    global cloudspeech_recognizer
-    if cloudspeech_recognizer is None:
-        cloudspeech_recognizer = _CloudSpeechRecognizer(CLOUDSPEECH_CREDENTIALS_FILE)
-    return cloudspeech_recognizer
+    global _cloudspeech_recognizer
+    if _cloudspeech_recognizer is None:
+        _cloudspeech_recognizer = _CloudSpeechRecognizer(CLOUDSPEECH_CREDENTIALS_FILE)
+    return _cloudspeech_recognizer

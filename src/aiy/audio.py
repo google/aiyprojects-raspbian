@@ -22,8 +22,8 @@ AUDIO_SAMPLE_SIZE = 2  # bytes per sample
 AUDIO_SAMPLE_RATE_HZ = 16000
 
 # Global variables. They are lazily initialized.
-voicehat_recorder = None
-voicehat_player = None
+_voicehat_recorder = None
+_voicehat_player = None
 
 
 def get_player():
@@ -33,10 +33,10 @@ def get_player():
     use this. Instead, use 'aiy.audio.play_wave' if you would like to play some
     audio.
     """
-    global voicehat_player
-    if voicehat_player is None:
-        voicehat_player = aiy._drivers._player.Player()
-    return voicehat_player
+    global _voicehat_player
+    if _voicehat_player is None:
+        _voicehat_player = aiy._drivers._player.Player()
+    return _voicehat_player
 
 
 def get_recorder():
@@ -45,10 +45,10 @@ def get_recorder():
     The aiy modules automatically use this recorder. So usually you do not need to
     use this.
     """
-    global voicehat_recorder
-    if voicehat_recorder is None:
-        voicehat_recorder = aiy._drivers._recorder.Recorder()
-    return voicehat_recorder
+    global _voicehat_recorder
+    if _voicehat_recorder is None:
+        _voicehat_recorder = aiy._drivers._recorder.Recorder()
+    return _voicehat_recorder
 
 
 def play_wave(wave_file):

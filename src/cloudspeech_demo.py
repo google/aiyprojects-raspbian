@@ -42,11 +42,11 @@ def main():
         else:
             print('You said "', text, '"')
             if 'turn on the light' in text:
-                led.set_state(led.LED_ON)
+                led.set_state(aiy.voicehat.LED.ON)
             elif 'turn off the light' in text:
-                led.set_state(led.LED_OFF)
+                led.set_state(aiy.voicehat.LED.OFF)
             elif 'blink' in text:
-                led.set_state(led.LED_BLINK)
+                led.set_state(aiy.voicehat.LED.BLINK)
             elif 'goodbye' in text:
                 os._exit(0)
 

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This library provides common drivers for the AIY projects."""
+"""Button driver for the VoiceHat."""
 
 import time
 
@@ -64,8 +64,7 @@ class Button(object):
             if GPIO.event_detected(self.channel) and self._debounce():
                 GPIO.remove_event_detect(self.channel)
                 return
-            else:
-                time.sleep(0.02)
+            time.sleep(0.02)
 
     def on_press(self, callback):
         """Calls the callback whenever the button is pressed.

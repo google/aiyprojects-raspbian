@@ -46,13 +46,13 @@ def main():
 
     led = None
     state_map = {
-        "starting": aiy.voicehat.LED_PULSE_QUICK,
-        "ready": aiy.voicehat.LED_BEACON_DARK,
-        "listening": aiy.voicehat.LED_ON,
-        "thinking": aiy.voicehat.LED_PULSE_QUICK,
-        "stopping": aiy.voicehat.LED_PULSE_QUICK,
-        "power-off": aiy.voicehat.LED_OFF,
-        "error": aiy.voicehat.LED_BLINK_3,
+        "starting": aiy.voicehat.LED.PULSE_QUICK,
+        "ready": aiy.voicehat.LED.BEACON_DARK,
+        "listening": aiy.voicehat.LED.ON,
+        "thinking": aiy.voicehat.LED.PULSE_QUICK,
+        "stopping": aiy.voicehat.LED.PULSE_QUICK,
+        "power-off": aiy.voicehat.LED.OFF,
+        "error": aiy.voicehat.LED.BLINK_3,
     }
     try:
         GPIO.setmode(GPIO.BCM)

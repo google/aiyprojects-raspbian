@@ -91,9 +91,9 @@ class Recorder(threading.Thread):
     def remove_processor(self, processor):
         """Removes an added audio processor."""
 
-        if processor in self._processors:
+        try:
             self._processors.remove(processor)
-        else:
+        except ValueError:
             logger.warn("processor was not found in the list")
 
     def run(self):

@@ -40,7 +40,7 @@ FILTER_B = np.array([1.10519522, -4.4207809, 6.63117135, -4.4207809, 1.10519522]
 logger = logging.getLogger('tts')
 
 
-def print_eq_coefficients(hpf_order, hpf_freq_hz, hpf_gain_db):
+def _print_eq_coefficients(hpf_order, hpf_freq_hz, hpf_gain_db):
     """Calculate and print the coefficients of the equalization filter."""
     b, a = signal.butter(hpf_order, hpf_freq_hz / SAMPLE_RATE, 'highpass')
     gain_factor = pow(10, hpf_gain_db / 20)
@@ -91,7 +91,7 @@ def say(player, words, eq_filter=None, lang='en-US'):
         os.unlink(raw_wav)
 
 
-def main():
+def _main():
     import argparse
 
     import aiy.audio
@@ -111,8 +111,8 @@ def main():
         create_say(player)(words)
 
     if args.hpf_order:
-        print_eq_coefficients(args.hpf_order, args.hpf_freq_hz, args.hpf_gain_db)
+        _print_eq_coefficients(args.hpf_order, args.hpf_freq_hz, args.hpf_gain_db)
 
 
 if __name__ == '__main__':
-    main()
+    _main()
