@@ -13,7 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A demo of the Google CloudSpeech recognizer."""
+"""A demo of the Google CloudSpeech recognizer.
+
+This demo controls the LED directly. Please disable the status-led service:
+$ sudo service status-led stop
+"""
 
 import os
 
