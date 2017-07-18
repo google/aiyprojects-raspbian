@@ -17,22 +17,19 @@
 import os.path
 
 import aiy._apis._speech
-import aiy.assistant._auth_helpers
+import aiy.assistant.auth_helpers
 import aiy.audio
 import aiy.voicehat
 
 # Global variables. They are lazily initialized.
-assistant_recognizer = None
-
-# Expected location of the Assistant credentials file:
-ASSISTANT_CREDENTIALS_FILE = os.path.expanduser('~/assistant.json')
+_assistant_recognizer = None
 
 
 class _AssistantRecognizer(object):
     """Your personal Google Assistant."""
 
-    def __init__(self, credentials_file):
-        self._request = aiy._apis._speech.AssistantSpeechRequest(credentials_file)
+    def __init__(self, credentials):
+        self._request = aiy._apis._speech.AssistantSpeechRequest(credentials)
         self._recorder = aiy.audio.get_recorder()
 
     def recognize(self):
@@ -75,8 +72,8 @@ def get_assistant():
             if audio is not None:
                 aiy.audio.play_audio(audio)
     """
-    global assistant_recognizer
-    if assistant_recognizer is None:
-        credentials = aiy.assistant._auth_helpers.try_to_get_credentials(ASSISTANT_CREDENTIALS_FILE)
-        assistant_recognizer = _AssistantRecognizer(credentials)
-    return assistant_recognizer
+    global _assistant_recognizer
+    if _assistant_recognizer is None:
+        credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
+        _assistant_recognizer = _AssistantRecognizer(credentials)
+    return _assistant_recognizer

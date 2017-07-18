@@ -26,30 +26,33 @@ import google.auth.transport
 import google.oauth2.credentials
 
 
-ASSISTANT_OAUTH_SCOPE = (
+_ASSISTANT_OAUTH_SCOPE = (
     'https://www.googleapis.com/auth/assistant-sdk-prototype'
 )
 
 # Legacy fallback: old locations of secrets/credentials.
-OLD_CLIENT_SECRETS = os.path.expanduser('~/client_secrets.json')
-OLD_SERVICE_CREDENTIALS = os.path.expanduser('~/credentials.json')
+_OLD_CLIENT_SECRETS = os.path.expanduser('~/client_secrets.json')
+_OLD_SERVICE_CREDENTIALS = os.path.expanduser('~/credentials.json')
 
-CACHE_DIR = os.getenv('XDG_CACHE_HOME') or os.path.expanduser('~/.cache')
-VR_CACHE_DIR = os.path.join(CACHE_DIR, 'voice-recognizer')
+_CACHE_DIR = os.getenv('XDG_CACHE_HOME') or os.path.expanduser('~/.cache')
+_VR_CACHE_DIR = os.path.join(_CACHE_DIR, 'voice-recognizer')
 
-ASSISTANT_CREDENTIALS = (
-    os.path.join(VR_CACHE_DIR, 'assistant_credentials.json')
+_ASSISTANT_CREDENTIALS = (
+    os.path.join(_VR_CACHE_DIR, 'assistant_credentials.json')
 )
 
+# Expected location of the Assistant credentials file:
+_ASSISTANT_CREDENTIALS_FILE = os.path.expanduser('~/assistant.json')
 
-def load_credentials(credentials_path):
+
+def _load_credentials(credentials_path):
     migrate = False
     with open(credentials_path, 'r') as f:
         credentials_data = json.load(f)
         if 'access_token' in credentials_data:
             migrate = True
             del credentials_data['access_token']
-            credentials_data['scopes'] = [ASSISTANT_OAUTH_SCOPE]
+            credentials_data['scopes'] = [_ASSISTANT_OAUTH_SCOPE]
     if migrate:
         with open(credentials_path, 'w') as f:
             json.dump(credentials_data, f)
@@ -60,10 +63,10 @@ def load_credentials(credentials_path):
     return credentials
 
 
-def credentials_flow_interactive(client_secrets_path):
+def _credentials_flow_interactive(client_secrets_path):
     flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
         client_secrets_path,
-        scopes=[ASSISTANT_OAUTH_SCOPE])
+        scopes=[_ASSISTANT_OAUTH_SCOPE])
     if 'DISPLAY' in os.environ:
         credentials = flow.run_local_server()
     else:
@@ -71,7 +74,7 @@ def credentials_flow_interactive(client_secrets_path):
     return credentials
 
 
-def save_credentials(credentials_path, credentials):
+def _save_credentials(credentials_path, credentials):
     config_path = os.path.dirname(credentials_path)
     if not os.path.isdir(config_path):
         os.makedirs(config_path)
@@ -85,17 +88,17 @@ def save_credentials(credentials_path, credentials):
         }, f)
 
 
-def try_to_get_credentials(client_secrets):
+def _try_to_get_credentials(client_secrets):
     """Try to get credentials, or print an error and quit on failure."""
 
-    if os.path.exists(ASSISTANT_CREDENTIALS):
-        return load_credentials(ASSISTANT_CREDENTIALS)
+    if os.path.exists(_ASSISTANT_CREDENTIALS):
+        return _load_credentials(_ASSISTANT_CREDENTIALS)
 
-    if not os.path.exists(VR_CACHE_DIR):
-        os.mkdir(VR_CACHE_DIR)
+    if not os.path.exists(_VR_CACHE_DIR):
+        os.mkdir(_VR_CACHE_DIR)
 
-    if not os.path.exists(client_secrets) and os.path.exists(OLD_CLIENT_SECRETS):
-        client_secrets = OLD_CLIENT_SECRETS
+    if not os.path.exists(client_secrets) and os.path.exists(_OLD_CLIENT_SECRETS):
+        client_secrets = _OLD_CLIENT_SECRETS
 
     if not os.path.exists(client_secrets):
         print('You need client secrets to use the Assistant API.')
@@ -112,7 +115,13 @@ See the "Turn on the Assistant API" section of the Voice Recognizer
 User's Guide for more info.""")
         sys.exit(1)
 
-    credentials = credentials_flow_interactive(client_secrets)
-    save_credentials(ASSISTANT_CREDENTIALS, credentials)
-    logging.info('OAuth credentials initialized: %s', ASSISTANT_CREDENTIALS)
+    credentials = _credentials_flow_interactive(client_secrets)
+    _save_credentials(_ASSISTANT_CREDENTIALS, credentials)
+    logging.info('OAuth credentials initialized: %s', _ASSISTANT_CREDENTIALS)
     return credentials
+
+
+def get_assistant_credentials(credentials_file=None):
+    if credentials_file is None:
+        credentials_file = _ASSISTANT_CREDENTIALS_FILE
+    return _try_to_get_credentials(credentials_file)
