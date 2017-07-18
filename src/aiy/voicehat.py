@@ -16,6 +16,7 @@
 
 import aiy._drivers._button
 import aiy._drivers._led
+import aiy._drivers._status_ui
 
 # GPIO definitions (BCM)
 GPIO_BUTTON = 23
@@ -27,6 +28,7 @@ LED = aiy._drivers._led.LED
 # Global variables. They are lazily initialized.
 _voicehat_button = None
 _voicehat_led = None
+_status_ui = None
 
 
 def get_button():
@@ -78,3 +80,15 @@ def get_led():
         _voicehat_led = aiy._drivers._led.LED(channel=GPIO_LED)
         _voicehat_led.start()
     return _voicehat_led
+
+
+def get_status_ui():
+    """Returns a driver to access the StatusUI daemon.
+
+    The StatusUI daemon controls the LEDs in the background. It supports a list
+    of statuses it is able to communicate with the LED on the Voicehat.
+    """
+    global _status_ui
+    if _status_ui is None:
+        _status_ui = aiy._drivers._status_ui._StatusUi()
+    return _status_ui

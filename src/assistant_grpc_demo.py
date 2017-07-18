@@ -23,16 +23,21 @@ import aiy.voicehat
 
 
 def main():
+    status_ui = aiy.voicehat.get_status_ui()
+    status_ui.status('starting')
     assistant = aiy.assistant.grpc.get_assistant()
     button = aiy.voicehat.get_button()
     aiy.audio.get_recorder().start()
     while True:
+        status_ui.status('ready')
         print('Press the button and speak')
         button.wait_for_press()
+        status_ui.status('listening')
         print('Listening...')
         text, audio = assistant.recognize()
         if text is not None:
             if text == 'goodbye':
+                status_ui.status('stopping')
                 print('Bye!')
                 os._exit(0)
             print('You said "', text, '"')
