@@ -24,7 +24,6 @@ AUDIO_SAMPLE_RATE_HZ = 16000
 # Global variables. They are lazily initialized.
 _voicehat_recorder = None
 _voicehat_player = None
-_status_ui = None
 
 
 def get_player():
@@ -70,15 +69,3 @@ def play_audio(audio_data):
 def say(words, lang='en-US'):
     """Says the given words in the given language with Google TTS engine."""
     aiy._drivers._tts.say(aiy.audio.get_player(), words, lang=lang)
-
-
-def get_status_ui():
-    """Returns a driver to access the StatusUI daemon.
-
-    The StatusUI daemon controls the LEDs in the background. It supports a list
-    of statuses it is able to communicate with the LED on the Voicehat.
-    """
-    global _status_ui
-    if _status_ui is None:
-        _status_ui = aiy._drivers._StatusUi()
-    return _status_ui

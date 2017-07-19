@@ -43,7 +43,7 @@ class _StatusUi(object):
         else:
             if led_fifo:
                 logger.warning(
-                    'File %s specified for --led-fifo does not exist.',
+                    'File %s does not exist. Disabling Status LED.',
                     led_fifo)
             self.led_fifo = None
 
@@ -59,7 +59,7 @@ class _StatusUi(object):
         else:
             if trigger_sound_wave:
                 logger.warning(
-                    'File %s specified for --trigger-sound does not exist.',
+                    'File %s  does not exist. Disabling trigger sound.',
                     trigger_sound_wave)
             self.trigger_sound_wave = None
 
