@@ -26,9 +26,9 @@ import time
 import configargparse
 
 import aiy.audio
+import aiy.i18n
 import auth_helpers
 import action
-import i18n
 import speech
 import tts
 
@@ -150,7 +150,7 @@ def main():
     args = parser.parse_args()
 
     create_pid_file(args.pid_file)
-    i18n.set_language_code(args.language, gettext_install=True)
+    aiy.i18n.set_language_code(args.language, gettext_install=True)
 
     player = aiy.audio.get_player()
 

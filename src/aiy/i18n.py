@@ -17,13 +17,13 @@
 import gettext
 import os
 
-DEFAULT_LANGUAGE_CODE = 'en-US'
+_DEFAULT_LANGUAGE_CODE = 'en-US'
 
-LOCALE_DIR = os.path.realpath(
-    os.path.join(os.path.abspath(os.path.dirname(__file__)), '../po'))
-LOCALE_DOMAIN = 'voice-recognizer'
+_LOCALE_DIR = os.path.realpath(
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../po'))
+_LOCALE_DOMAIN = 'voice-recognizer'
 
-_language_code = DEFAULT_LANGUAGE_CODE
+_language_code = _DEFAULT_LANGUAGE_CODE
 
 
 def set_language_code(code, gettext_install=False):
@@ -38,7 +38,7 @@ def set_language_code(code, gettext_install=False):
 
     if gettext_install:
         language_id = code.replace('-', '_')
-        t = gettext.translation(LOCALE_DOMAIN, LOCALE_DIR, [language_id], fallback=True)
+        t = gettext.translation(_LOCALE_DOMAIN, _LOCALE_DIR, [language_id], fallback=True)
         t.install()
 
 

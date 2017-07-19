@@ -31,7 +31,7 @@ from google.assistant.embedded.v1alpha1 import embedded_assistant_pb2
 import grpc
 from six.moves import queue
 
-import i18n
+import aiy.i18n
 
 logger = logging.getLogger('speech')
 
@@ -284,7 +284,7 @@ class CloudSpeechRequest(GenericSpeechRequest):
 
         super().__init__('speech.googleapis.com', credentials)
 
-        self.language_code = i18n.get_language_code()
+        self.language_code = aiy.i18n.get_language_code()
 
         if not hasattr(cloud_speech, 'StreamingRecognizeRequest'):
             raise ValueError("cloud_speech_pb2.py doesn't have StreamingRecognizeRequest.")

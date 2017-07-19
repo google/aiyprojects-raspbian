@@ -23,7 +23,7 @@ import tempfile
 import numpy as np
 from scipy import signal
 
-import i18n
+import aiy.i18n
 
 # Path to a tmpfs directory to avoid SD card wear
 TMP_DIR = '/run/user/%d' % os.getuid()
@@ -63,7 +63,7 @@ def create_say(player):
     """Return a function say(words) for the given player, using the default EQ
     filter.
     """
-    lang = i18n.get_language_code()
+    lang = aiy.i18n.get_language_code()
     return functools.partial(say, player, eq_filter=create_eq_filter(), lang=lang)
 
 
