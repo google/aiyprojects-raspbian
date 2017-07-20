@@ -28,11 +28,10 @@ _locale_dir = None
 def set_locale_dir(locale_dir):
     """Sets the directory that contains the language bundles.
 
-    This is only needed if you need to call set_language_code with
-    gettext_install=True.
+    This is only required if you call set_language_code with gettext_install=True.
     """
     global _locale_dir
-    if locale_dir is None:
+    if not locale_dir:
         raise ValueError('locale_dir must be valid')
     _locale_dir = locale_dir
 
@@ -45,11 +44,10 @@ def set_language_code(code, gettext_install=False):
           As this has global effect, it should only be done by applications.
     """
     global _language_code
-    global _locale_dir
     _language_code = code.replace('_', '-')
 
     if gettext_install:
-        if _locale_dir is None:
+        if not _locale_dir:
             raise ValueError('locale_dir is not set. Please call set_locale_dir().')
         language_id = code.replace('-', '_')
         t = gettext.translation(_LOCALE_DOMAIN, _locale_dir, [language_id], fallback=True)
