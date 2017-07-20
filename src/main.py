@@ -26,9 +26,9 @@ import time
 import configargparse
 
 import aiy.audio
+import aiy.i18n
 import auth_helpers
 import action
-import i18n
 import speech
 
 # =============================================================================
@@ -63,6 +63,10 @@ OLD_SERVICE_CREDENTIALS = os.path.expanduser('~/credentials.json')
 ASSISTANT_CREDENTIALS = (
     os.path.join(VR_CACHE_DIR, 'assistant_credentials.json')
 )
+
+# Where the locale/language bundles are stored
+LOCALE_DIR = os.path.realpath(
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), '../po'))
 
 
 def try_to_get_credentials(client_secrets):
@@ -149,7 +153,8 @@ def main():
     args = parser.parse_args()
 
     create_pid_file(args.pid_file)
-    i18n.set_language_code(args.language, gettext_install=True)
+    aiy.i18n.set_locale_dir(LOCALE_DIR)
+    aiy.i18n.set_language_code(args.language, gettext_install=True)
 
     player = aiy.audio.get_player()
 
