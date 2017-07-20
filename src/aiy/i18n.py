@@ -18,12 +18,23 @@ import gettext
 import os
 
 _DEFAULT_LANGUAGE_CODE = 'en-US'
-
-_LOCALE_DIR = os.path.realpath(
-    os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../po'))
 _LOCALE_DOMAIN = 'voice-recognizer'
 
 _language_code = _DEFAULT_LANGUAGE_CODE
+
+_locale_dir = None
+
+
+def set_locale_dir(locale_dir):
+    """Sets the directory that contains the language bundles.
+
+    This is only needed if you need to call set_language_code with
+    gettext_install=True.
+    """
+    global _locale_dir
+    if locale_dir is None:
+        raise ValueError('locale_dir must be valid')
+    _locale_dir = locale_dir
 
 
 def set_language_code(code, gettext_install=False):
@@ -33,12 +44,15 @@ def set_language_code(code, gettext_install=False):
       gettext_install: if True, gettext's _() will be installed in as a builtin.
           As this has global effect, it should only be done by applications.
     """
-    global _language_code  # pylint: disable=global-statement
+    global _language_code
+    global _locale_dir
     _language_code = code.replace('_', '-')
 
     if gettext_install:
+        if _locale_dir is None:
+            raise ValueError('locale_dir is not set. Please call set_locale_dir().')
         language_id = code.replace('-', '_')
-        t = gettext.translation(_LOCALE_DOMAIN, _LOCALE_DIR, [language_id], fallback=True)
+        t = gettext.translation(_LOCALE_DOMAIN, _locale_dir, [language_id], fallback=True)
         t.install()
 
 
