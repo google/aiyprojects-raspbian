@@ -30,7 +30,6 @@ import aiy.i18n
 import auth_helpers
 import action
 import speech
-import tts
 
 # =============================================================================
 #
@@ -198,7 +197,7 @@ installed with:
     env/bin/pip install google-assistant-library==0.0.2''')
         sys.exit(1)
 
-    say = tts.create_say(player)
+    say = aiy.audio.say
     actor = action.make_actor(say)
 
     def process_event(event):
@@ -235,8 +234,7 @@ installed with:
 
 def do_recognition(args, recorder, recognizer, player, status_ui):
     """Configure and run the recognizer."""
-    say = tts.create_say(player)
-
+    say = aiy.audio.say
     actor = action.make_actor(say)
 
     if args.cloud_speech:
