@@ -85,6 +85,8 @@ def say(player, words, eq_filter=None, lang='en-US'):
 
     os.close(fd)
 
+    words = '<volume level="60"><pitch level="130">%s</pitch></volume>' % words
+
     try:
         subprocess.call(['pico2wave', '--lang', lang, '-w', raw_wav, words])
         subprocess.call(['play', raw_wav, '--no-show-progress', '--guard'])
