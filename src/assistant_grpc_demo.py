@@ -15,11 +15,17 @@
 
 """A demo of the Google Assistant GRPC recognizer."""
 
+import logging
 import os
 
 import aiy.assistant.grpc
 import aiy.audio
 import aiy.voicehat
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
+)
 
 
 def main():
