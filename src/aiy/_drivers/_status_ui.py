@@ -22,10 +22,6 @@ import aiy.audio
 # Location of the LED status-ui service's FIFO file.
 _LED_FIFO = "/tmp/status-led"
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-)
 logger = logging.getLogger('status_ui')
 
 
