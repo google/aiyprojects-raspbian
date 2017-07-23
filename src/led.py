@@ -17,7 +17,7 @@ import logging
 import os
 import time
 
-import aiy.common
+import aiy.voicehat
 import RPi.GPIO as GPIO
 
 logger = logging.getLogger('led')
@@ -46,19 +46,18 @@ def main():
 
     led = None
     state_map = {
-        "starting": aiy.common.LED.LED_PULSE_QUICK,
-        "ready": aiy.common.LED.LED_BEACON_DARK,
-        "listening": aiy.common.LED.LED_ON,
-        "thinking": aiy.common.LED.LED_PULSE_QUICK,
-        "stopping": aiy.common.LED.LED_PULSE_QUICK,
-        "power-off": aiy.common.LED.LED_OFF,
-        "error": aiy.common.LED.LED_BLINK_3,
+        "starting": aiy.voicehat.LED.PULSE_QUICK,
+        "ready": aiy.voicehat.LED.BEACON_DARK,
+        "listening": aiy.voicehat.LED.ON,
+        "thinking": aiy.voicehat.LED.PULSE_QUICK,
+        "stopping": aiy.voicehat.LED.PULSE_QUICK,
+        "power-off": aiy.voicehat.LED.OFF,
+        "error": aiy.voicehat.LED.BLINK_3,
     }
     try:
         GPIO.setmode(GPIO.BCM)
 
-        led = aiy.common.LED(args.gpio_pin)
-        led.start()
+        led = aiy.voicehat.get_led()
         while True:
             try:
                 state = input()

@@ -204,7 +204,7 @@ class RepeatAfterMe(object):
 # HEX RGB color and respond with 'ok'
 #
 # actor.add_keyword(_('change to ocean blue'), \
-# 		ChangeLightColor(say, "philips-hue", "Lounge Lamp", "0077be"))
+#              ChangeLightColor(say, "philips-hue", "Lounge Lamp", "0077be"))
 
 class ChangeLightColor(object):
 
