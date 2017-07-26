@@ -26,7 +26,7 @@ import traceback
 
 sys.path.append(os.path.realpath(os.path.join(__file__, '..', '..')) + '/src/')
 
-import aiy.audio
+import aiy.audio  # noqa
 
 CARDS_PATH = '/proc/asound/cards'
 VOICEHAT_ID = 'googlevoicehat'
