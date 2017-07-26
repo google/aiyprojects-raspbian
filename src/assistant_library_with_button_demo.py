@@ -33,12 +33,11 @@ import aiy.voicehat
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 
-#sys.settrace()
-
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
 )
+
 
 class MyAssistant(object):
     """An assistant that runs in the background.
