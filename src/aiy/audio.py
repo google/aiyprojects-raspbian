@@ -67,8 +67,14 @@ def play_audio(audio_data):
     player.play_bytes(audio_data, sample_width=AUDIO_SAMPLE_SIZE, sample_rate=AUDIO_SAMPLE_RATE_HZ)
 
 
-def say(words, lang='en-US'):
-    """Says the given words in the given language with Google TTS engine."""
+def say(words, lang=None):
+    """Says the given words in the given language with Google TTS engine.
+
+    If lang is specified, e.g. "en-US', it will be used to say the given words.
+    Otherwise, the language from aiy.i18n will be used.
+    """
+    if not lang:
+        lang = aiy.i18n.get_language_code()
     aiy._drivers._tts.say(aiy.audio.get_player(), words, lang=lang)
 
 
