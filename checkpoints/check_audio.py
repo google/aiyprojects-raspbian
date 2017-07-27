@@ -18,10 +18,15 @@
 
 import os
 import subprocess
+import sys
 import tempfile
 import textwrap
 import time
 import traceback
+
+sys.path.append(os.path.realpath(os.path.join(__file__, '..', '..')) + '/src/')
+
+import aiy.audio  # noqa
 
 CARDS_PATH = '/proc/asound/cards'
 VOICEHAT_ID = 'googlevoicehat'
@@ -32,13 +37,9 @@ INACTIVE_STR = 'ActiveState=inactive'
 
 STOP_DELAY = 1.0
 
-VOICE_RECOGNIZER_PATH = os.path.realpath(os.path.join(__file__, '..', '..'))
-PYTHON3 = 'python3'
-AUDIO_PY = VOICE_RECOGNIZER_PATH + '/src/aiy/audio.py'
-
 TEST_SOUND_PATH = '/usr/share/sounds/alsa/Front_Center.wav'
 
-RECORD_DURATION_SECONDS = '3'
+RECORD_DURATION_SECONDS = 3
 
 
 def get_sound_cards():
@@ -69,12 +70,6 @@ def is_service_active():
         print('WARNING: failed to parse output:')
         print(output)
         return False
-
-
-def play_wav(wav_path):
-    """Play a WAV file."""
-    subprocess.check_call([PYTHON3, AUDIO_PY, 'play', wav_path],
-                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def ask(prompt):
@@ -127,7 +122,7 @@ def check_voicehat_is_first_card():
 def check_speaker_works():
     """Check the speaker makes a sound."""
     print('Playing a test sound...')
-    play_wav(TEST_SOUND_PATH)
+    aiy.audio.play_wave(TEST_SOUND_PATH)
 
     return ask('Did you hear the test sound?')
 
@@ -140,12 +135,9 @@ def check_mic_works():
     try:
         input("When you're ready, press enter and say 'Testing, 1 2 3'...")
         print('Recording...')
-        subprocess.check_call(
-            [PYTHON3, AUDIO_PY, 'dump', temp_path,
-             '-d', RECORD_DURATION_SECONDS],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        aiy.audio.record_to_wave(temp_path, RECORD_DURATION_SECONDS)
         print('Playing back recorded audio...')
-        play_wav(temp_path)
+        aiy.audio.play_wave(temp_path)
     finally:
         try:
             os.unlink(temp_path)

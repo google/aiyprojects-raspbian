@@ -126,7 +126,6 @@ class Recorder(threading.Thread):
             # an emergency measure.
             logging.shutdown()
             os._exit(1)  # pylint: disable=protected-access
-        print('thread exit')
 
     def _handle_chunk(self, chunk):
         """Send audio chunk to all processors."""
