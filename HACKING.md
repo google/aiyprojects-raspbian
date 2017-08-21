@@ -5,6 +5,10 @@ provide. Those images are based on [Raspbian](https://www.raspberrypi.org/downlo
 with a few customizations and are tested on the Raspberry Pi 3. If you prefer
 to setup Raspbian yourself, there are some manual steps you need to take.
 
+**Warning**: for now, this doesn't work on Raspbian Stretch (2017-08-16 or
+later). See [#119](https://github.com/google/aiyprojects-raspbian/issues/119)
+for details and status.
+
 ## Installing the dependencies
 
 First, make sure you have `git` installed and clone this repository in
