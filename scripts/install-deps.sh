@@ -35,7 +35,7 @@ env/bin/pip install -r requirements.txt
 
 # The google-assistant-library is only available on ARMv7.
 if [[ "$(uname -m)" == "armv7l" ]] ; then
-  env/bin/pip install google-assistant-library==0.0.2
+  env/bin/pip install google-assistant-library==0.0.3
 fi
 
 for config in status-led.ini voice-recognizer.ini; do
