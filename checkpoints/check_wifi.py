@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Check that the WiFi is working.
-"""
+"""Check that the WiFi is working."""
 
 import socket
 import subprocess
@@ -26,7 +25,8 @@ GOOGLE_SERVER_ADDRESS = ('speech.googleapis.com', 443)
 
 def check_wifi_is_configured():
     """Check wpa_supplicant.conf has at least one network configured."""
-    output = subprocess.check_output(['sudo', 'cat', WPA_CONF_PATH]).decode('utf-8')
+    output = subprocess.check_output(['sudo', 'cat', WPA_CONF_PATH])
+    output = output.decode('utf-8')
 
     return 'network=' in output
 
@@ -45,7 +45,7 @@ def check_can_reach_google_server():
         sock = socket.create_connection(GOOGLE_SERVER_ADDRESS, timeout=10)
         sock.close()
         return True
-    except:  # Many exceptions can come from sockets. pylint: disable=bare-except
+    except Exception:  # pylint: disable=W0703
         return False
 
 
@@ -54,7 +54,8 @@ def main():
     print('Checking the WiFi connection...')
 
     if not check_wifi_is_configured():
-        print('Please click the WiFi icon at the top right to set up a WiFi network.')
+        print('Please click the WiFi icon at the top right to set up a\
+              WiFi network.')
         return
 
     if not check_wifi_is_connected():
@@ -71,10 +72,11 @@ connected to the internet.""")
 
     print('The WiFi connection seems to be working.')
 
+
 if __name__ == '__main__':
     try:
         main()
         input('Press Enter to close...')
-    except:  # pylint: disable=bare-except
+    except Exception:  # pylint: disable=W0703
         traceback.print_exc()
         input('Press Enter to close...')

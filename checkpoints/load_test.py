@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Synthetic load test simillar to running the actual app.
-"""
+"""Synthetic load test simillar to running the actual app."""
 
 import json
 import os
@@ -60,17 +59,18 @@ def check_credentials_valid():
 
 
 def is_service_active():
-    """Returns True if the voice-recognizer service is active."""
-    output = subprocess.check_output(['systemctl', 'show', SERVICE_NAME]).decode('utf-8')
+    """Return True if the voice-recognizer service is active."""
+    output = subprocess.check_output(['systemctl', 'show', SERVICE_NAME])
+    output = output.decode('utf-8')
 
     if ACTIVE_STR in output:
         return True
     elif INACTIVE_STR in output:
         return False
-    else:
-        print('WARNING: failed to parse output:')
-        print(output)
-        return False
+
+    print('WARNING: failed to parse output:')
+    print(output)
+    return False
 
 
 def stop_service():
@@ -82,7 +82,8 @@ def stop_service():
     if not is_service_active():
         return False
 
-    subprocess.check_call(['sudo', 'systemctl', 'stop', SERVICE_NAME], stdout=subprocess.PIPE)
+    subprocess.check_call(['sudo', 'systemctl', 'stop', SERVICE_NAME],
+                          stdout=subprocess.PIPE)
     time.sleep(STOP_DELAY)
     if is_service_active():
         print('WARNING: failed to stop service, mic may not work.')
@@ -93,7 +94,8 @@ def stop_service():
 
 def start_service():
     """Start the voice-recognizer again."""
-    subprocess.check_call(['sudo', 'systemctl', 'start', SERVICE_NAME], stdout=subprocess.PIPE)
+    subprocess.check_call(['sudo', 'systemctl', 'start', SERVICE_NAME],
+                          stdout=subprocess.PIPE)
 
 
 def check_speech_reco():
@@ -103,10 +105,7 @@ def check_speech_reco():
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     p.communicate()[0].decode('utf-8')
 
-    if p.returncode:
-        return False
-    else:
-        return True
+    return not p.returncode
 
 
 def play_wav():
@@ -130,11 +129,13 @@ def record_wav():
 
 
 def led_status(status):
+    """Get the led status."""
     with open(LED_FIFO, 'w') as led:
         led.write(status + '\n')
 
 
 def run_test():
+    """Start the test."""
     print('Running test forever - press Ctrl+C to stop...')
     try:
         while True:
@@ -182,6 +183,6 @@ if __name__ == '__main__':
     try:
         main()
         input('Press Enter to close...')
-    except:  # pylint: disable=bare-except
+    except Exception:  # pylint: disable=W0703
         traceback.print_exc()
         input('Press Enter to close...')
