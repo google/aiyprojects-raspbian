@@ -43,7 +43,7 @@ class _StatusUi(object):
                     led_fifo)
             self.led_fifo = None
 
-    def set_trigger_sound_wave(trigger_sound_wave):
+    def set_trigger_sound_wave(self, trigger_sound_wave):
         """Sets the trigger sound.
         A trigger sound is played when the status is 'listening' to indicate
         that the assistant is actively listening to the user.
