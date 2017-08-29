@@ -25,9 +25,7 @@ GOOGLE_SERVER_ADDRESS = ('speech.googleapis.com', 443)
 
 def check_wifi_is_configured():
     """Check wpa_supplicant.conf has at least one network configured."""
-    output = subprocess.check_output(['sudo', 'cat', WPA_CONF_PATH])
-    output = output.decode('utf-8')
-
+    output = subprocess.check_output(['sudo', 'cat', WPA_CONF_PATH]).decode('utf-8')
     return 'network=' in output
 
 
@@ -54,8 +52,7 @@ def main():
     print('Checking the WiFi connection...')
 
     if not check_wifi_is_configured():
-        print('Please click the WiFi icon at the top right to set up a\
-              WiFi network.')
+        print('Please click the WiFi icon at the top right to set up a WiFi network.')
         return
 
     if not check_wifi_is_connected():
