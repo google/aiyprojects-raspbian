@@ -22,12 +22,10 @@ import tempfile
 import textwrap
 import time
 import traceback
-try:
-    import aiy.audio  # noqa
-except ImportError:
-    sys.path.append(os.path.realpath(os.path.join(__file__, '..', '..')) + '/src/')
-    import aiy.audio
 
+sys.path.append(os.path.realpath(os.path.join(__file__, '..', '..')) + '/src/')
+
+import aiy.audio  # noqa
 
 CARDS_PATH = '/proc/asound/cards'
 VOICEHAT_ID = 'googlevoicehat'
