@@ -435,7 +435,8 @@ class AssistantSpeechRequest(GenericSpeechRequest):
         response_wav.writeframes(frames)
         response_wav.close()
 
-if __name__ == '__main__':
+
+def main():
     logging.basicConfig(level=logging.INFO)
 
     # for testing: use audio from a file
@@ -459,3 +460,7 @@ if __name__ == '__main__':
     req.end_audio()
 
     print('down response:', req.do_request())
+
+
+if __name__ == '__main__':
+    main()
