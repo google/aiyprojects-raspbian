@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Check that the voiceHAT audio input and output are both working.
-"""
+"""Check that the voiceHAT audio input and output are both working."""
 
 import os
 import subprocess
@@ -59,17 +58,17 @@ def get_sound_cards():
 
 
 def is_service_active():
-    """Returns True if the voice-recognizer service is active."""
+    """Return True if the voice-recognizer service is active."""
     output = subprocess.check_output(['systemctl', 'show', SERVICE_NAME]).decode('utf-8')
 
     if ACTIVE_STR in output:
         return True
     elif INACTIVE_STR in output:
         return False
-    else:
-        print('WARNING: failed to parse output:')
-        print(output)
-        return False
+
+    print('WARNING: failed to parse output:')
+    print(output)
+    return False
 
 
 def ask(prompt):
@@ -107,13 +106,11 @@ def start_service():
 
 def check_voicehat_present():
     """Check that the voiceHAT is present."""
-
     return any(VOICEHAT_ID in card for card in get_sound_cards().values())
 
 
 def check_voicehat_is_first_card():
     """Check that the voiceHAT is the first card on the system."""
-
     cards = get_sound_cards()
 
     return 0 in cards and VOICEHAT_ID in cards[0]
@@ -185,10 +182,11 @@ def main():
     if should_restart:
         start_service()
 
+
 if __name__ == '__main__':
     try:
         main()
         input('Press Enter to close...')
-    except:  # pylint: disable=bare-except
+    except Exception:  # pylint: disable=W0703
         traceback.print_exc()
         input('Press Enter to close...')

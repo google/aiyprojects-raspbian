@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Check that the Cloud Speech API can be used.
-"""
+"""Check that the Cloud Speech API can be used."""
 
 import json
 import os
@@ -60,15 +59,15 @@ def check_speech_reco():
         print('Speech recognition failed with', p.returncode)
         print(output)
         return False
-    else:
-        # speech.py succeeded, check the text was recognized
-        if RECOGNIZED_TEXT in output:
-            return True
-        else:
-            print('Speech recognition output not as expected:')
-            print(output)
-            print('Expected:', RECOGNIZED_TEXT)
-            return False
+
+    # speech.py succeeded, check the text was recognized
+    if RECOGNIZED_TEXT in output:
+        return True
+
+    print('Speech recognition output not as expected:')
+    print(output)
+    print('Expected:', RECOGNIZED_TEXT)
+    return False
 
 
 def main():
@@ -92,10 +91,11 @@ service credentials.""")
 
     print("Everything's set up to use the Google Cloud.")
 
+
 if __name__ == '__main__':
     try:
         main()
         input('Press Enter to close...')
-    except:  # pylint: disable=bare-except
+    except Exception:  # pylint: disable=W0703
         traceback.print_exc()
         input('Press Enter to close...')
