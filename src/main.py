@@ -119,10 +119,6 @@ def main():
     parser = configargparse.ArgParser(
         default_config_files=CONFIG_FILES,
         description="Act on voice commands using Google's speech recognition")
-    parser.add_argument('-I', '--input-device', default='default',
-                        help='Name of the audio input device')
-    parser.add_argument('-O', '--output-device', default='default',
-                        help='Name of the audio output device')
     parser.add_argument('-T', '--trigger', default='gpio',
                         choices=['clap', 'gpio', 'ok-google'], help='Trigger to use')
     parser.add_argument('--cloud-speech', action='store_true',
