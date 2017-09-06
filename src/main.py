@@ -158,38 +158,9 @@ def main():
     with recorder:
         do_recognition(args, recorder, recognizer, player)
 
-<<<<<<< Updated upstream
 
 def do_recognition(args, recorder, recognizer, player):
-=======
-        elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
-            status_ui.status('listening')
-            action.pauseActors()
-
-        elif event.type == EventType.ON_END_OF_UTTERANCE:
-            status_ui.status('thinking')
-            action.resumeActors()
-
-        elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and \
-                event.args and actor.can_handle(event.args['text']):
-            if not args.assistant_always_responds:
-                assistant.stop_conversation()
-            actor.handle(event.args['text'])
-
-        elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
-            status_ui.status('ready')
-
-        elif event.type == EventType.ON_ASSISTANT_ERROR and \
-                event.args and event.args['is_fatal']:
-            sys.exit(1)
-
-    with Assistant(credentials) as assistant:
-        for event in assistant.start():
-            process_event(event)
-
-
-def do_recognition(args, recorder, recognizer, player, status_ui):
->>>>>>> Stashed changes
+	
     """Configure and run the recognizer."""
     say = tts.create_say(player)
 
