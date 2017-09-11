@@ -18,55 +18,61 @@ import logging
 import os.path
 
 import aiy.audio
-
-# Location of the LED status-ui service's FIFO file.
-_LED_FIFO = "/tmp/status-led"
+import aiy.voicehat
 
 logger = logging.getLogger('status_ui')
 
 
 class _StatusUi(object):
-
     """Gives the user status feedback.
+
     The LED and optionally a trigger sound tell the user when the box is
     ready, listening or thinking.
     """
 
-    def __init__(self, led_fifo=_LED_FIFO):
-        self.trigger_sound_wave = None
-        if led_fifo and os.path.exists(led_fifo):
-            self.led_fifo = led_fifo
-        else:
-            if led_fifo:
-                logger.warning(
-                    'File %s specified for --led-fifo does not exist.',
-                    led_fifo)
-            self.led_fifo = None
+    def __init__(self):
+        self._trigger_sound_wave = None
+        self._state_map = {
+            "starting": aiy.voicehat.LED.PULSE_QUICK,
+            "ready": aiy.voicehat.LED.BEACON_DARK,
+            "listening": aiy.voicehat.LED.ON,
+            "thinking": aiy.voicehat.LED.PULSE_QUICK,
+            "stopping": aiy.voicehat.LED.PULSE_QUICK,
+            "power-off": aiy.voicehat.LED.OFF,
+            "error": aiy.voicehat.LED.BLINK_3,
+        }
+        aiy.voicehat.get_led().set_state(aiy.voicehat.LED.OFF)
 
     def set_trigger_sound_wave(self, trigger_sound_wave):
-        """Sets the trigger sound.
+        """Set the trigger sound.
+
         A trigger sound is played when the status is 'listening' to indicate
         that the assistant is actively listening to the user.
         The trigger_sound_wave argument should be the path to a valid wave file.
         If it is None, the trigger sound is disabled.
         """
-        if trigger_sound_wave and os.path.exists(os.path.expanduser(trigger_sound_wave)):
-            self.trigger_sound_wave = os.path.expanduser(trigger_sound_wave)
+        if not trigger_sound_wave:
+            self._trigger_sound_wave = None
+        expanded_path = os.path.expanduser(trigger_sound_wave)
+        if os.path.exists(expanded_path):
+            self._trigger_sound_wave = expanded_path
         else:
-            if trigger_sound_wave:
-                logger.warning(
-                    'File %s specified for --trigger-sound does not exist.',
-                    trigger_sound_wave)
-            self.trigger_sound_wave = None
+            logger.warning(
+                'File %s specified as trigger sound does not exist.',
+                trigger_sound_wave)
+            self._trigger_sound_wave = None
 
     def status(self, status):
         """Activate the status.
-        For a list of supported statuses, view src/led.py.
-        """
-        if self.led_fifo:
-            with open(self.led_fifo, 'w') as led:
-                led.write(status + '\n')
-        logger.info('%s...', status)
 
-        if status == 'listening' and self.trigger_sound_wave:
-            aiy.audio.play_wave(self.trigger_sound_wave)
+        This method updates the LED animation. Returns True if the status is
+        valid and has been updated.
+        """
+        if status not in self._state_map:
+            logger.warning("unsupported state: %s, must be one of %s",
+                           status, ",".join(self._state_map.keys()))
+            return False
+        aiy.voicehat.get_led().set_state(self._state_map[status])
+        if status == 'listening' and self._trigger_sound_wave:
+            aiy.audio.play_wave(self._trigger_sound_wave)
+        return True

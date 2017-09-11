@@ -17,23 +17,30 @@
 
 import json
 import os
-import subprocess
+import os.path
+import sys
 import traceback
 
-if os.path.exists('/home/pi/credentials.json'):
-    # Legacy fallback: old location of credentials.
-    CREDENTIALS_PATH = '/home/pi/credentials.json'
-else:
-    CREDENTIALS_PATH = '/home/pi/cloud_speech.json'
+sys.path.append(os.path.realpath(os.path.join(__file__, '..', '..')) + '/src/')
 
-VOICE_RECOGNIZER_PATH = os.path.realpath(os.path.join(__file__, '..', '..'))
-PYTHON3 = VOICE_RECOGNIZER_PATH + '/env/bin/python3'
-SPEECH_PY = VOICE_RECOGNIZER_PATH + '/src/speech.py'
+import aiy._apis._speech  # noqa
+
+OLD_CREDENTIALS_FILE = os.path.expanduser('~/credentials.json')
+NEW_CREDENTIALS_FILE = os.path.expanduser('~/cloud_speech.json')
+if os.path.exists(OLD_CREDENTIALS_FILE):
+    # Legacy fallback: old location of credentials.
+    CREDENTIALS_PATH = OLD_CREDENTIALS_FILE
+else:
+    CREDENTIALS_PATH = NEW_CREDENTIALS_FILE
+
+ROOT_PATH = os.path.realpath(os.path.join(__file__, '..', '..'))
+PYTHON3 = ROOT_PATH + '/env/bin/python3'
+SPEECH_PY = ROOT_PATH + '/src/aiy/_apis/_speech.py'
 SPEECH_PY_ENV = {
-    'VIRTUAL_ENV': VOICE_RECOGNIZER_PATH + '/env',
-    'PATH': VOICE_RECOGNIZER_PATH + '/env/bin:' + os.getenv('PATH'),
+    'VIRTUAL_ENV': ROOT_PATH + '/env',
+    'PATH': ROOT_PATH + '/env/bin:' + os.getenv('PATH'),
 }
-TEST_AUDIO = VOICE_RECOGNIZER_PATH + '/checkpoints/test_hello.raw'
+TEST_AUDIO = ROOT_PATH + '/checkpoints/test_hello.raw'
 RECOGNIZED_TEXT = 'hello'
 
 
@@ -48,23 +55,22 @@ def check_credentials_valid():
 
 
 def check_speech_reco():
-    """Try to test the speech reco code from voice-recognizer-raspi."""
+    """Try to test the speech recognition code from AIY APIs."""
     print('Testing the Google Cloud Speech API...')
-    p = subprocess.Popen(  # pylint: disable=invalid-name
-        [PYTHON3, SPEECH_PY, TEST_AUDIO], env=SPEECH_PY_ENV,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    output = p.communicate()[0].decode('utf-8')
+    req = aiy._apis._speech.CloudSpeechRequest(CREDENTIALS_PATH)
+    with open(TEST_AUDIO, 'rb') as f:
+        while True:
+            chunk = f.read(64000)
+            if not chunk:
+                break
+            req.add_data(chunk)
+    req.end_audio()
+    output = req.do_request()
 
-    if p.returncode:
-        print('Speech recognition failed with', p.returncode)
-        print(output)
-        return False
-
-    # speech.py succeeded, check the text was recognized
     if RECOGNIZED_TEXT in output:
         return True
 
-    print('Speech recognition output not as expected:')
+    print('Speech recognition failed or output not as expected:')
     print(output)
     print('Expected:', RECOGNIZED_TEXT)
     return False
@@ -96,6 +102,6 @@ if __name__ == '__main__':
     try:
         main()
         input('Press Enter to close...')
-    except Exception:  # pylint: disable=W0703
+    except:  # pylint: disable=bare-except
         traceback.print_exc()
         input('Press Enter to close...')

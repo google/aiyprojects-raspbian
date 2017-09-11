@@ -16,7 +16,6 @@
 """A demo of the Google Assistant GRPC recognizer."""
 
 import logging
-import os
 
 import aiy.assistant.grpc
 import aiy.audio
@@ -33,22 +32,23 @@ def main():
     status_ui.status('starting')
     assistant = aiy.assistant.grpc.get_assistant()
     button = aiy.voicehat.get_button()
-    aiy.audio.get_recorder().start()
-    while True:
-        status_ui.status('ready')
-        print('Press the button and speak')
-        button.wait_for_press()
-        status_ui.status('listening')
-        print('Listening...')
-        text, audio = assistant.recognize()
-        if text is not None:
-            if text == 'goodbye':
-                status_ui.status('stopping')
-                print('Bye!')
-                os._exit(0)
-            print('You said "', text, '"')
-        if audio is not None:
-            aiy.audio.play_audio(audio)
+    with aiy.audio.get_recorder():
+        while True:
+            status_ui.status('ready')
+            print('Press the button and speak')
+            button.wait_for_press()
+            status_ui.status('listening')
+            print('Listening...')
+            break
+            text, audio = assistant.recognize()
+            if text is not None:
+                if text == 'goodbye':
+                    status_ui.status('stopping')
+                    print('Bye!')
+                    break
+                print('You said "', text, '"')
+            if audio is not None:
+                aiy.audio.play_audio(audio)
 
 
 if __name__ == '__main__':

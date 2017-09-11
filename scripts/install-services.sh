@@ -35,7 +35,3 @@ done
 # credentials are set up, so we explicitly enable the other services.
 systemctl enable alsa-init.service
 systemctl enable ntpdate.service
-systemctl enable status-led.service
-systemctl enable status-led-on.service
-systemctl enable status-led-off.service
-systemctl enable status-monitor.service

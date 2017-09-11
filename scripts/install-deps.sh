@@ -37,10 +37,3 @@ env/bin/pip install -r requirements.txt
 if [[ "$(uname -m)" == "armv7l" ]] ; then
   env/bin/pip install google-assistant-library==0.0.3
 fi
-
-for config in status-led.ini voice-recognizer.ini; do
-  if [[ ! -f "${HOME}/.config/${config}" ]] ; then
-    echo "Installing ${config}"
-    cp "config/${config}.default" "${HOME}/.config/${config}"
-  fi
-done

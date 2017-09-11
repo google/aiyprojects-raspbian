@@ -15,7 +15,6 @@
 """Internationalization helpers."""
 
 import gettext
-import os
 
 _DEFAULT_LANGUAGE_CODE = 'en-US'
 _LOCALE_DOMAIN = 'voice-recognizer'
