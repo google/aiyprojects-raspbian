@@ -39,7 +39,6 @@ def main():
             button.wait_for_press()
             status_ui.status('listening')
             print('Listening...')
-            break
             text, audio = assistant.recognize()
             if text is not None:
                 if text == 'goodbye':
