@@ -18,18 +18,18 @@ recognition."""
 
 import logging
 import os
+import os.path
 import sys
 import threading
 import time
 
 import configargparse
-from googlesamples.assistant import auth_helpers
 
-import audio
+import aiy.audio
+import aiy.i18n
+import auth_helpers
 import action
-import i18n
 import speech
-import tts
 
 # =============================================================================
 #
@@ -60,16 +60,20 @@ CONFIG_FILES = [
 OLD_CLIENT_SECRETS = os.path.expanduser('~/client_secrets.json')
 OLD_SERVICE_CREDENTIALS = os.path.expanduser('~/credentials.json')
 
-ASSISTANT_CREDENTIALS = os.path.join(VR_CACHE_DIR, 'assistant_credentials.json')
-ASSISTANT_OAUTH_SCOPE = 'https://www.googleapis.com/auth/assistant-sdk-prototype'
+ASSISTANT_CREDENTIALS = (
+    os.path.join(VR_CACHE_DIR, 'assistant_credentials.json')
+)
+
+# Where the locale/language bundles are stored
+LOCALE_DIR = os.path.realpath(
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), '../po'))
 
 
 def try_to_get_credentials(client_secrets):
     """Try to get credentials, or print an error and quit on failure."""
 
     if os.path.exists(ASSISTANT_CREDENTIALS):
-        return auth_helpers.load_credentials(
-            ASSISTANT_CREDENTIALS, scopes=[ASSISTANT_OAUTH_SCOPE])
+        return auth_helpers.load_credentials(ASSISTANT_CREDENTIALS)
 
     if not os.path.exists(VR_CACHE_DIR):
         os.mkdir(VR_CACHE_DIR)
@@ -92,8 +96,7 @@ See the "Turn on the Assistant API" section of the Voice Recognizer
 User's Guide for more info.""")
         sys.exit(1)
 
-    credentials = auth_helpers.credentials_flow_interactive(
-        client_secrets, scopes=[ASSISTANT_OAUTH_SCOPE])
+    credentials = auth_helpers.credentials_flow_interactive(client_secrets)
     auth_helpers.save_credentials(ASSISTANT_CREDENTIALS, credentials)
     logging.info('OAuth credentials initialized: %s', ASSISTANT_CREDENTIALS)
     return credentials
@@ -116,10 +119,6 @@ def main():
     parser = configargparse.ArgParser(
         default_config_files=CONFIG_FILES,
         description="Act on voice commands using Google's speech recognition")
-    parser.add_argument('-I', '--input-device', default='default',
-                        help='Name of the audio input device')
-    parser.add_argument('-O', '--output-device', default='default',
-                        help='Name of the audio output device')
     parser.add_argument('-T', '--trigger', default='gpio',
                         choices=['clap', 'gpio', 'ok-google'], help='Trigger to use')
     parser.add_argument('--cloud-speech', action='store_true',
@@ -150,9 +149,10 @@ def main():
     args = parser.parse_args()
 
     create_pid_file(args.pid_file)
-    i18n.set_language_code(args.language, gettext_install=True)
+    aiy.i18n.set_locale_dir(LOCALE_DIR)
+    aiy.i18n.set_language_code(args.language, gettext_install=True)
 
-    player = audio.Player(args.output_device)
+    player = aiy.audio.get_player()
 
     if args.cloud_speech:
         credentials_file = os.path.expanduser(args.cloud_speech_secrets)
@@ -175,10 +175,7 @@ def main():
             sys.exit(1)
         do_assistant_library(args, credentials, player, status_ui)
     else:
-        recorder = audio.Recorder(
-            input_device=args.input_device, channels=1,
-            bytes_per_sample=speech.AUDIO_SAMPLE_SIZE,
-            sample_rate_hz=speech.AUDIO_SAMPLE_RATE_HZ)
+        recorder = aiy.audio.get_recorder()
         with recorder:
             do_recognition(args, recorder, recognizer, player, status_ui)
 
@@ -201,7 +198,7 @@ installed with:
     env/bin/pip install google-assistant-library==0.0.2''')
         sys.exit(1)
 
-    say = tts.create_say(player)
+    say = aiy.audio.say
     actor = action.make_actor(say)
 
     def process_event(event):
@@ -238,8 +235,7 @@ installed with:
 
 def do_recognition(args, recorder, recognizer, player, status_ui):
     """Configure and run the recognizer."""
-    say = tts.create_say(player)
-
+    say = aiy.audio.say
     actor = action.make_actor(say)
 
     if args.cloud_speech:
@@ -363,7 +359,7 @@ class SyncMicRecognizer(object):
         self.recognizer_event.set()
 
     def endpointer_cb(self):
-        self.recorder.del_processor(self.recognizer)
+        self.recorder.remove_processor(self.recognizer)
         self.status_ui.status('thinking')
 
     def _recognize(self):

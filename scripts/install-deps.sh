@@ -26,8 +26,7 @@ then
 fi
 
 sudo apt-get -y install alsa-utils python3-all-dev python3-pip python3-numpy \
-  python3-scipy python3-virtualenv python3-rpi.gpio python3-pysocks \
-  rsync sox libttspico-utils ntpdate
+  python3-rpi.gpio python3-pysocks virtualenv rsync libttspico-utils ntpdate
 sudo pip3 install --upgrade pip virtualenv
 
 cd "${scripts_dir}/.."
@@ -36,7 +35,7 @@ env/bin/pip install -r requirements.txt
 
 # The google-assistant-library is only available on ARMv7.
 if [[ "$(uname -m)" == "armv7l" ]] ; then
-  env/bin/pip install google-assistant-library==0.0.2
+  env/bin/pip install google-assistant-library==0.0.3
 fi
 
 for config in status-led.ini voice-recognizer.ini; do

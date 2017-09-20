@@ -98,6 +98,10 @@ class GenericSpeechRequest(object):
 
         self._phrases.extend(phrases.get_phrases())
 
+    def add_phrase(self, phrase):
+        """Makes the recognition more likely to recognize the given phrase."""
+        self._phrases.append(phrase)
+
     def set_endpointer_cb(self, cb):
         """Callback to invoke on end of speech."""
         self._endpointer_cb = cb

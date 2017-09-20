@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Synthetic load test simillar to running the actual app.
-"""
+"""Synthetic load test simillar to running the actual app."""
 
 import json
 import os
@@ -37,7 +36,7 @@ STOP_DELAY = 1.0
 
 VOICE_RECOGNIZER_PATH = os.path.realpath(os.path.join(__file__, '..', '..'))
 PYTHON3 = VOICE_RECOGNIZER_PATH + '/env/bin/python3'
-AUDIO_PY = VOICE_RECOGNIZER_PATH + '/src/audio.py'
+AUDIO_PY = VOICE_RECOGNIZER_PATH + '/src/aiy/audio.py'
 SPEECH_PY = VOICE_RECOGNIZER_PATH + '/src/speech.py'
 SPEECH_PY_ENV = {
     'VIRTUAL_ENV': VOICE_RECOGNIZER_PATH + '/env',
@@ -60,17 +59,17 @@ def check_credentials_valid():
 
 
 def is_service_active():
-    """Returns True if the voice-recognizer service is active."""
+    """Return True if the voice-recognizer service is active."""
     output = subprocess.check_output(['systemctl', 'show', SERVICE_NAME]).decode('utf-8')
 
     if ACTIVE_STR in output:
         return True
     elif INACTIVE_STR in output:
         return False
-    else:
-        print('WARNING: failed to parse output:')
-        print(output)
-        return False
+
+    print('WARNING: failed to parse output:')
+    print(output)
+    return False
 
 
 def stop_service():
@@ -103,10 +102,7 @@ def check_speech_reco():
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     p.communicate()[0].decode('utf-8')
 
-    if p.returncode:
-        return False
-    else:
-        return True
+    return not p.returncode
 
 
 def play_wav():
@@ -130,11 +126,13 @@ def record_wav():
 
 
 def led_status(status):
+    """Get the led status."""
     with open(LED_FIFO, 'w') as led:
         led.write(status + '\n')
 
 
 def run_test():
+    """Start the test."""
     print('Running test forever - press Ctrl+C to stop...')
     try:
         while True:
@@ -182,6 +180,6 @@ if __name__ == '__main__':
     try:
         main()
         input('Press Enter to close...')
-    except:  # pylint: disable=bare-except
+    except Exception:  # pylint: disable=W0703
         traceback.print_exc()
         input('Press Enter to close...')
