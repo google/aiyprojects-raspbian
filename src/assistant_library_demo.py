@@ -43,8 +43,7 @@ def process_event(event):
     if event.type == EventType.ON_START_FINISHED:
         status_ui.status('ready')
         if sys.stdout.isatty():
-            print('Say "OK, Google" or press the VoiceHat button then speak,'
-                  'or press Ctrl+C to quit...')
+            print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
 
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         status_ui.status('listening')

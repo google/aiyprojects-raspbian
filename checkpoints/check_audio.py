@@ -13,15 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Check that the voiceHAT audio input and output are both working.
-"""
+"""Check that the voiceHAT audio input and output are both working."""
 
 import os
 import subprocess
+import sys
 import tempfile
 import textwrap
 import time
 import traceback
+
+sys.path.append(os.path.realpath(os.path.join(__file__, '..', '..')) + '/src/')
+
+import aiy.audio  # noqa
 
 CARDS_PATH = '/proc/asound/cards'
 VOICEHAT_ID = 'googlevoicehat'
@@ -32,13 +36,9 @@ INACTIVE_STR = 'ActiveState=inactive'
 
 STOP_DELAY = 1.0
 
-VOICE_RECOGNIZER_PATH = os.path.realpath(os.path.join(__file__, '..', '..'))
-PYTHON3 = 'python3'
-AUDIO_PY = VOICE_RECOGNIZER_PATH + '/src/aiy/audio.py'
-
 TEST_SOUND_PATH = '/usr/share/sounds/alsa/Front_Center.wav'
 
-RECORD_DURATION_SECONDS = '3'
+RECORD_DURATION_SECONDS = 3
 
 
 def get_sound_cards():
@@ -58,23 +58,17 @@ def get_sound_cards():
 
 
 def is_service_active():
-    """Returns True if the voice-recognizer service is active."""
+    """Return True if the voice-recognizer service is active."""
     output = subprocess.check_output(['systemctl', 'show', SERVICE_NAME]).decode('utf-8')
 
     if ACTIVE_STR in output:
         return True
     elif INACTIVE_STR in output:
         return False
-    else:
-        print('WARNING: failed to parse output:')
-        print(output)
-        return False
 
-
-def play_wav(wav_path):
-    """Play a WAV file."""
-    subprocess.check_call([PYTHON3, AUDIO_PY, 'play', wav_path],
-                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    print('WARNING: failed to parse output:')
+    print(output)
+    return False
 
 
 def ask(prompt):
@@ -112,13 +106,11 @@ def start_service():
 
 def check_voicehat_present():
     """Check that the voiceHAT is present."""
-
     return any(VOICEHAT_ID in card for card in get_sound_cards().values())
 
 
 def check_voicehat_is_first_card():
     """Check that the voiceHAT is the first card on the system."""
-
     cards = get_sound_cards()
 
     return 0 in cards and VOICEHAT_ID in cards[0]
@@ -127,7 +119,7 @@ def check_voicehat_is_first_card():
 def check_speaker_works():
     """Check the speaker makes a sound."""
     print('Playing a test sound...')
-    play_wav(TEST_SOUND_PATH)
+    aiy.audio.play_wave(TEST_SOUND_PATH)
 
     return ask('Did you hear the test sound?')
 
@@ -140,12 +132,9 @@ def check_mic_works():
     try:
         input("When you're ready, press enter and say 'Testing, 1 2 3'...")
         print('Recording...')
-        subprocess.check_call(
-            [PYTHON3, AUDIO_PY, 'dump', temp_path,
-             '-d', RECORD_DURATION_SECONDS],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        aiy.audio.record_to_wave(temp_path, RECORD_DURATION_SECONDS)
         print('Playing back recorded audio...')
-        play_wav(temp_path)
+        aiy.audio.play_wave(temp_path)
     finally:
         try:
             os.unlink(temp_path)
@@ -193,10 +182,11 @@ def main():
     if should_restart:
         start_service()
 
+
 if __name__ == '__main__':
     try:
         main()
         input('Press Enter to close...')
-    except:  # pylint: disable=bare-except
+    except Exception:  # pylint: disable=W0703
         traceback.print_exc()
         input('Press Enter to close...')
