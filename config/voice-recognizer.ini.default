@@ -24,6 +24,9 @@ assistant-secrets = ~/assistant.json
 # Path to service account credentials for the Cloud Speech API.
 cloud-speech-secrets = ~/cloud_speech.json
 
+# Directory for user scripts run for user defined keywords
+# user-script-directory = ~/aiy_voice_user_scripts
+
 # Uncomment to play Assistant responses for local actions.  You should make
 # sure that you have IFTTT applets for your actions to get the correct
 # response, and also that your actions do not call say().

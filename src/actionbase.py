@@ -12,11 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import user_scripts
+import logging
+
 """Handle voice commands locally.
 
 This code lets you link keywords to actions. The actions are declared in
 action.py.
 """
+
+logger = logging.getLogger(__name__)
 
 
 class Actor(object):
@@ -28,6 +33,24 @@ class Actor(object):
 
     def add_keyword(self, keyword, action):
         self.handlers.append(KeywordHandler(keyword, action))
+
+    def add_user_scripts(self, user_script_dir, say):
+        self.user_scripts = user_scripts.script_list(user_script_dir)
+        for script in self.user_scripts.get_scripts():
+            script.set_say(say)
+            for keyword in script.get_keywords():
+                logger.info("Adding keyword (%s) - %s" % (keyword, script.get_description()))
+                self.add_keyword(keyword, script)
+
+    def handle_state_trigger(self, trigger):
+        try:
+            scripts = self.user_scripts.get_scripts()
+        except AttributeError:
+            return
+        if scripts:
+            logger.info("Running %s state trigger ..." % (trigger))
+            for script in scripts:
+                script.state_trigger(trigger)
 
     def get_phrases(self):
         """Get a list of all phrases that are expected by the handlers."""

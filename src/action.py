@@ -263,10 +263,13 @@ class PowerCommand(object):
 # =========================================
 
 
-def make_actor(say):
+def make_actor(args, say):
     """Create an actor to carry out the user's commands."""
 
     actor = actionbase.Actor()
+
+    if args.user_script_directory:
+        actor.add_user_scripts(args.user_script_directory, say)
 
     actor.add_keyword(
         _('ip address'), SpeakShellCommandOutput(

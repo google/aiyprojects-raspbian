@@ -145,6 +145,8 @@ def main():
                         'Cloud Speech API')
     parser.add_argument('--trigger-sound', default=None,
                         help='Sound when trigger is activated (WAV format)')
+    parser.add_argument('-u', '--user-script-directory', default=None,
+                        help='Directory for user scripts run for user defined keywords.')
 
     args = parser.parse_args()
 
@@ -199,7 +201,7 @@ installed with:
         sys.exit(1)
 
     say = aiy.audio.say
-    actor = action.make_actor(say)
+    actor = action.make_actor(args, say)
 
     def process_event(event):
         logging.info(event)
@@ -210,9 +212,11 @@ installed with:
                 print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
 
         elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
+            actor.handle_state_trigger('before-listen')
             status_ui.status('listening')
 
         elif event.type == EventType.ON_END_OF_UTTERANCE:
+            actor.handle_state_trigger('after-listen')
             status_ui.status('thinking')
 
         elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and \
@@ -236,7 +240,7 @@ installed with:
 def do_recognition(args, recorder, recognizer, player, status_ui):
     """Configure and run the recognizer."""
     say = aiy.audio.say
-    actor = action.make_actor(say)
+    actor = action.make_actor(args, say)
 
     if args.cloud_speech:
         action.add_commands_just_for_cloud_speech_api(actor, say)
@@ -352,6 +356,8 @@ class SyncMicRecognizer(object):
             # Duplicate trigger (eg multiple button presses)
             return
 
+        self.actor.handle_state_trigger('before-listen')
+
         self.status_ui.status('listening')
         self.recognizer.reset()
         self.recorder.add_processor(self.recognizer)
@@ -393,6 +399,8 @@ class SyncMicRecognizer(object):
             logger.warning('%r was not handled', result.transcript)
         else:
             logger.warning('no command recognized')
+
+        self.actor.handle_state_trigger('after-listen')
 
     def _play_assistant_response(self, audio_bytes):
         bytes_per_sample = speech.AUDIO_SAMPLE_SIZE
