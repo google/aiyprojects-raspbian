@@ -19,8 +19,8 @@ import aiy._drivers._led
 import aiy._drivers._status_ui
 
 # GPIO definitions (BCM)
-GPIO_BUTTON = 23
-GPIO_LED = 25
+_GPIO_BUTTON = 23
+_GPIO_LED = 25
 
 # Import LED class to expose the LED constants.
 LED = aiy._drivers._led.LED
@@ -34,7 +34,7 @@ _status_ui = None
 def get_button():
     """Returns a driver to the VoiceHat button.
 
-    The button driver detects edges on GPIO_BUTTON. It can be used both
+    The button driver detects edges on _GPIO_BUTTON. It can be used both
     synchronously and asynchrously.
 
     Synchronous usage:
@@ -59,7 +59,7 @@ def get_button():
     """
     global _voicehat_button
     if _voicehat_button is None:
-        _voicehat_button = aiy._drivers._button.Button(channel=GPIO_BUTTON)
+        _voicehat_button = aiy._drivers._button.Button(channel=_GPIO_BUTTON)
     return _voicehat_button
 
 
@@ -77,16 +77,31 @@ def get_led():
     """
     global _voicehat_led
     if _voicehat_led is None:
-        _voicehat_led = aiy._drivers._led.LED(channel=GPIO_LED)
+        _voicehat_led = aiy._drivers._led.LED(channel=_GPIO_LED)
         _voicehat_led.start()
     return _voicehat_led
 
 
 def get_status_ui():
-    """Returns a driver to access the StatusUI daemon.
+    """Returns a driver to control the LED via statuses.
 
-    The StatusUI daemon controls the LEDs in the background. It supports a list
-    of statuses it is able to communicate with the LED on the Voicehat.
+    The supported statuses are:
+      - "starting"
+      - "ready"
+      - "listening"
+      - "thinking"
+      - "stopping"
+      - "power-off"
+      - "error"
+
+    Optionally, a sound may be played once when the status changes to
+    "listening". For example, if you have a wave file at ~/ding.wav, you may set
+    the trigger sound by:
+    aiy.voicehat.get_status_ui().set_trigger_sound_wave('~/ding.wav')
+
+    To set the status, use:
+    aiy.voicehat.get_status_ui().set_state('starting')
+    aiy.voicehat.get_status_ui().set_state('thinking')
     """
     global _status_ui
     if _status_ui is None:

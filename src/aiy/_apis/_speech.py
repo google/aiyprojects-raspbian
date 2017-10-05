@@ -439,6 +439,7 @@ class AssistantSpeechRequest(GenericSpeechRequest):
         response_wav.writeframes(frames)
         response_wav.close()
 
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 

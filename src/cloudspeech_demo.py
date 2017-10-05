@@ -15,8 +15,6 @@
 
 """A demo of the Google CloudSpeech recognizer."""
 
-import os
-
 import aiy.audio
 import aiy.cloudspeech
 import aiy.voicehat
@@ -48,7 +46,7 @@ def main():
             elif 'blink' in text:
                 led.set_state(aiy.voicehat.LED.BLINK)
             elif 'goodbye' in text:
-                os._exit(0)
+                break
 
 
 if __name__ == '__main__':

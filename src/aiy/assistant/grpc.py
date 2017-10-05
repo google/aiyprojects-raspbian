@@ -14,8 +14,6 @@
 
 """An API to access the Google Assistant."""
 
-import os.path
-
 import aiy._apis._speech
 import aiy.assistant.auth_helpers
 import aiy.audio
