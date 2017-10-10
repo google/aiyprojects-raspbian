@@ -1,13 +1,4 @@
-This repository contains the source code for the AIYProjects "Voice Kit". See
-https://aiyprojects.withgoogle.com/voice/.
+The `master` branch of google/aiyprojects-raspbian is deprecated.
+It contains code that was released with the initial release of the Voice Kit, implementing a voice recognizer with various different voice commands implemented in src/actions.py.
 
-If you're using Raspbian instead of Google's provided image, read
-[HACKING.md](HACKING.md) for information on getting started.
-
-[![Build Status](https://travis-ci.org/google/aiyprojects-raspbian.svg?branch=master)](https://travis-ci.org/google/aiyprojects-raspbian/builds)
-[![Test Coverage](https://codecov.io/gh/google/aiyprojects-raspbian/branch/master/graph/badge.svg)](https://codecov.io/gh/google/aiyprojects-raspbian)
-
-## Troubleshooting
-
-The scripts in the `checkpoints` directory verify the Raspberry Pi's setup.
-They can be run from the desktop shortcuts or from the terminal.
+It has been replaced by the [voicekit branch](https://github.com/google/aiyprojects-raspbian/tree/voicekit), which has an easy-to-use API with simple examples that you can build upon.
