@@ -3,6 +3,14 @@
 We'd love to accept your patches and contributions to this project. There are
 just a few small guidelines you need to follow.
 
+## Scope of contributions
+
+This project consists of the support libraries (audio, gRPC, etc) required for AIY Projects, as well as simple examples to experiment with and build upon.
+
+Please limit pull requests to bug fixes or improvements to code or documentation clarity.
+We're not accepting pull requests that add new commands to keep this project as simple as possible.
+If you've added new commands and you'd like to publish your fork for others to use, you can post on [hackster.io](https://www.hackster.io/) or other channels.
+
 ## Contributor License Agreement
 
 Contributions to this project must be accompanied by a Contributor License
