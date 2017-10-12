@@ -18,7 +18,6 @@ import logging
 import os
 import subprocess
 import threading
-import wave
 
 import aiy._drivers._alsa
 
@@ -26,7 +25,6 @@ logger = logging.getLogger('recorder')
 
 
 class Recorder(threading.Thread):
-
     """A driver to record audio from the VoiceHat microphones.
 
     Stream audio from microphone in a background thread and run processing
@@ -53,7 +51,6 @@ class Recorder(threading.Thread):
         - bytes_per_sample: sample width in bytes (eg 2 for 16-bit audio)
         - sample_rate_hz: sample rate in hertz
         """
-
         super().__init__()
 
         self._processors = []
@@ -66,6 +63,7 @@ class Recorder(threading.Thread):
             '-t', 'raw',
             '-D', input_device,
             '-c', str(channels),
+            # pylint: disable=W0212
             '-f', aiy._drivers._alsa.sample_width_to_string(bytes_per_sample),
             '-r', str(sample_rate_hz),
         ]
@@ -73,7 +71,7 @@ class Recorder(threading.Thread):
         self._closed = False
 
     def add_processor(self, processor):
-        """Adds an audio processor.
+        """Add an audio processor.
 
         An audio processor is an object that has an 'add_data' method with the
         following signature:
@@ -89,15 +87,15 @@ class Recorder(threading.Thread):
         self._processors.append(processor)
 
     def remove_processor(self, processor):
-        """Removes an added audio processor."""
+        """Remove an added audio processor."""
 
         try:
             self._processors.remove(processor)
         except ValueError:
-            logger.warn("processor was not found in the list")
+            logger.warning("processor was not found in the list")
 
     def run(self):
-        """Reads data from arecord and passes to processors."""
+        """Read data from arecord and passes to processors."""
 
         self._arecord = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
         logger.info("started recording")
@@ -133,10 +131,12 @@ class Recorder(threading.Thread):
             p.add_data(chunk)
 
     def __enter__(self):
+        """Start the recorder."""
         self.start()
         return self
 
     def __exit__(self, *args):
+        """Finish and close the recorder."""
         self._closed = True
         if self._arecord:
             self._arecord.kill()

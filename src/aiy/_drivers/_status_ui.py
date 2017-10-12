@@ -26,8 +26,8 @@ logger = logging.getLogger('status_ui')
 
 
 class _StatusUi(object):
-
     """Gives the user status feedback.
+
     The LED and optionally a trigger sound tell the user when the box is
     ready, listening or thinking.
     """
@@ -44,7 +44,8 @@ class _StatusUi(object):
             self.led_fifo = None
 
     def set_trigger_sound_wave(self, trigger_sound_wave):
-        """Sets the trigger sound.
+        """Set the trigger sound.
+
         A trigger sound is played when the status is 'listening' to indicate
         that the assistant is actively listening to the user.
         The trigger_sound_wave argument should be the path to a valid wave file.
@@ -61,6 +62,7 @@ class _StatusUi(object):
 
     def status(self, status):
         """Activate the status.
+
         For a list of supported statuses, view src/led.py.
         """
         if self.led_fifo:

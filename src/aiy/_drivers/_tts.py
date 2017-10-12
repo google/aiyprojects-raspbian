@@ -19,8 +19,7 @@ import logging
 import os
 import subprocess
 import tempfile
-
-import aiy.i18n
+from aiy import i18n
 
 # Path to a tmpfs directory to avoid SD card wear
 TMP_DIR = '/run/user/%d' % os.getuid()
@@ -29,9 +28,8 @@ logger = logging.getLogger('tts')
 
 
 def create_say(player):
-    """Return a function say(words) for the given player.
-    """
-    lang = aiy.i18n.get_language_code()
+    """Return a function say(words) for the given player."""
+    lang = i18n.get_language_code()
     return functools.partial(say, player, lang=lang)
 
 
@@ -43,7 +41,6 @@ def say(player, words, lang='en-US'):
       words: string to say aloud.
       lang: language for the text-to-speech engine.
     """
-
     try:
         (fd, tts_wav) = tempfile.mkstemp(suffix='.wav', dir=TMP_DIR)
     except IOError:
@@ -63,8 +60,7 @@ def say(player, words, lang='en-US'):
 
 def _main():
     import argparse
-
-    import aiy.audio
+    from aiy import audio
 
     logging.basicConfig(level=logging.INFO)
 
@@ -74,7 +70,7 @@ def _main():
 
     if args.words:
         words = ' '.join(args.words)
-        player = aiy.audio.get_player()
+        player = audio.get_player()
         create_say(player)(words)
 
 

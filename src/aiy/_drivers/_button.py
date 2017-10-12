@@ -15,7 +15,6 @@
 """Button driver for the VoiceHat."""
 
 import time
-
 import RPi.GPIO as GPIO
 
 
@@ -40,7 +39,6 @@ class Button(object):
             GPIO.PUD_UP.
           debounce_time: the time used in debouncing the button in seconds.
         """
-
         if polarity not in [GPIO.FALLING, GPIO.RISING]:
             raise ValueError(
                 'polarity must be one of: GPIO.FALLING or GPIO.RISING')
@@ -56,7 +54,7 @@ class Button(object):
         self.callback = None
 
     def wait_for_press(self):
-        """Waits for the button to be pressed.
+        """Wait for the button to be pressed.
 
         This method blocks until the button is pressed.
         """
@@ -68,7 +66,7 @@ class Button(object):
             time.sleep(0.02)
 
     def on_press(self, callback):
-        """Calls the callback whenever the button is pressed.
+        """Call the callback whenever the button is pressed.
 
         Args:
           callback: a function to call whenever the button is pressed. It should
@@ -91,7 +89,7 @@ class Button(object):
             self.callback()
 
     def _debounce(self):
-        """Debounces the GPIO signal.
+        """Debounce the GPIO signal.
 
         Check that the input holds the expected value for the debounce
         period, to avoid false trigger on short pulses.
