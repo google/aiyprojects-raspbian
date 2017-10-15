@@ -66,7 +66,7 @@ def get_player():
     audio.
     """
     global _voicehat_player
-    if _voicehat_player is None:
+    if not _voicehat_player:
         _voicehat_player = aiy._drivers._player.Player()
     return _voicehat_player
 
@@ -78,7 +78,7 @@ def get_recorder():
     use this.
     """
     global _voicehat_recorder
-    if _voicehat_recorder is None:
+    if not _voicehat_recorder:
         _voicehat_recorder = aiy._drivers._recorder.Recorder()
     return _voicehat_recorder
 
@@ -126,6 +126,6 @@ def get_status_ui():
     of statuses it is able to communicate with the LED on the Voicehat.
     """
     global _status_ui
-    if _status_ui is None:
+    if not _status_ui:
         _status_ui = aiy._drivers._StatusUi()
     return _status_ui

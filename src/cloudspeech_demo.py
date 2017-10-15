@@ -35,7 +35,7 @@ def main():
         button.wait_for_press()
         print('Listening...')
         text = recognizer.recognize()
-        if text is None:
+        if not text:
             print('Sorry, I did not hear you.')
         else:
             print('You said "', text, '"')

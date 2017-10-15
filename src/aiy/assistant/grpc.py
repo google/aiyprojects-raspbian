@@ -71,7 +71,7 @@ def get_assistant():
                 aiy.audio.play_audio(audio)
     """
     global _assistant_recognizer
-    if _assistant_recognizer is None:
+    if not _assistant_recognizer:
         credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
         _assistant_recognizer = _AssistantRecognizer(credentials)
     return _assistant_recognizer

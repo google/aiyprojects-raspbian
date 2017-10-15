@@ -82,7 +82,7 @@ class Button(object):
           my_button.on_press(MyButtonPressHandler)
         """
         GPIO.remove_event_detect(self.channel)
-        if callback is not None:
+        if callback:
             self.callback = callback
             GPIO.add_event_detect(
                 self.channel, self.polarity, callback=self._debounce_and_callback)

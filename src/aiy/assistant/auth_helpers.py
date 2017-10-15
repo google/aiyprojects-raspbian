@@ -122,6 +122,6 @@ User's Guide for more info.""")
 
 
 def get_assistant_credentials(credentials_file=None):
-    if credentials_file is None:
+    if not credentials_file:
         credentials_file = _ASSISTANT_CREDENTIALS_FILE
     return _try_to_get_credentials(credentials_file)
