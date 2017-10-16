@@ -79,6 +79,6 @@ def get_recognizer():
                 turn_off_light()
     """
     global _cloudspeech_recognizer
-    if _cloudspeech_recognizer is None:
+    if not _cloudspeech_recognizer:
         _cloudspeech_recognizer = _CloudSpeechRecognizer(CLOUDSPEECH_CREDENTIALS_FILE)
     return _cloudspeech_recognizer

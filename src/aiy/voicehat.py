@@ -58,7 +58,7 @@ def get_button():
         # Calling wait_for_press() also cancels any callback.
     """
     global _voicehat_button
-    if _voicehat_button is None:
+    if not _voicehat_button:
         _voicehat_button = aiy._drivers._button.Button(channel=_GPIO_BUTTON)
     return _voicehat_button
 
@@ -76,7 +76,7 @@ def get_led():
     led.set_state(aiy.voicehat.LED_OFF)
     """
     global _voicehat_led
-    if _voicehat_led is None:
+    if not _voicehat_led:
         _voicehat_led = aiy._drivers._led.LED(channel=_GPIO_LED)
         _voicehat_led.start()
     return _voicehat_led
@@ -104,6 +104,6 @@ def get_status_ui():
     aiy.voicehat.get_status_ui().set_state('thinking')
     """
     global _status_ui
-    if _status_ui is None:
+    if not _status_ui:
         _status_ui = aiy._drivers._status_ui._StatusUi()
     return _status_ui

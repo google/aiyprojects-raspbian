@@ -40,13 +40,13 @@ def main():
             status_ui.status('listening')
             print('Listening...')
             text, audio = assistant.recognize()
-            if text is not None:
+            if text:
                 if text == 'goodbye':
                     status_ui.status('stopping')
                     print('Bye!')
                     break
                 print('You said "', text, '"')
-            if audio is not None:
+            if audio:
                 aiy.audio.play_audio(audio)
 
 

@@ -90,7 +90,7 @@ class LED:
                 running = self.running
             if not running:
                 return
-            if state is not None:
+            if state:
                 if not self._parse_state(state):
                     raise ValueError('unsupported state: %d' % state)
             if self.iterator:
