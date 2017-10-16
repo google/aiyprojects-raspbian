@@ -41,13 +41,13 @@ logging.basicConfig(
 
 
 def power_off_pi():
-	aiy.audio.say('Good bye!')
-	subprocess.call('sudo shutdown now', shell=True)
+    aiy.audio.say('Good bye!')
+    subprocess.call('sudo shutdown now', shell=True)
 
 
 def reboot_pi():
-	aiy.audio.say('See you in a bit!')
-	subprocess.call('sudo reboot', shell=True)
+    aiy.audio.say('See you in a bit!')
+    subprocess.call('sudo reboot', shell=True)
 
 
 def process_event(assistant, event):
@@ -59,7 +59,7 @@ def process_event(assistant, event):
 
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         status_ui.status('listening')
-        
+
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         text = event.args['text']
         print('You said:', text)
