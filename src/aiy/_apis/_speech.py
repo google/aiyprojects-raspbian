@@ -38,6 +38,9 @@ logger = logging.getLogger('speech')
 AUDIO_SAMPLE_SIZE = 2  # bytes per sample
 AUDIO_SAMPLE_RATE_HZ = 16000
 
+# Expected location of the service credentials file:
+SERVICE_CREDENTIALS = os.path.expanduser('~/cloud_speech.json')
+
 
 _Result = collections.namedtuple('_Result', ['transcript', 'response_audio'])
 
@@ -449,11 +452,7 @@ if __name__ == '__main__':
     parser.add_argument('file', nargs='?', default='test_speech.raw')
     args = parser.parse_args()
 
-    if os.path.exists('/home/pi/credentials.json'):
-        # Legacy fallback: old location of credentials.
-        req = CloudSpeechRequest('/home/pi/credentials.json')
-    else:
-        req = CloudSpeechRequest('/home/pi/cloud_speech.json')
+    req = CloudSpeechRequest(SERVICE_CREDENTIALS)
 
     with open(args.file, 'rb') as f:
         while True:
