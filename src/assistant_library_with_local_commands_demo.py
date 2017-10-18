@@ -50,6 +50,11 @@ def reboot_pi():
     subprocess.call('sudo reboot', shell=True)
 
 
+def say_ip():
+    ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
+    aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
+
+
 def process_event(assistant, event):
     status_ui = aiy.voicehat.get_status_ui()
     if event.type == EventType.ON_START_FINISHED:
@@ -61,14 +66,17 @@ def process_event(assistant, event):
         status_ui.status('listening')
 
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
-        text = event.args['text']
-        print('You said:', text)
+        print('You said:', event.args['text'])
+        text = event.args['text'].lower()
         if text == 'power off':
             assistant.stop_conversation()
             power_off_pi()
         elif text == 'reboot':
             assistant.stop_conversation()
             reboot_pi()
+        elif text == 'ip address':
+            assistant.stop_conversation()
+            say_ip()
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
