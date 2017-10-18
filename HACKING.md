@@ -24,7 +24,7 @@ scripts/install-deps.sh
 sudo scripts/install-services.sh
 ```
 
-## Installing the Voice HAT driver and config
+## Configuring the Voice HAT driver
 
 To use the Voice HAT, your kernel needs to be 4.9 or later. This is available
 on Raspbian 2017-07-05 and later. You'll also need to configure ALSA:
