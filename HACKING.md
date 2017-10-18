@@ -26,12 +26,10 @@ sudo scripts/install-services.sh
 
 ## Installing the Voice HAT driver and config
 
-To use the Voice HAT, you'll need to upgrade your kernel to 4.9, then adjust the
-kernel and ALSA configuration:
+To use the Voice HAT, your kernel needs to be 4.9 or later. This is available
+on Raspbian 2017-07-05 and later. You'll also need to configure ALSA:
 
 ``` shell
-sudo apt-get update
-sudo apt-get install raspberrypi-kernel
 sudo scripts/configure-driver.sh
 sudo scripts/install-alsa-config.sh
 sudo reboot
@@ -44,7 +42,7 @@ credentials for cloud APIs. This is documented in the
 [setup instructions](https://aiyprojects.withgoogle.com/voice#users-guide-1-1--connect-to-google-cloud-platform) on the
 webpage.
 
-# Making code changes
+## Making code changes
 
 If you edit the code on a different computer, you can deploy it to your
 Raspberry Pi by running:
@@ -52,6 +50,8 @@ Raspberry Pi by running:
 ``` shell
 make deploy
 ```
+
+## Running automatically
 
 You can find sample scripts in the `src` directory showing how to use the
 Assistant SDK.
@@ -71,25 +71,4 @@ make a copy of one of the sample scripts and rename it. Then run this command:
 
 ``` shell
 sudo systemctl enable voice-recognizer.service
-```
-
-# I18N
-
-Strings wrapped with `_()` are marked for translation:
-
-``` shell
-# update catalog after string changed
-pygettext3 -d voice-recognizer -p po src/main.py src/action.py
-
-# add new language
-msgmerge po/de.po po/voice-recognizer.pot
-# now edit po/de.po
-
-# update language
-msgmerge -U po/de.po po/voice-recognizer.pot
-# now edit po/de.po
-
-# create language bundle
-mkdir po/de/LC_MESSAGES/
-msgfmt po/de.po -o po/de/LC_MESSAGES/voice-recognizer.mo
 ```
