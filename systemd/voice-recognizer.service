@@ -1,0 +1,16 @@
+[Unit]
+Description=voice recognizer
+After=network.target ntpdate.service
+
+[Service]
+Environment=VIRTUAL_ENV=/home/pi/voice-recognizer-raspi/env
+Environment=PATH=/home/pi/voice-recognizer-raspi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/home/pi/voice-recognizer-raspi/env/bin/python3 -u src/main.py
+WorkingDirectory=/home/pi/voice-recognizer-raspi
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
