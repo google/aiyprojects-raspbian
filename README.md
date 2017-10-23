@@ -1,7 +1,10 @@
 This repository contains an easy-to-use API for the AIY Voice Kit.
 You can use it to create voice commands with simple while loops - have a look at the [demos](https://github.com/google/aiyprojects-raspbian/tree/voicekit/src).
 Documentation is at the [AIY Projects site](https://aiyprojects.withgoogle.com).
-For guidelines on contributing, look at CONTRIBUTING.md.
+
+For guidelines on contributing, look at [CONTRIBUTING.md](CONTRIBUTING.md).
+If you're using Raspbian instead of Google's provided image, read
+[HACKING.md](HACKING.md) for information on getting started.
 
 For returning users:
 The old voice-recognizer demo remains in the [master branch](https://github.com/google/aiyprojects-raspbian/tree/master) of this project.
