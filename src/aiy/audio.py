@@ -142,18 +142,18 @@ def get_status_ui():
         _status_ui = aiy._drivers._StatusUi()
     return _status_ui
 
-def set_tts_volume(volume)
+def set_tts_volume(volume):
     global _tts_volume
     _tts_volume = volume
 
-def get_tts_volume()
+def get_tts_volume():
     global _tts_volume
     return _tts_volume
 
-def set_tts_pitch(pitch)
+def set_tts_pitch(pitch):
     global _tts_pitch
     _tts_pitch = pitch
 
-def get_tts_pitch()
+def get_tts_pitch():
     global _tts_pitch
     return _tts_pitch
