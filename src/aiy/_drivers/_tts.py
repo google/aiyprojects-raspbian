@@ -20,6 +20,7 @@ import os
 import subprocess
 import tempfile
 from aiy import i18n
+from aiy import audio
 
 # Path to a tmpfs directory to avoid SD card wear
 TMP_DIR = '/run/user/%d' % os.getuid()
@@ -30,16 +31,20 @@ logger = logging.getLogger('tts')
 def create_say(player):
     """Return a function say(words) for the given player."""
     lang = i18n.get_language_code()
-    return functools.partial(say, player, lang=lang)
+    volume = audio.get_tts_volume()
+    pitch = audio.get_tts_pitch()
+    return functools.partial(say, player, lang=lang, volume=volume, pitch=pitch)
 
 
-def say(player, words, lang='en-US'):
+def say(player, words, lang='en-US', volume=60, pitch=130):
     """Say the given words with TTS.
 
     Args:
       player: To play the text-to-speech audio.
       words: string to say aloud.
       lang: language for the text-to-speech engine.
+      volume: volume for the text-to-speech engine.
+      pitch: pitch for the text-to-speech engine.
     """
     try:
         (fd, tts_wav) = tempfile.mkstemp(suffix='.wav', dir=TMP_DIR)
@@ -47,7 +52,8 @@ def say(player, words, lang='en-US'):
         logger.exception('Using fallback directory for TTS output')
         (fd, tts_wav) = tempfile.mkstemp(suffix='.wav')
     os.close(fd)
-    words = '<volume level="60"><pitch level="130">%s</pitch></volume>' % words
+    words = '<volume level="' + str(volume) +'"><pitch level="' + str(pitch) + \
+            '">' + words + '</pitch></volume>'
     try:
         subprocess.call(['pico2wave', '--lang', lang, '-w', tts_wav, words])
         player.play_wav(tts_wav)
