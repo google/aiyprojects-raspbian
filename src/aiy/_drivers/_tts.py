@@ -52,7 +52,7 @@ def say(player, words, lang='en-US', volume=60, pitch=130):
         logger.exception('Using fallback directory for TTS output')
         (fd, tts_wav) = tempfile.mkstemp(suffix='.wav')
     os.close(fd)
-    words = '<volume level="' + str(volume) +'"><pitch level="' + str(pitch) + \
+    words = '<volume level="' + str(volume) + '"><pitch level="' + str(pitch) + \
             '">' + words + '</pitch></volume>'
     try:
         subprocess.call(['pico2wave', '--lang', lang, '-w', tts_wav, words])

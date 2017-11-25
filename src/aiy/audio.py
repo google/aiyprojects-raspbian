@@ -31,6 +31,7 @@ _status_ui = None
 _tts_volume = 60
 _tts_pitch = 130
 
+
 class _WaveDump(object):
     """A processor that saves recorded audio to a wave file."""
 
@@ -142,17 +143,21 @@ def get_status_ui():
         _status_ui = aiy._drivers._StatusUi()
     return _status_ui
 
+
 def set_tts_volume(volume):
     global _tts_volume
     _tts_volume = volume
+
 
 def get_tts_volume():
     global _tts_volume
     return _tts_volume
 
+
 def set_tts_pitch(pitch):
     global _tts_pitch
     _tts_pitch = pitch
+
 
 def get_tts_pitch():
     global _tts_pitch
