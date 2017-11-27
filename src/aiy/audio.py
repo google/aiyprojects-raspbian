@@ -150,7 +150,6 @@ def set_tts_volume(volume):
 
 
 def get_tts_volume():
-    global _tts_volume
     return _tts_volume
 
 
@@ -160,5 +159,4 @@ def set_tts_pitch(pitch):
 
 
 def get_tts_pitch():
-    global _tts_pitch
     return _tts_pitch

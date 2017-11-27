@@ -20,7 +20,6 @@ import os
 import subprocess
 import tempfile
 from aiy import i18n
-from aiy import audio
 
 # Path to a tmpfs directory to avoid SD card wear
 TMP_DIR = '/run/user/%d' % os.getuid()
@@ -31,9 +30,7 @@ logger = logging.getLogger('tts')
 def create_say(player):
     """Return a function say(words) for the given player."""
     lang = i18n.get_language_code()
-    volume = audio.get_tts_volume()
-    pitch = audio.get_tts_pitch()
-    return functools.partial(say, player, lang=lang, volume=volume, pitch=pitch)
+    return functools.partial(say, player, lang=lang)
 
 
 def say(player, words, lang='en-US', volume=60, pitch=130):
