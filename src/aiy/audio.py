@@ -120,8 +120,6 @@ def say(words, lang=None, volume=None, pitch=None):
     Example: aiy.audio.say('This is an example', lang="en-US", volume=75, pitch=135)
     Any of the optional variables can be left out.
     """
-    global _tts_volume
-    global _tts_pitch
 
     if not lang:
         lang = aiy.i18n.get_language_code()
@@ -150,6 +148,7 @@ def set_tts_volume(volume):
 
 
 def get_tts_volume():
+    global _tts_volume
     return _tts_volume
 
 
@@ -159,4 +158,5 @@ def set_tts_pitch(pitch):
 
 
 def get_tts_pitch():
+    global _tts_pitch
     return _tts_pitch
