@@ -72,3 +72,22 @@ make a copy of one of the sample scripts and rename it. Then run this command:
 ``` shell
 sudo systemctl enable voice-recognizer.service
 ```
+
+## Troubleshooting
+
+If you're using the Voice Kit and see an error like:
+
+``` shell
+ALSA lib pcm.c:8403:(snd_pcm_set_params) Rate doesn't match (requested 16000Hz, get 48000Hz)
+```
+
+or
+
+``` shell
+arecord: set_params:1233: Sample format non available
+Available formats:
+- S32_LE
+```
+
+Try running `rm ~/.asoundrc && sudo reboot`. For more details, [see this GitHub
+issue](https://github.com/google/aiyprojects-raspbian/issues/183).
