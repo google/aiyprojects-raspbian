@@ -31,9 +31,20 @@ on Raspbian 2017-07-05 and later. You'll also need to configure ALSA:
 
 ``` shell
 sudo scripts/configure-driver.sh
-sudo scripts/install-alsa-config.sh
 sudo reboot
 ```
+
+After your Pi has rebooted with the driver enabled, run:
+
+```
+cd ~/voice-recognizer-raspi
+sudo scripts/install-alsa-config.sh
+python3 checkpoints/check_audio.py
+sudo reboot
+```
+
+Don't skip running `check_audio.py` before rebooting, as it has an important
+effect on the state of ALSA, the sound architecture.
 
 ## Get cloud credentials
 
