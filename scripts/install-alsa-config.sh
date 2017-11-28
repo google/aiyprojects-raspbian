@@ -36,4 +36,5 @@ for rcfile in "$asoundrc" "$global_asoundrc"; do
 done
 
 sudo cp scripts/asound.conf "$global_asoundrc"
+sudo cp scripts/.asoundrc "$asoundrc"
 echo "Installed voiceHAT ALSA config at $global_asoundrc"
