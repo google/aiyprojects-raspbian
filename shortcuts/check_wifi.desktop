@@ -3,5 +3,5 @@ Encoding=UTF-8
 Type=Application
 Name=Check WiFi
 Comment=Check that the WiFi is working.
-Exec=/home/pi/AIY-voice-kit-python/checkpoints/check_wifi.py
+Exec=/home/pi/voice-recognizer-raspi/checkpoints/check_wifi.py
 Terminal=true
