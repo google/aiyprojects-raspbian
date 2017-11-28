@@ -3,5 +3,5 @@ Encoding=UTF-8
 Type=Application
 Name=Check audio
 Comment=Check that the voiceHAT audio input and output are both working.
-Exec=/home/pi/AIY-voice-kit-python/checkpoints/check_audio.py
+Exec=/home/pi/voice-recognizer-raspi/checkpoints/check_audio.py
 Terminal=true
