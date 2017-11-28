@@ -70,6 +70,7 @@ class MyAssistant(object):
         status_ui = aiy.voicehat.get_status_ui()
         if event.type == EventType.ON_START_FINISHED:
             status_ui.status('ready')
+            aiy.audio.say('Hi')
             self._can_start_conversation = True
             # Start the voicehat button trigger.
             aiy.voicehat.get_button().on_press(self._on_button_pressed)

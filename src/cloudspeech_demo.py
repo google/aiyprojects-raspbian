@@ -32,6 +32,7 @@ def main():
 
     while True:
         print('Press the button and speak')
+        aiy.audio.say('Hi')
         button.wait_for_press()
         print('Listening...')
         text = recognizer.recognize()
