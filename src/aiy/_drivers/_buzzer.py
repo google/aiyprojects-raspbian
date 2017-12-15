@@ -65,9 +65,9 @@ class PWMController(object):
             gpio: the number of the GPIO to use for PWM output.
         """
         self.gpio = gpio
-        self.pulse_fh = None
-        self.period_fh = None
-        self.exported = False
+        self._pulse_fh = None
+        self._period_fh = None
+        self._exported = False
 
     def __enter__(self):
         """Context manager method to automatically open up."""
@@ -132,15 +132,15 @@ class PWMController(object):
         try:
             self._pwrite_int(self.PWM_SOFT_EXPORT_PATH, self.gpio)
         except:
-            self.exported = False
+            self._exported = False
             raise
 
-        self.exported = True
+        self._exported = True
 
         period_path = self._make_pwm_path(self.gpio) + '/period'
         try:
             self._wait_for_access(period_path)
-            self.period_fh = open(period_path, 'w')
+            self._period_fh = open(period_path, 'w')
         except:
             self._unexport_pwm()
             raise
@@ -148,7 +148,7 @@ class PWMController(object):
         pulse_path = self._make_pwm_path(self.gpio) + '/pulse'
         try:
             self._wait_for_access(pulse_path)
-            self.pulse_fh = open(pulse_path, 'w')
+            self._pulse_fh = open(pulse_path, 'w')
         except:
             self._unexport_pwm()
             raise
@@ -160,15 +160,28 @@ class PWMController(object):
         This effectively reverses _export_pwm by closing the two file handles it
         previously opened, and then unexporting the given gpio.
         """
-        if self.exported:
-            if self.period_fh != None:
-                self.period_fh.close()
+        if self._exported:
+            if self._period_fh != None:
+                self._period_fh.close()
 
-            if self.pulse_fh != None:
-                self.pulse_fh.close()
+            if self._pulse_fh != None:
+                self._pulse_fh.close()
 
             self._pwrite_int(self.PWM_SOFT_UNEXPORT_PATH, self.gpio)
-            self.exported = False
+            self._exported = False
+
+    def open(self):
+        """Opens the PWNController, exports the GPIO and gets ready to play."""
+        self._export_pwm()
+
+    def _update_pwm(self):
+        """Helper method to update the pulse and period settings in the driver."""
+        self._write_int(self._pulse_fh, self._pulse_usec)
+        self._write_int(self._period_fh, self._period_usec)
+        self._write_int(self._pulse_fh, self._pulse_usec)
+        self._write_int(self._period_fh, self._period_usec)
+        self._write_int(self._pulse_fh, self._pulse_usec)
+        self._write_int(self._period_fh, self._period_usec)
 
     def open(self):
         """Opens the PWNController, exports the GPIO and gets ready to play."""
@@ -189,14 +202,15 @@ class PWMController(object):
             freq_hz: The frequency in Hz to output.
         """
         if freq_hz == 0:
-            period = 0
-            pulse = 0
+            self._frequency_hz = 0
+            self._period_usec = 0
+            self._pulse_usec = 0
         else:
-            period = int(HzToPeriodUsec(freq_hz))
-            pulse = int(period / 2)
+            self._frequency_hz = freq_hz
+            self._period_usec = int(HzToPeriodUsec(freq_hz))
+            self._pulse_usec = int(self._period_usec / 2)
 
-        self._write_int(self.pulse_fh, pulse)
-        self._write_int(self.period_fh, period)
+        self._update_pwm()
 
     def set_pulse_usec(self, pulse_usec):
         """Sets the pulse length in microseconds.
@@ -204,7 +218,8 @@ class PWMController(object):
         Args:
             pulse_usec: how long to keep the GPIO high during the PWM period.
         """
-        self._write_int(self.pulse_fh, pulse)
+        self._pulse_usec = pulse_usec
+        self._update_pwm()
 
     def set_period_usec(self, period_usec):
         """Sets the period length in microseconds.
@@ -212,4 +227,17 @@ class PWMController(object):
         Args:
             period_usec: how long each PWM cycle will take in microseconds.
         """
-        self._write_int(self.period_fh, period_usec)
+        self._period_usec = period_usec
+        self._update_pwm()
+
+    def pulse_usec(self):
+        """Getter for getting the current pulse width in microseconds."""
+        return self._pulse_usec
+
+    def period_usec(self):
+        """Getter for getting the current period width in microseconds."""
+        return self._period_usec
+
+    def frequency_hz(self):
+        """Getter for getting the current frequency in Hertz."""
+        return self._frequency_hz

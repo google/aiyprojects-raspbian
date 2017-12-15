@@ -1,0 +1,30 @@
+title Congratulations!
+speed 5
+order 0
+end
+
+pattern
+C4
+
+
+D4
+
+
+E4
+
+
+G4
+
+
+
+
+E4
+
+
+G4
+
+
+
+
+stop
+end

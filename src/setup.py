@@ -12,12 +12,23 @@ setup(
     url="https://aiyprojects.withgoogle.com/",
     license='LICENSE.txt',
     description="AIY Python API",
-    data_files=['README.md'],
+    data_files=[
+        ('share/doc/aiy', ['README.md']),
+        ('share/doc/aiy/examples', [
+            "examples/congratulations.track",
+            "examples/dramatic.track",
+            "examples/laughing.track",
+            "examples/sadtrombone.track",
+            "examples/tetris.track",
+        ])
+    ],
     long_description=open('README.md').read(),
     scripts=[
         "assistant_grpc_demo.py", "assistant_library_with_button_demo.py",
         "cloudspeech_demo.py", "assistant_library_demo.py",
         "assistant_library_with_local_commands_demo.py",
+        "examples/buzzer_demo.py",
+        "examples/buzzer_tracker_demo.py",
         "examples/vision/joy/joy_detection_demo.py",
         "examples/vision/annotator.py",
         "examples/vision/face_detection.py",

@@ -1,0 +1,24 @@
+title Dramatic Tune
+speed 10
+order 0
+end
+
+pattern
+G4
+
+   noff
+
+G4
+
+   noff
+
+G4
+
+   noff
+
+f4
+
+noff f4
+
+   stop
+end

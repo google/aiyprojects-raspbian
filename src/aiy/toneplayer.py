@@ -80,6 +80,9 @@ class Note(Rest):
 
         return freq
 
+    def __str__(self):
+        return self.name + str(self.octave)
+
 
 class TonePlayer(object):
     """Class to play a simplified music notation via a PWMController.

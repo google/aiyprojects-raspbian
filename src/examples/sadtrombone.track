@@ -1,0 +1,46 @@
+title Sad trombone
+speed 5
+order 0
+end
+
+pattern
+E3
+
+
+
+
+
+
+
+
+
+   noff
+d3
+
+
+
+
+
+
+
+
+
+   noff
+D3 glis -1 1
+   glis 1 1
+   glis -1 1
+   glis 1 1
+   glis -1 1
+   glis 1 1
+   glis -1 1
+   glis 1 1
+   glis -1 1
+   glis 1 1
+   glis -1 1
+   glis 1 1
+   glis -1 1
+   glis 1 1
+   glis -1 1
+   glis 1 1
+   stop
+end
