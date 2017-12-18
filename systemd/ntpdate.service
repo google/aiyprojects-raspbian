@@ -8,7 +8,7 @@ ExecStart=/usr/sbin/ntpdate -u pool.ntp.org
 
 # we may not have network yet, so retry until success
 Restart=on-failure
-RestartSec=3s
+RestartSec=60s
 
 [Install]
 WantedBy=multi-user.target

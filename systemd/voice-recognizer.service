@@ -1,12 +1,15 @@
+# This service can be used to run your code automatically on startup. Look in
+# HACKING.md for instructions on creating main.py and enabling it.
+
 [Unit]
 Description=voice recognizer
 After=network.target ntpdate.service
 
 [Service]
-Environment=VIRTUAL_ENV=/home/pi/voice-recognizer-raspi/env
-Environment=PATH=/home/pi/voice-recognizer-raspi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=/home/pi/voice-recognizer-raspi/env/bin/python3 -u src/main.py
-WorkingDirectory=/home/pi/voice-recognizer-raspi
+Environment=VIRTUAL_ENV=/home/pi/AIY-projects-python/env
+Environment=PATH=/home/pi/AIY-projects-python/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/home/pi/AIY-projects-python/env/bin/python3 -u src/main.py
+WorkingDirectory=/home/pi/AIY-projects-python
 StandardOutput=inherit
 StandardError=inherit
 Restart=always

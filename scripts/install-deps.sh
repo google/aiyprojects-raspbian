@@ -32,6 +32,8 @@ sudo pip3 install --upgrade pip virtualenv
 cd "${scripts_dir}/.."
 virtualenv --system-site-packages -p python3 env
 env/bin/pip install -r requirements.txt
+echo "/home/pi/AIY-projects-python/src" > \
+  /home/pi/AIY-projects-python/env/lib/python3.5/site-packages/aiy.pth
 
 # The google-assistant-library is only available on ARMv7.
 if [[ "$(uname -m)" == "armv7l" ]] ; then

@@ -34,7 +34,7 @@ def check_wifi_is_connected():
     """Check wlan0 has an IP address."""
     output = subprocess.check_output(['ifconfig', 'wlan0']).decode('utf-8')
 
-    return 'inet addr' in output
+    return 'inet ' in output
 
 
 def check_can_reach_google_server():
