@@ -15,25 +15,29 @@
 
 """Check that the voiceHAT audio input and output are both working."""
 
+
+import fileinput
 import os
+import re
 import sys
 import tempfile
 import textwrap
 import traceback
 
-sys.path.append(os.path.realpath(os.path.join(__file__, '..', '..')) + '/src/')
-
 import aiy.audio  # noqa
+from aiy._drivers._hat import get_aiy_device_name
 
 CARDS_PATH = '/proc/asound/cards'
-VOICEHAT_ID = 'googlevoicehat'
+CARDS_ID = {
+    "Voice Hat": "googlevoicehat",
+    "Voice Bonnet": "aiy-voicebonnet",
+}
 
 STOP_DELAY = 1.0
 
 TEST_SOUND_PATH = '/usr/share/sounds/alsa/Front_Center.wav'
 
 RECORD_DURATION_SECONDS = 3
-
 
 def get_sound_cards():
     """Read a dictionary of ALSA cards from /proc, indexed by number."""
@@ -62,14 +66,16 @@ def ask(prompt):
 
 
 def check_voicehat_present():
-    """Check that the voiceHAT is present."""
-    return any(VOICEHAT_ID in card for card in get_sound_cards().values())
+    """Check that the voiceHAT audio driver is present."""
+    card_id = CARDS_ID[get_aiy_device_name()]
+    return any(card_id in card for card in get_sound_cards().values())
 
 
 def check_voicehat_is_first_card():
     """Check that the voiceHAT is the first card on the system."""
     cards = get_sound_cards()
-    return 0 in cards and VOICEHAT_ID in cards[0]
+    card_id = CARDS_ID[get_aiy_device_name()]
+    return 0 in cards and card_id in cards[0]
 
 
 def check_speaker_works():
@@ -129,7 +135,21 @@ connected properly."""))
     print('The audio seems to be working.')
 
 
+def enable_audio_driver():
+    print(textwrap.fill(
+        """Enabling audio driver for VoiceKit."""))
+    for line in fileinput.input("/boot/config.txt",
+                                inplace=True, backup=".bak"):
+        if re.match("^# dtoverlay=googlevoicehat-soundcard", line):
+            print("dtoverlay=googlevoicehat-soundcard")
+        else:
+            print(line, end='')
+    os.system("dtoverlay googlevoicehat-soundcard")
+
+
 def main():
+    if get_aiy_device_name() == 'Voice Hat':
+        enable_audio_driver()
     do_checks()
 
 
