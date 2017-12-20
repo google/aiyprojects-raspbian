@@ -28,6 +28,8 @@ AUDIO_SAMPLE_RATE_HZ = 16000
 _voicehat_recorder = None
 _voicehat_player = None
 _status_ui = None
+_tts_volume = 60
+_tts_pitch = 130
 
 
 class _WaveDump(object):
@@ -66,7 +68,7 @@ def get_player():
     audio.
     """
     global _voicehat_player
-    if _voicehat_player is None:
+    if not _voicehat_player:
         _voicehat_player = aiy._drivers._player.Player()
     return _voicehat_player
 
@@ -78,7 +80,7 @@ def get_recorder():
     use this.
     """
     global _voicehat_recorder
-    if _voicehat_recorder is None:
+    if not _voicehat_recorder:
         _voicehat_recorder = aiy._drivers._recorder.Recorder()
     return _voicehat_recorder
 
@@ -108,15 +110,24 @@ def play_audio(audio_data):
     player.play_bytes(audio_data, sample_width=AUDIO_SAMPLE_SIZE, sample_rate=AUDIO_SAMPLE_RATE_HZ)
 
 
-def say(words, lang=None):
+def say(words, lang=None, volume=None, pitch=None):
     """Says the given words in the given language with Google TTS engine.
 
-    If lang is specified, e.g. "en-US', it will be used to say the given words.
+    If lang is specified, e.g. "en-US", it will be used to say the given words.
     Otherwise, the language from aiy.i18n will be used.
+    volume (optional) volume used to say the given words.
+    pitch (optional) pitch to say the given words.
+    Example: aiy.audio.say('This is an example', lang="en-US", volume=75, pitch=135)
+    Any of the optional variables can be left out.
     """
+
     if not lang:
         lang = aiy.i18n.get_language_code()
-    aiy._drivers._tts.say(aiy.audio.get_player(), words, lang=lang)
+    if not volume:
+        volume = aiy.audio.get_tts_volume()
+    if not pitch:
+        pitch = aiy.audio.get_tts_pitch()
+    aiy._drivers._tts.say(aiy.audio.get_player(), words, lang=lang, volume=volume, pitch=pitch)
 
 
 def get_status_ui():
@@ -126,6 +137,26 @@ def get_status_ui():
     of statuses it is able to communicate with the LED on the Voicehat.
     """
     global _status_ui
-    if _status_ui is None:
+    if not _status_ui:
         _status_ui = aiy._drivers._StatusUi()
     return _status_ui
+
+
+def set_tts_volume(volume):
+    global _tts_volume
+    _tts_volume = volume
+
+
+def get_tts_volume():
+    global _tts_volume
+    return _tts_volume
+
+
+def set_tts_pitch(pitch):
+    global _tts_pitch
+    _tts_pitch = pitch
+
+
+def get_tts_pitch():
+    global _tts_pitch
+    return _tts_pitch

@@ -24,7 +24,6 @@ logger = logging.getLogger('audio')
 
 
 class Player(object):
-
     """Plays short audio clips from a buffer or file."""
 
     def __init__(self, output_device='default'):
@@ -38,13 +37,13 @@ class Player(object):
           sample_rate: sample rate in Hertz (24 kHz by default)
           sample_width: sample width in bytes (eg 2 for 16-bit audio)
         """
-
         cmd = [
             'aplay',
             '-q',
             '-t', 'raw',
             '-D', self._output_device,
             '-c', '1',
+            # pylint: disable=W0212
             '-f', aiy._drivers._alsa.sample_width_to_string(sample_width),
             '-r', str(sample_rate),
         ]
@@ -64,7 +63,6 @@ class Player(object):
         Args:
           wav_path: path to the wav file
         """
-
         with wave.open(wav_path, 'r') as wav:
             if wav.getnchannels() != 1:
                 raise ValueError(wav_path + ' is not a mono file')

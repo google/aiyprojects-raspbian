@@ -34,17 +34,51 @@ class _CloudSpeechRecognizer(object):
     def __init__(self, credentials_file):
         self._request = aiy._apis._speech.CloudSpeechRequest(credentials_file)
         self._recorder = aiy.audio.get_recorder()
+        self._hotwords = []
 
     def recognize(self):
         """Recognizes the user's speech and transcript it into text.
 
         This function listens to the user's speech via the VoiceHat speaker. Then it
         contacts Google CloudSpeech APIs and returns a textual transcript if possible.
+        If hotword list is populated this method will only respond if hotword is said.
         """
         self._request.reset()
         self._request.set_endpointer_cb(self._endpointer_callback)
         self._recorder.add_processor(self._request)
-        return self._request.do_request().transcript
+        text = self._request.do_request().transcript
+        if self._hotwords and text:
+            text = text.lower()
+            loc_min = len(text)
+            hotword_found = ''
+            for hotword in self._hotwords:
+                loc_temp = text.find(hotword)
+                if loc_temp > -1 and loc_min > loc_temp:
+                    loc_min = loc_temp
+                    hotword_found = hotword
+            if hotword_found:
+                parse_text = text.split(hotword_found)[1]
+                return parse_text.strip()
+            else:
+                return ''
+        else:
+            return '' if self._hotwords else text
+
+    def expect_hotword(self, hotword_list):
+        """Enables hotword detection for a selected list
+        This method is optional and populates the list of hotwords
+        to be used for hotword activation.
+
+        For example, to create a recognizer for Google:
+
+        recognizer.expect_hotword('Google')
+        recognizer.expect_hotword(['Google','Raspberry Pi'])
+        """
+        if isinstance(hotword_list, list):
+            for hotword in hotword_list:
+                self._hotwords.append(hotword.lower())
+        else:
+            self._hotwords.append(hotword_list.lower())
 
     def expect_phrase(self, phrase):
         """Explicitly tells the engine that the phrase is more likely to appear.
@@ -79,6 +113,6 @@ def get_recognizer():
                 turn_off_light()
     """
     global _cloudspeech_recognizer
-    if _cloudspeech_recognizer is None:
+    if not _cloudspeech_recognizer:
         _cloudspeech_recognizer = _CloudSpeechRecognizer(CLOUDSPEECH_CREDENTIALS_FILE)
     return _cloudspeech_recognizer
