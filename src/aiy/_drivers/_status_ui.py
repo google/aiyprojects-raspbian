@@ -53,6 +53,7 @@ class _StatusUi(object):
         """
         if not trigger_sound_wave:
             self._trigger_sound_wave = None
+            return
         expanded_path = os.path.expanduser(trigger_sound_wave)
         if os.path.exists(expanded_path):
             self._trigger_sound_wave = expanded_path
