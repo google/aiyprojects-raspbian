@@ -19,37 +19,33 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='protocol.proto',
   package='spacepark.vision',
   syntax='proto3',
-  serialized_pb=_b('\n\x0eprotocol.proto\x12\x10spacepark.vision\"@\n\tRectangle\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\r\n\x05width\x18\x03 \x01(\x05\x12\x0e\n\x06height\x18\x04 \x01(\x05\"J\n\x0bTensorShape\x12\r\n\x05\x62\x61tch\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\x12\r\n\x05width\x18\x03 \x01(\x05\x12\r\n\x05\x64\x65pth\x18\x04 \x01(\x05\"H\n\nByteTensor\x12,\n\x05shape\x18\x01 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"I\n\x0b\x46loatTensor\x12,\n\x05shape\x18\x01 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12\x0c\n\x04\x64\x61ta\x18\x02 \x03(\x02\"0\n\x10TensorNormalizer\x12\x0c\n\x04mean\x18\x01 \x01(\x02\x12\x0e\n\x06stddev\x18\x02 \x01(\x02\"\xa2\t\n\x07Request\x12\x39\n\nload_model\x18\x01 \x01(\x0b\x32#.spacepark.vision.Request.LoadModelH\x00\x12=\n\x0cunload_model\x18\x02 \x01(\x0b\x32%.spacepark.vision.Request.UnloadModelH\x00\x12\x43\n\x0fimage_inference\x18\x03 \x01(\x0b\x32(.spacepark.vision.Request.ImageInferenceH\x00\x12P\n\x16start_camera_inference\x18\x04 \x01(\x0b\x32..spacepark.vision.Request.StartCameraInferenceH\x00\x12\x45\n\x10\x63\x61mera_inference\x18\x05 \x01(\x0b\x32).spacepark.vision.Request.CameraInferenceH\x00\x12N\n\x15stop_camera_inference\x18\x06 \x01(\x0b\x32-.spacepark.vision.Request.StopCameraInferenceH\x00\x12>\n\rimu_self_test\x18\x07 \x01(\x0b\x32%.spacepark.vision.Request.ImuSelfTestH\x00\x1a\xa8\x01\n\tLoadModel\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12\x32\n\x0binput_shape\x18\x02 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12<\n\x10input_normalizer\x18\x03 \x01(\x0b\x32\".spacepark.vision.TensorNormalizer\x12\x15\n\rcompute_graph\x18\x04 \x01(\x0c\x1a!\n\x0bUnloadModel\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x1a\xc7\x01\n\x0eImageInference\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12,\n\x06tensor\x18\x02 \x01(\x0b\x32\x1c.spacepark.vision.ByteTensor\x12\x44\n\x06params\x18\x03 \x03(\x0b\x32\x34.spacepark.vision.Request.ImageInference.ParamsEntry\x1a-\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xd2\x01\n\x14StartCameraInference\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12+\n\x06window\x18\x02 \x01(\x0b\x32\x1b.spacepark.vision.Rectangle\x12J\n\x06params\x18\x03 \x03(\x0b\x32:.spacepark.vision.Request.StartCameraInference.ParamsEntry\x1a-\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x11\n\x0f\x43\x61meraInference\x1a\x15\n\x13StopCameraInference\x1a\r\n\x0bImuSelfTestB\t\n\x07request\"\xa9\x03\n\x0fInferenceResult\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12\r\n\x05width\x18\x02 \x01(\x05\x12\x0e\n\x06height\x18\x03 \x01(\x05\x12+\n\x06window\x18\x04 \x01(\x0b\x32\x1b.spacepark.vision.Rectangle\x12\x13\n\x0b\x64uration_ms\x18\x05 \x01(\x05\x12?\n\x07tensors\x18\x06 \x03(\x0b\x32..spacepark.vision.InferenceResult.TensorsEntry\x12\x36\n\x05\x66rame\x18\x07 \x01(\x0b\x32\'.spacepark.vision.InferenceResult.Frame\x1aM\n\x0cTensorsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.spacepark.vision.FloatTensor:\x02\x38\x01\x1aY\n\x05\x46rame\x12\r\n\x05index\x18\x01 \x01(\x05\x12\x14\n\x0ctimestamp_us\x18\x02 \x01(\x03\x12+\n\x05image\x18\x03 \x01(\x0b\x32\x1c.spacepark.vision.ByteTensor\"\xe4\x01\n\x08Response\x12\x30\n\x06\x65rrors\x18\x01 \x03(\x0b\x32 .spacepark.vision.Response.Error\x12\x31\n\x06result\x18\x02 \x01(\x0b\x32!.spacepark.vision.InferenceResult\x1as\n\x05\x45rror\x12\x33\n\x04type\x18\x01 \x01(\x0e\x32%.spacepark.vision.Response.Error.Type\x12\x0b\n\x03msg\x18\x02 \x01(\t\"(\n\x04Type\x12\x08\n\x04INFO\x10\x00\x12\x0b\n\x07WARNING\x10\x01\x12\t\n\x05\x45RROR\x10\x02\x62\x06proto3')
+  serialized_pb=_b('\n\x0eprotocol.proto\x12\x10spacepark.vision\"@\n\tRectangle\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\r\n\x05width\x18\x03 \x01(\x05\x12\x0e\n\x06height\x18\x04 \x01(\x05\"J\n\x0bTensorShape\x12\r\n\x05\x62\x61tch\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\x12\r\n\x05width\x18\x03 \x01(\x05\x12\r\n\x05\x64\x65pth\x18\x04 \x01(\x05\"H\n\nByteTensor\x12,\n\x05shape\x18\x01 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"I\n\x0b\x46loatTensor\x12,\n\x05shape\x18\x01 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12\x0c\n\x04\x64\x61ta\x18\x02 \x03(\x02\"0\n\x10TensorNormalizer\x12\x0c\n\x04mean\x18\x01 \x01(\x02\x12\x0e\n\x06stddev\x18\x02 \x01(\x02\"\xfa\t\n\x07Request\x12\x39\n\nload_model\x18\x01 \x01(\x0b\x32#.spacepark.vision.Request.LoadModelH\x00\x12=\n\x0cunload_model\x18\x02 \x01(\x0b\x32%.spacepark.vision.Request.UnloadModelH\x00\x12\x43\n\x0fimage_inference\x18\x03 \x01(\x0b\x32(.spacepark.vision.Request.ImageInferenceH\x00\x12P\n\x16start_camera_inference\x18\x04 \x01(\x0b\x32..spacepark.vision.Request.StartCameraInferenceH\x00\x12\x45\n\x10\x63\x61mera_inference\x18\x05 \x01(\x0b\x32).spacepark.vision.Request.CameraInferenceH\x00\x12N\n\x15stop_camera_inference\x18\x06 \x01(\x0b\x32-.spacepark.vision.Request.StopCameraInferenceH\x00\x12\x44\n\x10get_camera_state\x18\x07 \x01(\x0b\x32(.spacepark.vision.Request.GetCameraStateH\x00\x12>\n\rimu_self_test\x18\x08 \x01(\x0b\x32%.spacepark.vision.Request.ImuSelfTestH\x00\x1a\xa8\x01\n\tLoadModel\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12\x32\n\x0binput_shape\x18\x02 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12<\n\x10input_normalizer\x18\x03 \x01(\x0b\x32\".spacepark.vision.TensorNormalizer\x12\x15\n\rcompute_graph\x18\x04 \x01(\x0c\x1a!\n\x0bUnloadModel\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x1a\xc7\x01\n\x0eImageInference\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12,\n\x06tensor\x18\x02 \x01(\x0b\x32\x1c.spacepark.vision.ByteTensor\x12\x44\n\x06params\x18\x03 \x03(\x0b\x32\x34.spacepark.vision.Request.ImageInference.ParamsEntry\x1a-\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xd2\x01\n\x14StartCameraInference\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12+\n\x06window\x18\x02 \x01(\x0b\x32\x1b.spacepark.vision.Rectangle\x12J\n\x06params\x18\x03 \x03(\x0b\x32:.spacepark.vision.Request.StartCameraInference.ParamsEntry\x1a-\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x11\n\x0f\x43\x61meraInference\x1a\x15\n\x13StopCameraInference\x1a\x10\n\x0eGetCameraState\x1a\r\n\x0bImuSelfTestB\t\n\x07request\"\xa9\x03\n\x0fInferenceResult\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12\r\n\x05width\x18\x02 \x01(\x05\x12\x0e\n\x06height\x18\x03 \x01(\x05\x12+\n\x06window\x18\x04 \x01(\x0b\x32\x1b.spacepark.vision.Rectangle\x12\x13\n\x0b\x64uration_ms\x18\x05 \x01(\x05\x12?\n\x07tensors\x18\x06 \x03(\x0b\x32..spacepark.vision.InferenceResult.TensorsEntry\x12\x36\n\x05\x66rame\x18\x07 \x01(\x0b\x32\'.spacepark.vision.InferenceResult.Frame\x1aM\n\x0cTensorsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.spacepark.vision.FloatTensor:\x02\x38\x01\x1aY\n\x05\x46rame\x12\r\n\x05index\x18\x01 \x01(\x05\x12\x14\n\x0ctimestamp_us\x18\x02 \x01(\x03\x12+\n\x05image\x18\x03 \x01(\x0b\x32\x1c.spacepark.vision.ByteTensor\"=\n\x0b\x43\x61meraState\x12\x0f\n\x07running\x18\x01 \x01(\x08\x12\r\n\x05width\x18\x02 \x01(\x05\x12\x0e\n\x06height\x18\x03 \x01(\x05\"\xab\x02\n\x08Response\x12\x31\n\x06status\x18\x01 \x01(\x0b\x32!.spacepark.vision.Response.Status\x12=\n\x10inference_result\x18\x02 \x01(\x0b\x32!.spacepark.vision.InferenceResultH\x00\x12\x35\n\x0c\x63\x61mera_state\x18\x03 \x01(\x0b\x32\x1d.spacepark.vision.CameraStateH\x00\x1aj\n\x06Status\x12\x34\n\x04\x63ode\x18\x01 \x01(\x0e\x32&.spacepark.vision.Response.Status.Code\x12\x0f\n\x07message\x18\x02 \x01(\t\"\x19\n\x04\x43ode\x12\x06\n\x02OK\x10\x00\x12\t\n\x05\x45RROR\x10\x01\x42\n\n\x08responseb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
-_RESPONSE_ERROR_TYPE = _descriptor.EnumDescriptor(
-  name='Type',
-  full_name='spacepark.vision.Response.Error.Type',
+_RESPONSE_STATUS_CODE = _descriptor.EnumDescriptor(
+  name='Code',
+  full_name='spacepark.vision.Response.Status.Code',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='INFO', index=0, number=0,
+      name='OK', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='WARNING', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='ERROR', index=2, number=2,
+      name='ERROR', index=1, number=1,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=2183,
-  serialized_end=2223,
+  serialized_start=2408,
+  serialized_end=2433,
 )
-_sym_db.RegisterEnumDescriptor(_RESPONSE_ERROR_TYPE)
+_sym_db.RegisterEnumDescriptor(_RESPONSE_STATUS_CODE)
 
 
 _RECTANGLE = _descriptor.Descriptor(
@@ -317,8 +313,8 @@ _REQUEST_LOADMODEL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=878,
-  serialized_end=1046,
+  serialized_start=948,
+  serialized_end=1116,
 )
 
 _REQUEST_UNLOADMODEL = _descriptor.Descriptor(
@@ -347,8 +343,8 @@ _REQUEST_UNLOADMODEL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1048,
-  serialized_end=1081,
+  serialized_start=1118,
+  serialized_end=1151,
 )
 
 _REQUEST_IMAGEINFERENCE_PARAMSENTRY = _descriptor.Descriptor(
@@ -384,8 +380,8 @@ _REQUEST_IMAGEINFERENCE_PARAMSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1238,
-  serialized_end=1283,
+  serialized_start=1308,
+  serialized_end=1353,
 )
 
 _REQUEST_IMAGEINFERENCE = _descriptor.Descriptor(
@@ -428,8 +424,8 @@ _REQUEST_IMAGEINFERENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1084,
-  serialized_end=1283,
+  serialized_start=1154,
+  serialized_end=1353,
 )
 
 _REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY = _descriptor.Descriptor(
@@ -465,8 +461,8 @@ _REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1238,
-  serialized_end=1283,
+  serialized_start=1308,
+  serialized_end=1353,
 )
 
 _REQUEST_STARTCAMERAINFERENCE = _descriptor.Descriptor(
@@ -509,8 +505,8 @@ _REQUEST_STARTCAMERAINFERENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1286,
-  serialized_end=1496,
+  serialized_start=1356,
+  serialized_end=1566,
 )
 
 _REQUEST_CAMERAINFERENCE = _descriptor.Descriptor(
@@ -532,8 +528,8 @@ _REQUEST_CAMERAINFERENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1498,
-  serialized_end=1515,
+  serialized_start=1568,
+  serialized_end=1585,
 )
 
 _REQUEST_STOPCAMERAINFERENCE = _descriptor.Descriptor(
@@ -555,8 +551,31 @@ _REQUEST_STOPCAMERAINFERENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1517,
-  serialized_end=1538,
+  serialized_start=1587,
+  serialized_end=1608,
+)
+
+_REQUEST_GETCAMERASTATE = _descriptor.Descriptor(
+  name='GetCameraState',
+  full_name='spacepark.vision.Request.GetCameraState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1610,
+  serialized_end=1626,
 )
 
 _REQUEST_IMUSELFTEST = _descriptor.Descriptor(
@@ -578,8 +597,8 @@ _REQUEST_IMUSELFTEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1540,
-  serialized_end=1553,
+  serialized_start=1628,
+  serialized_end=1641,
 )
 
 _REQUEST = _descriptor.Descriptor(
@@ -632,8 +651,15 @@ _REQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='imu_self_test', full_name='spacepark.vision.Request.imu_self_test', index=6,
+      name='get_camera_state', full_name='spacepark.vision.Request.get_camera_state', index=6,
       number=7, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='imu_self_test', full_name='spacepark.vision.Request.imu_self_test', index=7,
+      number=8, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -641,7 +667,7 @@ _REQUEST = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_REQUEST_LOADMODEL, _REQUEST_UNLOADMODEL, _REQUEST_IMAGEINFERENCE, _REQUEST_STARTCAMERAINFERENCE, _REQUEST_CAMERAINFERENCE, _REQUEST_STOPCAMERAINFERENCE, _REQUEST_IMUSELFTEST, ],
+  nested_types=[_REQUEST_LOADMODEL, _REQUEST_UNLOADMODEL, _REQUEST_IMAGEINFERENCE, _REQUEST_STARTCAMERAINFERENCE, _REQUEST_CAMERAINFERENCE, _REQUEST_STOPCAMERAINFERENCE, _REQUEST_GETCAMERASTATE, _REQUEST_IMUSELFTEST, ],
   enum_types=[
   ],
   options=None,
@@ -654,7 +680,7 @@ _REQUEST = _descriptor.Descriptor(
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=378,
-  serialized_end=1564,
+  serialized_end=1652,
 )
 
 
@@ -691,8 +717,8 @@ _INFERENCERESULT_TENSORSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1824,
-  serialized_end=1901,
+  serialized_start=1912,
+  serialized_end=1989,
 )
 
 _INFERENCERESULT_FRAME = _descriptor.Descriptor(
@@ -735,8 +761,8 @@ _INFERENCERESULT_FRAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1903,
-  serialized_end=1992,
+  serialized_start=1991,
+  serialized_end=2080,
 )
 
 _INFERENCERESULT = _descriptor.Descriptor(
@@ -807,27 +833,72 @@ _INFERENCERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1567,
-  serialized_end=1992,
+  serialized_start=1655,
+  serialized_end=2080,
 )
 
 
-_RESPONSE_ERROR = _descriptor.Descriptor(
-  name='Error',
-  full_name='spacepark.vision.Response.Error',
+_CAMERASTATE = _descriptor.Descriptor(
+  name='CameraState',
+  full_name='spacepark.vision.CameraState',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='spacepark.vision.Response.Error.type', index=0,
+      name='running', full_name='spacepark.vision.CameraState.running', index=0,
+      number=1, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='width', full_name='spacepark.vision.CameraState.width', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='height', full_name='spacepark.vision.CameraState.height', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2082,
+  serialized_end=2143,
+)
+
+
+_RESPONSE_STATUS = _descriptor.Descriptor(
+  name='Status',
+  full_name='spacepark.vision.Response.Status',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='code', full_name='spacepark.vision.Response.Status.code', index=0,
       number=1, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='msg', full_name='spacepark.vision.Response.Error.msg', index=1,
+      name='message', full_name='spacepark.vision.Response.Status.message', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -838,7 +909,7 @@ _RESPONSE_ERROR = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
-    _RESPONSE_ERROR_TYPE,
+    _RESPONSE_STATUS_CODE,
   ],
   options=None,
   is_extendable=False,
@@ -846,8 +917,8 @@ _RESPONSE_ERROR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2108,
-  serialized_end=2223,
+  serialized_start=2327,
+  serialized_end=2433,
 )
 
 _RESPONSE = _descriptor.Descriptor(
@@ -858,15 +929,22 @@ _RESPONSE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='errors', full_name='spacepark.vision.Response.errors', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
+      name='status', full_name='spacepark.vision.Response.status', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='result', full_name='spacepark.vision.Response.result', index=1,
+      name='inference_result', full_name='spacepark.vision.Response.inference_result', index=1,
       number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='camera_state', full_name='spacepark.vision.Response.camera_state', index=2,
+      number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -874,7 +952,7 @@ _RESPONSE = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_RESPONSE_ERROR, ],
+  nested_types=[_RESPONSE_STATUS, ],
   enum_types=[
   ],
   options=None,
@@ -882,9 +960,12 @@ _RESPONSE = _descriptor.Descriptor(
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
+    _descriptor.OneofDescriptor(
+      name='response', full_name='spacepark.vision.Response.response',
+      index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1995,
-  serialized_end=2223,
+  serialized_start=2146,
+  serialized_end=2445,
 )
 
 _BYTETENSOR.fields_by_name['shape'].message_type = _TENSORSHAPE
@@ -903,6 +984,7 @@ _REQUEST_STARTCAMERAINFERENCE.fields_by_name['params'].message_type = _REQUEST_S
 _REQUEST_STARTCAMERAINFERENCE.containing_type = _REQUEST
 _REQUEST_CAMERAINFERENCE.containing_type = _REQUEST
 _REQUEST_STOPCAMERAINFERENCE.containing_type = _REQUEST
+_REQUEST_GETCAMERASTATE.containing_type = _REQUEST
 _REQUEST_IMUSELFTEST.containing_type = _REQUEST
 _REQUEST.fields_by_name['load_model'].message_type = _REQUEST_LOADMODEL
 _REQUEST.fields_by_name['unload_model'].message_type = _REQUEST_UNLOADMODEL
@@ -910,6 +992,7 @@ _REQUEST.fields_by_name['image_inference'].message_type = _REQUEST_IMAGEINFERENC
 _REQUEST.fields_by_name['start_camera_inference'].message_type = _REQUEST_STARTCAMERAINFERENCE
 _REQUEST.fields_by_name['camera_inference'].message_type = _REQUEST_CAMERAINFERENCE
 _REQUEST.fields_by_name['stop_camera_inference'].message_type = _REQUEST_STOPCAMERAINFERENCE
+_REQUEST.fields_by_name['get_camera_state'].message_type = _REQUEST_GETCAMERASTATE
 _REQUEST.fields_by_name['imu_self_test'].message_type = _REQUEST_IMUSELFTEST
 _REQUEST.oneofs_by_name['request'].fields.append(
   _REQUEST.fields_by_name['load_model'])
@@ -930,6 +1013,9 @@ _REQUEST.oneofs_by_name['request'].fields.append(
   _REQUEST.fields_by_name['stop_camera_inference'])
 _REQUEST.fields_by_name['stop_camera_inference'].containing_oneof = _REQUEST.oneofs_by_name['request']
 _REQUEST.oneofs_by_name['request'].fields.append(
+  _REQUEST.fields_by_name['get_camera_state'])
+_REQUEST.fields_by_name['get_camera_state'].containing_oneof = _REQUEST.oneofs_by_name['request']
+_REQUEST.oneofs_by_name['request'].fields.append(
   _REQUEST.fields_by_name['imu_self_test'])
 _REQUEST.fields_by_name['imu_self_test'].containing_oneof = _REQUEST.oneofs_by_name['request']
 _INFERENCERESULT_TENSORSENTRY.fields_by_name['value'].message_type = _FLOATTENSOR
@@ -939,11 +1025,18 @@ _INFERENCERESULT_FRAME.containing_type = _INFERENCERESULT
 _INFERENCERESULT.fields_by_name['window'].message_type = _RECTANGLE
 _INFERENCERESULT.fields_by_name['tensors'].message_type = _INFERENCERESULT_TENSORSENTRY
 _INFERENCERESULT.fields_by_name['frame'].message_type = _INFERENCERESULT_FRAME
-_RESPONSE_ERROR.fields_by_name['type'].enum_type = _RESPONSE_ERROR_TYPE
-_RESPONSE_ERROR.containing_type = _RESPONSE
-_RESPONSE_ERROR_TYPE.containing_type = _RESPONSE_ERROR
-_RESPONSE.fields_by_name['errors'].message_type = _RESPONSE_ERROR
-_RESPONSE.fields_by_name['result'].message_type = _INFERENCERESULT
+_RESPONSE_STATUS.fields_by_name['code'].enum_type = _RESPONSE_STATUS_CODE
+_RESPONSE_STATUS.containing_type = _RESPONSE
+_RESPONSE_STATUS_CODE.containing_type = _RESPONSE_STATUS
+_RESPONSE.fields_by_name['status'].message_type = _RESPONSE_STATUS
+_RESPONSE.fields_by_name['inference_result'].message_type = _INFERENCERESULT
+_RESPONSE.fields_by_name['camera_state'].message_type = _CAMERASTATE
+_RESPONSE.oneofs_by_name['response'].fields.append(
+  _RESPONSE.fields_by_name['inference_result'])
+_RESPONSE.fields_by_name['inference_result'].containing_oneof = _RESPONSE.oneofs_by_name['response']
+_RESPONSE.oneofs_by_name['response'].fields.append(
+  _RESPONSE.fields_by_name['camera_state'])
+_RESPONSE.fields_by_name['camera_state'].containing_oneof = _RESPONSE.oneofs_by_name['response']
 DESCRIPTOR.message_types_by_name['Rectangle'] = _RECTANGLE
 DESCRIPTOR.message_types_by_name['TensorShape'] = _TENSORSHAPE
 DESCRIPTOR.message_types_by_name['ByteTensor'] = _BYTETENSOR
@@ -951,6 +1044,7 @@ DESCRIPTOR.message_types_by_name['FloatTensor'] = _FLOATTENSOR
 DESCRIPTOR.message_types_by_name['TensorNormalizer'] = _TENSORNORMALIZER
 DESCRIPTOR.message_types_by_name['Request'] = _REQUEST
 DESCRIPTOR.message_types_by_name['InferenceResult'] = _INFERENCERESULT
+DESCRIPTOR.message_types_by_name['CameraState'] = _CAMERASTATE
 DESCRIPTOR.message_types_by_name['Response'] = _RESPONSE
 
 Rectangle = _reflection.GeneratedProtocolMessageType('Rectangle', (_message.Message,), dict(
@@ -1046,6 +1140,13 @@ Request = _reflection.GeneratedProtocolMessageType('Request', (_message.Message,
     ))
   ,
 
+  GetCameraState = _reflection.GeneratedProtocolMessageType('GetCameraState', (_message.Message,), dict(
+    DESCRIPTOR = _REQUEST_GETCAMERASTATE,
+    __module__ = 'protocol_pb2'
+    # @@protoc_insertion_point(class_scope:spacepark.vision.Request.GetCameraState)
+    ))
+  ,
+
   ImuSelfTest = _reflection.GeneratedProtocolMessageType('ImuSelfTest', (_message.Message,), dict(
     DESCRIPTOR = _REQUEST_IMUSELFTEST,
     __module__ = 'protocol_pb2'
@@ -1065,6 +1166,7 @@ _sym_db.RegisterMessage(Request.StartCameraInference)
 _sym_db.RegisterMessage(Request.StartCameraInference.ParamsEntry)
 _sym_db.RegisterMessage(Request.CameraInference)
 _sym_db.RegisterMessage(Request.StopCameraInference)
+_sym_db.RegisterMessage(Request.GetCameraState)
 _sym_db.RegisterMessage(Request.ImuSelfTest)
 
 InferenceResult = _reflection.GeneratedProtocolMessageType('InferenceResult', (_message.Message,), dict(
@@ -1090,12 +1192,19 @@ _sym_db.RegisterMessage(InferenceResult)
 _sym_db.RegisterMessage(InferenceResult.TensorsEntry)
 _sym_db.RegisterMessage(InferenceResult.Frame)
 
+CameraState = _reflection.GeneratedProtocolMessageType('CameraState', (_message.Message,), dict(
+  DESCRIPTOR = _CAMERASTATE,
+  __module__ = 'protocol_pb2'
+  # @@protoc_insertion_point(class_scope:spacepark.vision.CameraState)
+  ))
+_sym_db.RegisterMessage(CameraState)
+
 Response = _reflection.GeneratedProtocolMessageType('Response', (_message.Message,), dict(
 
-  Error = _reflection.GeneratedProtocolMessageType('Error', (_message.Message,), dict(
-    DESCRIPTOR = _RESPONSE_ERROR,
+  Status = _reflection.GeneratedProtocolMessageType('Status', (_message.Message,), dict(
+    DESCRIPTOR = _RESPONSE_STATUS,
     __module__ = 'protocol_pb2'
-    # @@protoc_insertion_point(class_scope:spacepark.vision.Response.Error)
+    # @@protoc_insertion_point(class_scope:spacepark.vision.Response.Status)
     ))
   ,
   DESCRIPTOR = _RESPONSE,
@@ -1103,7 +1212,7 @@ Response = _reflection.GeneratedProtocolMessageType('Response', (_message.Messag
   # @@protoc_insertion_point(class_scope:spacepark.vision.Response)
   ))
 _sym_db.RegisterMessage(Response)
-_sym_db.RegisterMessage(Response.Error)
+_sym_db.RegisterMessage(Response.Status)
 
 
 _REQUEST_IMAGEINFERENCE_PARAMSENTRY.has_options = True

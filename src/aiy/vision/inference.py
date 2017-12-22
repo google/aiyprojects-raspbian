@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """VisionBonnet InferenceEngine API.
 
 Python API to communicate with the VisionBonnet from the Raspberry Pi side.
@@ -41,6 +40,9 @@ class CameraInference(object):
     self._engine = InferenceEngine()
     self._key = self._engine.load_model(descriptor)
     self._engine.start_camera_inference(self._key, params)
+
+  def camera_state(self):
+    return self._engine.get_camera_state()
 
   def run(self):
     while True:
@@ -101,6 +103,12 @@ class ModelDescriptor(object):
     self.compute_graph = compute_graph
 
 
+class InferenceException(Exception):
+
+  def __init__(self, *args, **kwargs):
+    Exception.__init__(self, *args, **kwargs)
+
+
 class InferenceEngine(object):
   """Class to access InferenceEngine on VisionBonnet board.
 
@@ -150,17 +158,8 @@ class InferenceEngine(object):
     """
     response = protocol_pb2.Response()
     response.ParseFromString(self._transport.send(request.SerializeToString()))
-
-    # TODO: throw exception when error happens
-    for error in response.errors:
-      if error.type == protocol_pb2.Response.Error.INFO:
-        logging.info(error.msg)
-      elif error.type == protocol_pb2.Response.Error.WARNING:
-        logging.warning(error.msg)
-      elif error.type == protocol_pb2.Response.Error.ERROR:
-        logging.error(error.msg)
-      else:
-        logging.error('Unknown error type: %d', error.type)
+    if response.status.code != protocol_pb2.Response.Status.OK:
+      raise InferenceException(response.status.message)
 
     if debug:
       # Print up to the first 10 elements of each returned vector.
@@ -169,6 +168,7 @@ class InferenceEngine(object):
         logging.info('First %d elements of output tensor:', len(data))
         for index, value in enumerate(data):
           logging.info('  %s[%d] = %f', name, index, value)
+
     return response
 
   def load_model(self, descriptor):
@@ -198,7 +198,10 @@ class InferenceEngine(object):
     if descriptor.compute_graph:
       request.load_model.compute_graph = descriptor.compute_graph
 
-    self._communicate(request)
+    try:
+      self._communicate(request)
+    except InferenceException:
+      logging.warning('Model "%s" is already loaded.', descriptor.name)
 
     return descriptor.name
 
@@ -228,13 +231,18 @@ class InferenceEngine(object):
     """Returns the latest inference result from VisionBonnet."""
     request = protocol_pb2.Request()
     request.camera_inference.SetInParent()
-    return self._communicate(request).result
+    return self._communicate(request).inference_result
 
   def stop_camera_inference(self):
     """Stops inference running on VisionBonnet."""
     request = protocol_pb2.Request()
     request.stop_camera_inference.SetInParent()
     self._communicate(request)
+
+  def get_camera_state(self):
+    request = protocol_pb2.Request()
+    request.get_camera_state.SetInParent()
+    return self._communicate(request).camera_state
 
   def image_inference(self, model_name, image, params=None):
     """Runs inference on image using model (identified by model_name).
@@ -267,4 +275,4 @@ class InferenceEngine(object):
     for key, value in (params or {}).items():
       request.image_inference.params[key] = str(value)
 
-    return self._communicate(request).result
+    return self._communicate(request).inference_result
