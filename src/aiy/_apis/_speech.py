@@ -18,6 +18,7 @@ from abc import abstractmethod
 import collections
 import logging
 import os
+import sys
 import tempfile
 import wave
 
@@ -25,7 +26,15 @@ import google.auth
 import google.auth.exceptions
 import google.auth.transport.grpc
 import google.auth.transport.requests
-from google.cloud.grpc.speech.v1beta1 import cloud_speech_pb2 as cloud_speech
+try:
+    from google.cloud import speech
+    from google.cloud.speech import enums
+    from google.cloud.speech import types
+except ImportError:
+    print("Failed to import google.cloud.speech. Try:")
+    print("    env/bin/pip install -r requirements.txt")
+    sys.exit(1)
+
 from google.rpc import code_pb2 as error_code
 from google.assistant.embedded.v1alpha1 import embedded_assistant_pb2
 import grpc
@@ -135,7 +144,7 @@ class GenericSpeechRequest(object):
         """Return a SpeechContext instance to bias recognition towards certain
         phrases.
         """
-        return cloud_speech.SpeechContext(
+        return types.SpeechContext(
             phrases=self._phrases,
         )
 
@@ -289,9 +298,6 @@ class CloudSpeechRequest(GenericSpeechRequest):
 
         self.language_code = aiy.i18n.get_language_code()
 
-        if not hasattr(cloud_speech, 'StreamingRecognizeRequest'):
-            raise ValueError("cloud_speech_pb2.py doesn't have StreamingRecognizeRequest.")
-
         self._transcript = None
 
     def reset(self):
@@ -299,43 +305,44 @@ class CloudSpeechRequest(GenericSpeechRequest):
         self._transcript = None
 
     def _make_service(self, channel):
-        return cloud_speech.SpeechStub(channel)
+        return speech.SpeechClient()
 
     def _create_config_request(self):
-        recognition_config = cloud_speech.RecognitionConfig(
-            # There are a bunch of config options you can specify. See
-            # https://goo.gl/KPZn97 for the full list.
-            encoding='LINEAR16',  # raw 16-bit signed LE samples
-            sample_rate=AUDIO_SAMPLE_RATE_HZ,
+        recognition_config = types.RecognitionConfig(
+            encoding=enums.RecognitionConfig.AudioEncoding.LINEAR16,
+            sample_rate_hertz=AUDIO_SAMPLE_RATE_HZ,
             # For a list of supported languages see:
             # https://cloud.google.com/speech/docs/languages.
             language_code=self.language_code,  # a BCP-47 language tag
-            speech_context=self._get_speech_context(),
+            speech_contexts=[self._get_speech_context()],
         )
-        streaming_config = cloud_speech.StreamingRecognitionConfig(
+        streaming_config = types.StreamingRecognitionConfig(
             config=recognition_config,
-            single_utterance=True,  # TODO(rodrigoq): find a way to handle pauses
+            single_utterance=True,
         )
 
-        return cloud_speech.StreamingRecognizeRequest(
-            streaming_config=streaming_config)
+        # TODO(rodrigoq): we're actually returning a Config, not a Request, as
+        # the v1 API takes the Config and wraps it up in a Request, but we still
+        # want to share code with the Assistant API. Can we clean this up?
+        return streaming_config
 
     def _create_audio_request(self, data):
-        return cloud_speech.StreamingRecognizeRequest(audio_content=data)
+        return types.StreamingRecognizeRequest(audio_content=data)
 
-    def _create_response_stream(self, service, request_stream, deadline):
-        return service.StreamingRecognize(request_stream, deadline)
+    def _create_response_stream(self, client, request_stream, deadline):
+        config = next(request_stream)
+        return client.streaming_recognize(config, request_stream)
 
     def _stop_sending_audio(self, resp):
         """Check the endpointer type to see if an utterance has ended."""
 
-        if resp.endpointer_type:
-            endpointer_type = cloud_speech.StreamingRecognizeResponse.EndpointerType.Name(
-                resp.endpointer_type)
-            logger.info('endpointer_type: %s', endpointer_type)
+        if resp.speech_event_type:
+            speech_event_type = types.StreamingRecognizeResponse.SpeechEventType.Name(
+                resp.speech_event_type)
+            logger.info('endpointer_type: %s', speech_event_type)
 
-        END_OF_AUDIO = cloud_speech.StreamingRecognizeResponse.EndpointerType.Value('END_OF_AUDIO')
-        return resp.endpointer_type == END_OF_AUDIO
+        END_OF_SINGLE_UTTERANCE = types.StreamingRecognizeResponse.SpeechEventType.Value('END_OF_SINGLE_UTTERANCE')
+        return resp.speech_event_type == END_OF_SINGLE_UTTERANCE
 
     def _handle_response(self, resp):
         """Store the last transcript we received."""
