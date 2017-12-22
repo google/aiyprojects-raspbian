@@ -36,7 +36,10 @@ except ImportError:
     sys.exit(1)
 
 from google.rpc import code_pb2 as error_code
-from google.assistant.embedded.v1alpha1 import embedded_assistant_pb2
+from google.assistant.embedded.v1alpha1 import (
+    embedded_assistant_pb2,
+    embedded_assistant_pb2_grpc,
+)
 import grpc
 from six.moves import queue
 
@@ -374,7 +377,7 @@ class AssistantSpeechRequest(GenericSpeechRequest):
         self._transcript = None
 
     def _make_service(self, channel):
-        return embedded_assistant_pb2.EmbeddedAssistantStub(channel)
+        return embedded_assistant_pb2_grpc.EmbeddedAssistantStub(channel)
 
     def _create_config_request(self):
         audio_in_config = embedded_assistant_pb2.AudioInConfig(
