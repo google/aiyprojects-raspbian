@@ -17,7 +17,6 @@ from aiy.vision.inference import ModelDescriptor
 from aiy.vision.models import utils
 from aiy.vision.models.image_classification_classes import CLASSES
 
-
 _COMPUTE_GRAPH_NAME = 'mobilenet_v1_160res_0.5_imagenet.binaryproto'
 
 
@@ -29,21 +28,31 @@ def model():
       compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME))
 
 
-def get_classes(result, top_k=3):
-  """Analyzes and reports what objects are in the given image.
+def get_classes(result, max_num_objects=None, object_prob_threshold=0.0):
+  """Converts image classification model output to list of detected objects.
 
   Args:
-    result: dict of tensors, inference result
-    top_k: int, returns top_k objects in the image.
+    result: output tensor from image classification model.
+    max_num_objects: int; max number of objects to return.
+    object_prob_threshold: float; min probability of each returned object.
 
   Returns:
-    A list of (string, float) tuple, represents object, prob(object) reversely
-      ordered by prob(object).
+    A list of (class_name: string, probability: float) pairs ordered by
+    probability from highest to lowest. The number of pairs is not greater than
+    max_num_objects. Each probability is greater than object_prob_threshold. For
+    example:
+
+    [('Egyptian cat', 0.767578)
+     ('tiger cat, 0.163574)
+     ('lynx/catamount', 0.039795)]
   """
   assert len(result.tensors) == 1
   tensor = result.tensors['MobilenetV1/Predictions/Softmax']
   probs, shape = tensor.data, tensor.shape
   assert (shape.batch, shape.height, shape.width, shape.depth) == (1, 1, 1,
                                                                    1001)
-  pairs = sorted(enumerate(probs), key=lambda pair: pair[1], reverse=True)
-  return [('/'.join(CLASSES[index]), prob) for index, prob in pairs[0:top_k]]
+
+  pairs = [pair for pair in enumerate(probs) if pair[1] > object_prob_threshold]
+  pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
+  pairs = pairs[0:max_num_objects]
+  return [('/'.join(CLASSES[index]), prob) for index, prob in pairs]
