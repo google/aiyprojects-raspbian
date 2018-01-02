@@ -200,8 +200,8 @@ class InferenceEngine(object):
 
     try:
       self._communicate(request)
-    except InferenceException:
-      logging.warning('Model "%s" is already loaded.', descriptor.name)
+    except InferenceException as e:
+      logging.warning(str(e))
 
     return descriptor.name
 
@@ -257,20 +257,26 @@ class InferenceEngine(object):
     """
 
     assert model_name, 'model_name must not be empty'
-    assert image.mode == 'RGB', 'Only image.mode == RGB is supported.'
 
     logging.info('Image inference with model "%s"...', model_name)
 
-    r, g, b = image.split()
     width, height = image.size
 
     request = protocol_pb2.Request()
     request.image_inference.model_name = model_name
     request.image_inference.tensor.shape.height = height
     request.image_inference.tensor.shape.width = width
-    request.image_inference.tensor.shape.depth = 3
-    request.image_inference.tensor.data = (
-        _tobytes(r) + _tobytes(g) + _tobytes(b))
+
+    if image.mode == 'RGB':
+      r, g, b = image.split()
+      request.image_inference.tensor.shape.depth = 3
+      request.image_inference.tensor.data = _tobytes(r) + _tobytes(
+          g) + _tobytes(b)
+    elif image.mode == 'L':
+      request.image_inference.tensor.shape.depth = 1
+      request.image_inference.tensor.data = _tobytes(image)
+    else:
+      assert False, 'Only RGB and L modes are supported.'
 
     for key, value in (params or {}).items():
       request.image_inference.params[key] = str(value)
