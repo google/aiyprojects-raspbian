@@ -1,21 +1,21 @@
-This repository contains an easy-to-use API for the AIY Voice Kit.
-You can use it to create voice commands with simple while loops - have a look at the [demos](https://github.com/google/aiyprojects-raspbian/tree/voicekit/src).
+This repository contains an easy-to-use API for the AIY Vision Kit and
+AIY Voice Kit.
+You can use it for face detection and object recognition, or use it to create
+voice commands with simple while loops - have a look at the
+[demos](https://github.com/google/aiyprojects-raspbian/tree/aiyprojects/src/examples).
+
 Documentation is at the [AIY Projects site](https://aiyprojects.withgoogle.com).
 
 For guidelines on contributing, look at [CONTRIBUTING.md](CONTRIBUTING.md).
 If you're using Raspbian instead of Google's provided image, read
 [HACKING.md](HACKING.md) for information on getting started.
 
-For returning users:
-The old voice-recognizer demo remains in the [master branch](https://github.com/google/aiyprojects-raspbian/tree/master) of this project.
-The new code is in the `voicekit` branch, and is included in images starting with aiyprojects-2017-09-11.img.
-
 # Support
 
-If you're having trouble assembling your Voice Kit or running the demos,
+If you're having trouble assembling your kit or running the demos,
 try the [AIY Forums](https://www.raspberrypi.org/forums/viewforum.php?f=114).
 
-If you've found a bug in the AIY Voice Kit API or demos, you can look at the
+If you've found a bug in the AIY API or demos, you can look at the
 [known issues](https://github.com/google/aiyprojects-raspbian/issues) or create
 a new one, or even fix it yourself and send us a pull request.
 
