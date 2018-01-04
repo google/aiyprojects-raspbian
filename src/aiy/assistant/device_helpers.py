@@ -17,9 +17,9 @@
 
 import json
 import os
-import random
+import uuid
 
-import google.auth.transport
+import google.auth.transport.requests
 
 import aiy.assistant.auth_helpers
 
@@ -74,11 +74,9 @@ def _get_model_id(credentials, session, project_id):
     }
     r = session.post(_get_api_url(project_id, "deviceModels"),
                      data=json.dumps(payload))
-    if r.status_code == 409:
-        # Already exists: update
-        r = session.put(_get_api_url(project_id, "deviceModels", model_id),
-                        data=json.dumps(payload))
-    r.raise_for_status()
+    # Ignore 409, which means we've already created the model ID.
+    if r.status_code != 409:
+        r.raise_for_status()
     return model_id
 
 
@@ -89,7 +87,7 @@ def get_ids(credentials, model_id=None):
     cached on disk so that a device keeps a consistent ID.
 
     Returns:
-        a tuple: (device_id, model_id)
+        a tuple: (model_id, device_id)
     """
 
     if os.path.exists(_DEVICE_ID_FILE):
@@ -99,10 +97,13 @@ def get_ids(credentials, model_id=None):
     project_id = _get_project_id()
     model_id = model_id or _get_model_id(credentials, session, project_id)
 
-    device_id = "%s-%06d" % (model_id, random.randrange(1000000))
+    device_id = "%s-%s" % (model_id, uuid.uuid4())
+    # We can hardcode client_type as SDK_SERVICE, because the Assistant Library
+    # creates its own device_id.
     payload = {
             "id": device_id,
             "model_id": model_id,
+            "client_type": "SDK_SERVICE",
     }
     r = session.post(_get_api_url(project_id, "devices"),
                      data=json.dumps(payload))
