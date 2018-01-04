@@ -29,6 +29,7 @@ import subprocess
 import sys
 
 import aiy.assistant.auth_helpers
+import aiy.assistant.device_helpers
 import aiy.audio
 import aiy.voicehat
 from google.assistant.library import Assistant
@@ -90,7 +91,8 @@ def process_event(assistant, event):
 
 def main():
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
-    with Assistant(credentials) as assistant:
+    model_id, device_id = aiy.assistant.device_helpers.get_ids(credentials)
+    with Assistant(credentials, model_id) as assistant:
         for event in assistant.start():
             process_event(assistant, event)
 

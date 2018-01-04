@@ -35,7 +35,7 @@ env/bin/pip install -r requirements.txt
 echo "/home/pi/AIY-projects-python/src" > \
   /home/pi/AIY-projects-python/env/lib/python3.5/site-packages/aiy.pth
 
-# The google-assistant-library is only available on ARMv7.
-if [[ "$(uname -m)" == "armv7l" ]] ; then
-  env/bin/pip install google-assistant-library==0.0.3
+# The google-assistant-library is only available on some platforms.
+if [[ "$(uname -m)" == "armv7l" || "$(uname -m)" == "x86_64" ]] ; then
+  env/bin/pip install google-assistant-library==0.1.0
 fi
