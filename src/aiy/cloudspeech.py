@@ -36,7 +36,7 @@ class _CloudSpeechRecognizer(object):
         self._recorder = aiy.audio.get_recorder()
         self._hotwords = []
 
-    def recognize(self):
+    def recognize(self, immediate=False):
         """Recognizes the user's speech and transcript it into text.
 
         This function listens to the user's speech via the VoiceHat speaker. Then it
@@ -47,7 +47,9 @@ class _CloudSpeechRecognizer(object):
         self._request.set_endpointer_cb(self._endpointer_callback)
         self._recorder.add_processor(self._request)
         text = self._request.do_request().transcript
-        if self._hotwords and text:
+        if immediate:
+            return text
+        elif self._hotwords and text:
             text = text.lower()
             loc_min = len(text)
             hotword_found = ''
