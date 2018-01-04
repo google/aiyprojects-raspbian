@@ -43,6 +43,7 @@ def _get_api_url(*args):
     return "/".join(
             ("https://embeddedassistant.googleapis.com/v1alpha2/projects",) + args)
 
+
 def _load_ids(id_path):
     with open(id_path, 'r') as f:
         id_data = json.load(f)
