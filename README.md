@@ -9,8 +9,15 @@ If you're using Raspbian instead of Google's provided image, read
 [HACKING.md](HACKING.md) for information on getting started.
 
 For returning users:
-The old voice-recognizer demo remains in the [master branch](https://github.com/google/aiyprojects-raspbian/tree/master) of this project.
-The new code is in the `voicekit` branch, and is included in images starting with aiyprojects-2017-09-11.img.
+The newest code is in the
+[aiyprojects
+branch](https://github.com/google/aiyprojects-raspbian/tree/aiyprojects), which
+supports all AIY kits.
+The `voicekit` branch is deprecated, and users should switch to the
+`aiyprojects` branch.
+The original, deprecated voice-recognizer demo remains in the [master
+branch](https://github.com/google/aiyprojects-raspbian/tree/master) of this
+project.
 
 # Support
 
