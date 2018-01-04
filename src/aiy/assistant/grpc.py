@@ -16,6 +16,7 @@
 
 import aiy._apis._speech
 import aiy.assistant.auth_helpers
+import aiy.assistant.device_helpers
 import aiy.audio
 import aiy.voicehat
 
@@ -27,7 +28,8 @@ class _AssistantRecognizer(object):
     """Your personal Google Assistant."""
 
     def __init__(self, credentials):
-        self._request = aiy._apis._speech.AssistantSpeechRequest(credentials)
+        model_id, device_id = aiy.assistant.device_helpers.get_ids(credentials)
+        self._request = aiy._apis._speech.AssistantSpeechRequest(credentials, model_id, device_id)
         self._recorder = aiy.audio.get_recorder()
 
     def recognize(self):
