@@ -42,6 +42,16 @@ class _CloudSpeechRecognizer(object):
         This function listens to the user's speech via the VoiceHat speaker. Then it
         contacts Google CloudSpeech APIs and returns a textual transcript if possible.
         If hotword list is populated this method will only respond if hotword is said.
+
+        Args:
+            immediate: ignore the hotword list, even if it has been populated
+                may be used to create a conversational experience, for example:
+
+                text = recognizer.recognize()
+                if 'call a friend' in text:
+                    aiy.audio.say('OK, which one?')
+                    friend = recognizer.recognize(immediate=True)
+                    make_a_call(friend)
         """
         self._request.reset()
         self._request.set_endpointer_cb(self._endpointer_callback)
