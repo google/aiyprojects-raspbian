@@ -20,8 +20,9 @@ import os
 HAT_PATH = '/proc/device-tree/hat/'
 HAT_PRODUCT_ID_RE = re.compile('0x[0-9A-Fa-f]+')
 AIY_HATS = {
-    1: 'Voice',
-    2: 'Vision',
+    1: 'Voice Hat',
+    2: 'Vision Bonnet',
+    3: 'Voice Bonnet',
 }
 
 def _is_hat_attached():
