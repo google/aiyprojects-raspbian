@@ -12,10 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Image classification library demo."""
 
 import argparse
+import io
+import sys
 from PIL import Image
 
 from aiy.vision.inference import ImageInference
@@ -28,10 +29,13 @@ def main():
   args = parser.parse_args()
 
   with ImageInference(image_classification.model()) as inference:
-    image = Image.open(args.input)
+    image = Image.open(
+        io.BytesIO(sys.stdin.buffer.read())
+        if args.input == '-' else args.input)
     classes = image_classification.get_classes(inference.run(image))
     for i, (label, score) in enumerate(classes):
       print('Result %d: %s (prob=%f)' % (i, label, score))
+
 
 if __name__ == '__main__':
   main()

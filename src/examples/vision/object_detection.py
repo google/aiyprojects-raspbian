@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Object detection library demo.
 
  - Takes an input image and tries to detect person, dog, or cat.
@@ -20,6 +19,8 @@
  - Saves an image with bounding boxes around detected objects.
 """
 import argparse
+import io
+import sys
 from PIL import Image
 from PIL import ImageDraw
 
@@ -41,7 +42,9 @@ def main():
   args = parser.parse_args()
 
   with ImageInference(object_detection.model()) as inference:
-    image = Image.open(args.input)
+    image = Image.open(
+        io.BytesIO(sys.stdin.buffer.read())
+        if args.input == '-' else args.input)
     image_center, offset = _crop_center(image)
     draw = ImageDraw.Draw(image)
     result = inference.run(image_center)
@@ -52,6 +55,6 @@ def main():
     if args.output:
       image.save(args.output)
 
+
 if __name__ == '__main__':
   main()
-
