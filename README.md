@@ -31,3 +31,12 @@ library or incorrect responses), you can try
 [the G+ community](https://plus.google.com/communities/117537996116836200696),
 [Stack Overflow](https://stackoverflow.com/questions/tagged/google-assistant-sdk),
 or [the assistant-sdk-python repo](https://github.com/googlesamples/assistant-sdk-python/).
+
+If you've had a problem after updating the source code, try downloading the
+latest AIY image from the website, or alternatively run the following commands
+in the dev terminal:
+
+```
+rm -r env
+./scripts/install-deps.sh
+```
