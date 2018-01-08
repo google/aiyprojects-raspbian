@@ -73,7 +73,7 @@ def get_led():
     led.set_state(aiy.voicehat.LED.BLINK)
 
     # Or turn off the light but keep the driver running:
-    led.set_state(aiy.voicehat.LED_OFF)
+    led.set_state(aiy.voicehat.LED.OFF)
     """
     global _voicehat_led
     if not _voicehat_led:
