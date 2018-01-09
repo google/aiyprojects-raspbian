@@ -24,6 +24,8 @@ import tempfile
 import textwrap
 import traceback
 
+sys.path.append(os.path.realpath(os.path.join(__file__, '..', '..')) + '/src/')
+
 import aiy.audio  # noqa
 from aiy._drivers._hat import get_aiy_device_name
 
