@@ -25,7 +25,7 @@ SPICOMM_IOCTL_BASE = 0x8900
 SPICOMM_IOCTL_TRANSACT = 0xc0100000 + SPICOMM_IOCTL_BASE + 3
 
 HEADER_SIZE = 16
-PAYLOAD_SIZE = 8 * 1024 * 1024  # 8 M
+PAYLOAD_SIZE = 12 * 1024 * 1024  # 12 M
 
 FLAG_ERROR = 1 << 0
 FLAG_TIMEOUT = 1 << 1
@@ -92,7 +92,7 @@ class Spicomm(object):
     if self._dev:
       self._dev.close()
 
-  def transact(self, request, timeout=10):
+  def transact(self, request, timeout=15):
     """Execute a Spicomm transaction.
 
     The bytes in request are sent, a response is waited for and returned.
