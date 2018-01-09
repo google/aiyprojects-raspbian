@@ -17,15 +17,31 @@ from aiy.vision.inference import ModelDescriptor
 from aiy.vision.models import utils
 from aiy.vision.models.image_classification_classes import CLASSES
 
-_COMPUTE_GRAPH_NAME = 'mobilenet_v1_160res_0.5_imagenet.binaryproto'
+# There are two models in our repository that can do image classification. One
+# based on MobileNet model structure, the other based on SqueezeNet model
+# structure.
+#
+# MobileNet based model has 59.9% top-1 accuracy on ImageNet.
+# SqueezeNet based model has 45.3% top-1 accuracy on ImageNet.
+MOBILENET = 'image_classification_mobilenet'
+SQUEEZENET = 'image_classification_squeezenet'
+_COMPUTE_GRAPH_NAME_MAP = {
+    MOBILENET: 'mobilenet_v1_160res_0.5_imagenet.binaryproto',
+    SQUEEZENET: 'squeezenet_160res_5x5_0.75.binaryproto',
+}
+_OUTPUT_TENSOR_NAME_MAP = {
+    MOBILENET: 'MobilenetV1/Predictions/Softmax',
+    SQUEEZENET: 'Prediction',
+}
 
 
-def model():
+def model(model_type=MOBILENET):
   return ModelDescriptor(
-      name='image_classification',
+      name=model_type,
       input_shape=(1, 160, 160, 3),
       input_normalizer=(128.0, 128.0),
-      compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME))
+      compute_graph=utils.load_compute_graph(
+          _COMPUTE_GRAPH_NAME_MAP[model_type]))
 
 
 def get_classes(result, max_num_objects=None, object_prob_threshold=0.0):
@@ -47,7 +63,8 @@ def get_classes(result, max_num_objects=None, object_prob_threshold=0.0):
      ('lynx/catamount', 0.039795)]
   """
   assert len(result.tensors) == 1
-  tensor = result.tensors['MobilenetV1/Predictions/Softmax']
+  tensor_name = _OUTPUT_TENSOR_NAME_MAP[result.model_name]
+  tensor = result.tensors[tensor_name]
   probs, shape = tensor.data, tensor.shape
   assert (shape.batch, shape.height, shape.width, shape.depth) == (1, 1, 1,
                                                                    1001)

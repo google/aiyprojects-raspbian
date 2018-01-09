@@ -28,11 +28,18 @@ def main():
   parser.add_argument('--input', '-i', dest='input', required=True)
   args = parser.parse_args()
 
-  with ImageInference(image_classification.model()) as inference:
+  # There are two models available for image classification task:
+  # 1) MobileNet based (image_classification.MOBILENET), which has 59.9% top-1
+  # accuracy on ImageNet;
+  # 2) SqueezeNet based (image_classification.SQUEEZENET), which has 45.3% top-1
+  # accuracy on ImageNet;
+  model_type = image_classification.MOBILENET
+  with ImageInference(image_classification.model(model_type)) as inference:
     image = Image.open(
         io.BytesIO(sys.stdin.buffer.read())
         if args.input == '-' else args.input)
-    classes = image_classification.get_classes(inference.run(image))
+    classes = image_classification.get_classes(
+        inference.run(image), max_num_objects=5, object_prob_threshold=0.1)
     for i, (label, score) in enumerate(classes):
       print('Result %d: %s (prob=%f)' % (i, label, score))
 
