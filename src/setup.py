@@ -32,6 +32,7 @@ setup(
         "examples/vision/buzzer/buzzer_demo.py",
         "examples/vision/buzzer/buzzer_tracker_demo.py",
         "examples/vision/joy/joy_detection_demo.py",
+        "examples/vision/object_meter/object_meter.py",
         "examples/vision/annotator.py",
         "examples/vision/face_detection.py",
         "examples/vision/face_camera_trigger.py",

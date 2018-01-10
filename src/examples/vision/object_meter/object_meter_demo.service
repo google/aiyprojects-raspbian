@@ -1,0 +1,10 @@
+[Unit]
+Description=AIY Object Meter Demo
+
+[Service]
+Type=simple
+Restart=no
+ExecStart=/home/pi/AIY-projects-python/env/bin/python /home/pi/AIY-projects-python/src/examples/vision/object_meter/object_meter.py
+
+[Install]
+WantedBy=multi-user.target
