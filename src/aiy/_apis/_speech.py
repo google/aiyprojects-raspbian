@@ -98,7 +98,6 @@ class GenericSpeechRequest(object):
 
     def __init__(self, api_host, credentials):
         self.dialog_follow_on = False
-        self.language_code = aiy.i18n.get_language_code()
         self._audio_queue = queue.Queue()
         self._phrases = []
         self._channel_factory = _ChannelFactory(api_host, credentials)
@@ -309,9 +308,7 @@ class CloudSpeechRequest(GenericSpeechRequest):
         recognition_config = types.RecognitionConfig(
             encoding=enums.RecognitionConfig.AudioEncoding.LINEAR16,
             sample_rate_hertz=AUDIO_SAMPLE_RATE_HZ,
-            # For a list of supported languages see:
-            # https://cloud.google.com/speech/docs/languages.
-            language_code=self.language_code,  # a BCP-47 language tag
+            language_code=aiy.i18n.get_language_code(),
             speech_contexts=[self._get_speech_context()],
         )
         streaming_config = types.StreamingRecognitionConfig(
@@ -394,7 +391,7 @@ class AssistantSpeechRequest(GenericSpeechRequest):
         )
         dialog_state_in = embedded_assistant_pb2.DialogStateIn(
             conversation_state=self._conversation_state,
-            language_code=self.language_code,
+            language_code=aiy.i18n.get_language_code(),
         )
         assist_config = embedded_assistant_pb2.AssistConfig(
             audio_in_config=audio_in_config,
