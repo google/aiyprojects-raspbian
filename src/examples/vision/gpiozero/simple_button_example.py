@@ -17,7 +17,7 @@ led = LED(LED_1)
 button = Button(BUTTON_GPIO_PIN)
 
 while True:
-  if button.is_pressed:
-    led.on()
-  else:
-    led.off()
+    if button.is_pressed:
+        led.on()
+    else:
+        led.off()

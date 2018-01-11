@@ -7,11 +7,11 @@ before_install:
 - sudo apt-get install -y python3-numpy python3-scipy
 
 install:
-- pip3 install pep8 pyflakes coverage
+- pip3 install pyflakes coverage pycodestyle
 - pip3 install -r requirements.txt
 
 script:
-- pep8 --max-line-length=100 .
+- pycodestyle --max-line-length=100 --exclude=*_pb2.py .
 - nosetests --with-coverage
 
 after_success:

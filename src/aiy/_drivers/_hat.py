@@ -25,28 +25,32 @@ AIY_HATS = {
     3: 'Voice Bonnet',
 }
 
+
 def _is_hat_attached():
-  return os.path.exists(HAT_PATH)
+    return os.path.exists(HAT_PATH)
+
 
 def _get_hat_product():
-  with open(os.path.join(HAT_PATH, 'product')) as f:
-    return f.readline().strip()
+    with open(os.path.join(HAT_PATH, 'product')) as f:
+        return f.readline().strip()
+
 
 def _get_hat_product_id():
-  with open(os.path.join(HAT_PATH, 'product_id')) as f:
-    matches = HAT_PRODUCT_ID_RE.match(f.readline().strip())
-    if matches:
-      return int(matches.group(0), 16)
+    with open(os.path.join(HAT_PATH, 'product_id')) as f:
+        matches = HAT_PRODUCT_ID_RE.match(f.readline().strip())
+        if matches:
+            return int(matches.group(0), 16)
+
 
 def get_aiy_device_name():
-  if not _is_hat_attached():
-    return None
-  product = _get_hat_product()
-  if not 'AIY' in product:
-    return None
-  product_id = _get_hat_product_id()
-  if not product_id:
-    return None
-  if not product_id in AIY_HATS:
-    return None
-  return AIY_HATS[product_id]
+    if not _is_hat_attached():
+        return None
+    product = _get_hat_product()
+    if 'AIY' not in product:
+        return None
+    product_id = _get_hat_product_id()
+    if not product_id:
+        return None
+    if product_id not in AIY_HATS:
+        return None
+    return AIY_HATS[product_id]

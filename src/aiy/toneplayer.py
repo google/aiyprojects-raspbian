@@ -157,16 +157,16 @@ class TonePlayer(object):
     def _parse_note(self, note_str):
         """Parses a single note/rest string into its given class instance."""
         result = TonePlayer.REST_RE.match(note_str)
-        if result != None:
+        if result is not None:
             length = TonePlayer.PERIOD_MAP[result.group('length')]
             return Rest(self.bpm, length)
 
         result = TonePlayer.NOTE_RE.match(note_str)
-        if result != None:
+        if result is not None:
             name = result.group('name')
 
             octave = 4
-            if result.group('octave') != None:
+            if result.group('octave') is not None:
                 octave = int(result.group('octave'))
                 if octave > 8:
                     octave = 8
@@ -174,7 +174,7 @@ class TonePlayer(object):
                     octave = 1
 
             length = Rest.QUARTER
-            if result.group('length') != None:
+            if result.group('length') is not None:
                 length = TonePlayer.PERIOD_MAP[result.group('length')]
 
             return Note(name, octave, self.bpm, length)
@@ -188,7 +188,9 @@ class TonePlayer(object):
             for note in parsed_notes:
                 if isinstance(note, Note):
                     if self.debug:
-                        print(note.name + str(note.octave), '(' + str(note.to_frequency()) + ')', str(note.to_length_secs()) + 's')
+                        print(note.name + str(note.octave),
+                              '(' + str(note.to_frequency()) + ')',
+                              str(note.to_length_secs()) + 's')
                     controller.set_frequency(note.to_frequency())
                 else:
                     controller.set_frequency(0)

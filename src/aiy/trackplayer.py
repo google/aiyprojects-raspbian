@@ -25,6 +25,7 @@ from aiy.toneplayer import Note
 
 class Command(object):
     """Base class for all commands."""
+
     def apply(self, player, controller, note, tick_delta):
         """Applies the effect of this command."""
         pass
@@ -39,8 +40,10 @@ class Command(object):
         """
         pass
 
+
 class Glissando(Command):
     """Pitchbends a note up or down by the given rate."""
+
     def __init__(self, direction, hz_per_tick):
         self.direction = direction
         self.hz_per_tick = hz_per_tick
@@ -61,6 +64,7 @@ class Glissando(Command):
 
 class PulseChange(Command):
     """Changes the pulse width of a note up or down by the given rate."""
+
     def __init__(self, direction, usec_per_tick):
         self.direction = direction
         self.usec_per_tick = usec_per_tick
@@ -81,6 +85,7 @@ class PulseChange(Command):
 
 class SetPulseWidth(Command):
     """Changes the pulse width of a note up or down by the given rate."""
+
     def __init__(self, pulse_width_usec):
         self.pulse = pulse_width_usec
 
@@ -98,6 +103,7 @@ class SetPulseWidth(Command):
 
 class Arpeggio(Command):
     """Plays an arpeggiated chord."""
+
     def __init__(self, *args):
         self.chord = args
 
@@ -125,12 +131,13 @@ class Arpeggio(Command):
 
 class Vibrato(Command):
     """Vibrates the frequency by the given amount."""
+
     def __init__(self, depth_hz, speed):
         self.depth_hz = depth_hz
         self.speed = speed
 
     def apply(self, player, controller, note, tick_delta):
-        freq_delta = round(math.sin(tick_delta * (1/self.speed)))
+        freq_delta = round(math.sin(tick_delta * (1 / self.speed)))
         freq = note.to_frequency()
         freq += freq_delta * self.depth_hz
         controller.set_frequency(int(freq))
@@ -144,8 +151,10 @@ class Vibrato(Command):
         speed = int(args[1])
         return klass(depth_hz, speed), 2
 
+
 class Retrigger(Command):
     """Retriggers a note a consecutive number of times."""
+
     def __init__(self, times):
         self.times = times
 
@@ -168,6 +177,7 @@ class Retrigger(Command):
 
 class NoteOff(Command):
     """Stops a given note from playing."""
+
     def apply(self, player, controller, note, tick_delta):
         if tick_delta == 0:
             controller.set_frequency(0)
@@ -182,6 +192,7 @@ class NoteOff(Command):
 
 class SetSpeed(Command):
     """Changes the speed of the given song."""
+
     def __init__(self, speed):
         self.speed = speed
 
@@ -200,6 +211,7 @@ class SetSpeed(Command):
 
 class JumpToPosition(Command):
     """Jumps to the given position in a song."""
+
     def __init__(self, position):
         self.position = position
 
@@ -218,6 +230,7 @@ class JumpToPosition(Command):
 
 class StopPlaying(Command):
     """Stops the TrackPlayer from playing."""
+
     def apply(self, player, controller, note, tick_delta):
         if tick_delta == 0:
             controller.set_frequency(0)
@@ -258,31 +271,31 @@ class TrackPlayer(object):
           The new pattern index.
         """
         self.patterns.append(pattern)
-        if self.debug == True:
+        if self.debug:
             print('Added new pattern %d' % (len(self.patterns) - 1))
         return len(self.patterns) - 1
 
     def add_order(self, pattern_number):
         """Adds a pattern index to the order."""
-        if self.debug == True:
+        if self.debug:
             print('Adding order[%d] == %d' % (len(self.order), pattern_number))
         self.order.append(pattern_number)
 
     def set_order(self, position, pattern_number):
         """Changes a pattern index in the order."""
-        if self.debug == True:
+        if self.debug:
             print('Setting order[%d] == %d' % (position, pattern_number))
         self.order[position] = pattern_number
 
     def set_speed(self, new_speed):
         """Sets the playing speed in ticks/row."""
-        if self.debug == True:
+        if self.debug:
             print('Setting speed to %d' % (new_speed))
         self.speed = new_speed
 
     def set_position(self, new_position):
         """Sets the position inside of the current pattern."""
-        if self.debug == True:
+        if self.debug:
             print('Jumping position to %d' % (new_position))
         self.current_position = new_Position
 
@@ -298,7 +311,7 @@ class TrackPlayer(object):
         self.playing = True
 
         with PWMController(self.gpio) as controller:
-            while self.playing == True:
+            while self.playing:
                 if self.current_order >= len(self.order):
                     self.current_order = 0
 
@@ -321,21 +334,22 @@ class TrackPlayer(object):
                             if isinstance(note_command, Command):
                                 last_command = note_command
                                 note_command.apply(self, controller, last_note, t)
-                                if self.playing == False:
+                                if self.playing:
                                     print()
                                     return
 
                         self.tick += 1
                         time.sleep(0.01)
 
-                    if self.debug == True:
+                    if self.debug:
                         print(' ' * 70 + '\r', end='')
-                        print('pos: %03d  pattern: %02d' % (self.current_position, self.current_pattern), end='')
-                        if last_note != None:
+                        print('pos: %03d  pattern: %02d' %
+                              (self.current_position, self.current_pattern), end='')
+                        if last_note is not None:
                             print('  note: %s' % (str(last_note)), end='')
                         else:
                             print('          ', end='')
-                        if last_command != None:
+                        if last_command is not None:
                             print('  command: %s' % (str(last_command)), end='')
 
                     self.current_position += 1
@@ -343,6 +357,7 @@ class TrackPlayer(object):
                 self.current_order += 1
 
             controller.set_frequency(0)
+
 
 class TrackLoader(object):
     """Simple track module loader.
@@ -484,13 +499,13 @@ class TrackLoader(object):
         while word_idx < len(line):
             word = line[word_idx]
             result = TrackLoader.NOTE_RE.match(word)
-            if result != None:
+            if result is not None:
                 name = result.group('name')
                 octave = result.group('octave')
                 row.append(Note(result.group('name'), int(result.group('octave'))))
 
             result = TrackLoader.COMMAND_RE.match(word)
-            if result != None:
+            if result is not None:
                 name = result.group('name')
                 args = line[word_idx + 1:]
                 klass = TrackLoader.COMMANDS[name]
@@ -504,7 +519,7 @@ class TrackLoader(object):
 
     def _debug(self, str, *args):
         """Helper method to print out a line only if debug is on."""
-        if self.debug == True:
+        if self.debug:
             print(str % args)
 
     def load(self):
@@ -529,7 +544,7 @@ class TrackLoader(object):
             for line in lines:
                 line = line.split()
 
-                if header_finished == True:
+                if header_finished:
                     if len(line) == 0:
                         if not between_patterns:
                             current_pattern.append([])

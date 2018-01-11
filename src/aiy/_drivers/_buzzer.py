@@ -97,7 +97,6 @@ class PWMController(object):
         if not os.access(path, os.W_OK):
             raise IOError('Could not open %s' % path)
 
-
     def _pwrite_int(self, path, data):
         """Helper method to quickly write a value to a sysfs node.
 
@@ -131,7 +130,7 @@ class PWMController(object):
         """
         try:
             self._pwrite_int(self.PWM_SOFT_EXPORT_PATH, self.gpio)
-        except:
+        except BaseException:
             self._exported = False
             raise
 
@@ -141,7 +140,7 @@ class PWMController(object):
         try:
             self._wait_for_access(period_path)
             self._period_fh = open(period_path, 'w')
-        except:
+        except BaseException:
             self._unexport_pwm()
             raise
 
@@ -149,10 +148,9 @@ class PWMController(object):
         try:
             self._wait_for_access(pulse_path)
             self._pulse_fh = open(pulse_path, 'w')
-        except:
+        except BaseException:
             self._unexport_pwm()
             raise
-
 
     def _unexport_pwm(self):
         """Unexports the given GPIO from the pwm-soft driver.
@@ -161,10 +159,10 @@ class PWMController(object):
         previously opened, and then unexporting the given gpio.
         """
         if self._exported:
-            if self._period_fh != None:
+            if self._period_fh is not None:
                 self._period_fh.close()
 
-            if self._pulse_fh != None:
+            if self._pulse_fh is not None:
                 self._pulse_fh.close()
 
             self._pwrite_int(self.PWM_SOFT_UNEXPORT_PATH, self.gpio)

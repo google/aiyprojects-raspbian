@@ -21,37 +21,37 @@ _COMPUTE_GRAPH_NAME = 'mobilenet_v1_192res_1.0_seefood.binaryproto'
 
 
 def model():
-  return ModelDescriptor(
-      name='dish_classifier',
-      input_shape=(1, 192, 192, 3),
-      input_normalizer=(128.0, 128.0),
-      compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME))
+    return ModelDescriptor(
+        name='dish_classifier',
+        input_shape=(1, 192, 192, 3),
+        input_normalizer=(128.0, 128.0),
+        compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME))
 
 
 def get_classes(result, max_num_objects=None, object_prob_threshold=0.0):
-  """Converts dish classifier model output to list of detected objects.
+    """Converts dish classifier model output to list of detected objects.
 
-  Args:
-    result: output tensor from dish classifier model.
-    max_num_objects: int; max number of objects to return.
-    object_prob_threshold: float; min probability of each returned object.
+    Args:
+      result: output tensor from dish classifier model.
+      max_num_objects: int; max number of objects to return.
+      object_prob_threshold: float; min probability of each returned object.
 
-  Returns:
-    A list of (class_name: string, probability: float) pairs ordered by
-    probability from highest to lowest. The number of pairs is not greater than
-    max_num_objects. Each probability is greater than object_prob_threshold. For
-    example:
+    Returns:
+      A list of (class_name: string, probability: float) pairs ordered by
+      probability from highest to lowest. The number of pairs is not greater than
+      max_num_objects. Each probability is greater than object_prob_threshold. For
+      example:
 
-    [('Ramen', 0.981934)
-     ('Yaka mein, 0.005497)]
-  """
-  assert len(result.tensors) == 1
-  tensor = result.tensors['MobilenetV1/Predictions/Softmax']
-  probs, shape = tensor.data, tensor.shape
-  assert (shape.batch, shape.height, shape.width, shape.depth) == (1, 1, 1,
-                                                                   2024)
+      [('Ramen', 0.981934)
+       ('Yaka mein, 0.005497)]
+    """
+    assert len(result.tensors) == 1
+    tensor = result.tensors['MobilenetV1/Predictions/Softmax']
+    probs, shape = tensor.data, tensor.shape
+    assert (shape.batch, shape.height, shape.width, shape.depth) == (1, 1, 1,
+                                                                     2024)
 
-  pairs = [pair for pair in enumerate(probs) if pair[1] > object_prob_threshold]
-  pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
-  pairs = pairs[0:max_num_objects]
-  return [('/'.join(CLASSES[index]), prob) for index, prob in pairs]
+    pairs = [pair for pair in enumerate(probs) if pair[1] > object_prob_threshold]
+    pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
+    pairs = pairs[0:max_num_objects]
+    return [('/'.join(CLASSES[index]), prob) for index, prob in pairs]

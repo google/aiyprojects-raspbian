@@ -23,69 +23,69 @@ from aiy._drivers import _spicomm
 
 
 class _SpiTransport(object):
-  """Communicate with VisionBonnet over SPI bus."""
+    """Communicate with VisionBonnet over SPI bus."""
 
-  def __init__(self):
-    self._spicomm = _spicomm.Spicomm()
+    def __init__(self):
+        self._spicomm = _spicomm.Spicomm()
 
-  # TODO(dkovalev): add timeout when implemented in Spicomm
-  def send(self, request):
-    return self._spicomm.transact(request)
+    # TODO(dkovalev): add timeout when implemented in Spicomm
+    def send(self, request):
+        return self._spicomm.transact(request)
 
-  def close(self):
-    self._spicomm.close()
+    def close(self):
+        self._spicomm.close()
 
 
 def _socket_recvall(s, size):
-  buf = b''
-  while size:
-    newbuf = s.recv(size)
-    if not newbuf:
-      return None
-    buf += newbuf
-    size -= len(newbuf)
-  return buf
+    buf = b''
+    while size:
+        newbuf = s.recv(size)
+        if not newbuf:
+            return None
+        buf += newbuf
+        size -= len(newbuf)
+    return buf
 
 
 def _socket_receive_message(s):
-  buf = _socket_recvall(s, 4)  # 4 bytes
-  if not buf:
-    return None
-  size = struct.unpack('!I', buf)[0]
-  return _socket_recvall(s, size)
+    buf = _socket_recvall(s, 4)  # 4 bytes
+    if not buf:
+        return None
+    size = struct.unpack('!I', buf)[0]
+    return _socket_recvall(s, size)
 
 
 def _socket_send_message(s, msg):
-  s.sendall(struct.pack('!I', len(msg)))  # 4 bytes
-  s.sendall(msg)  # len(msg) bytes
+    s.sendall(struct.pack('!I', len(msg)))  # 4 bytes
+    s.sendall(msg)  # len(msg) bytes
 
 
 class _SocketTransport(object):
-  """Communicate with VisionBonnet over socket."""
+    """Communicate with VisionBonnet over socket."""
 
-  def __init__(self):
-    """Open connection to the bonnet."""
-    self._client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def __init__(self):
+        """Open connection to the bonnet."""
+        self._client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    host = os.environ.get('VISION_BONNET_HOST', '172.28.28.10')
-    port = int(os.environ.get('VISION_BONNET_PORT', '35000'))
-    self._client.connect((host, port))
+        host = os.environ.get('VISION_BONNET_HOST', '172.28.28.10')
+        port = int(os.environ.get('VISION_BONNET_PORT', '35000'))
+        self._client.connect((host, port))
 
-  # TODO(dkovalev,weiranzhao): add timeout parameter
-  def send(self, request):
-    _socket_send_message(self._client, request)
-    return _socket_receive_message(self._client)
+    # TODO(dkovalev,weiranzhao): add timeout parameter
+    def send(self, request):
+        _socket_send_message(self._client, request)
+        return _socket_receive_message(self._client)
 
-  def close(self):
-    self._client.close()
+    def close(self):
+        self._client.close()
 
 
 def _is_arm():
-  return os.uname()[4].startswith('arm')
+    return os.uname()[4].startswith('arm')
 
 
 def make_transport():
-  if _is_arm():
-    return _SpiTransport()
-  else:
-    return _SocketTransport()
+    if _is_arm():
+        return _SpiTransport()
+    else:
+        return _SocketTransport()

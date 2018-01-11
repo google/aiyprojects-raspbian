@@ -39,6 +39,7 @@ TEST_SOUND_PATH = '/usr/share/sounds/alsa/Front_Center.wav'
 
 RECORD_DURATION_SECONDS = 3
 
+
 def get_sound_cards():
     """Read a dictionary of ALSA cards from /proc, indexed by number."""
     cards = {}

@@ -1242,7 +1242,7 @@ CLASSES = (
     ('Beef bourguignon',),  # index=1225
     ('Truffade',),  # index=1226
     ('B\xc3\xb2 n\xc6\xb0\xe1\xbb\x9bng l\xc3\xa1 l\xe1\xbb\x91t',
-    ),  # index=1227
+     ),  # index=1227
     ('Ful medames',),  # index=1228
     ('Aligot',),  # index=1229
     ('Kolach',),  # index=1230

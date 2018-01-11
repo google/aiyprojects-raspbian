@@ -22,17 +22,17 @@ from aiy.vision.models import dish_classifier
 
 
 def main():
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--input', '-i', dest='input', required=True)
-  args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', '-i', dest='input', required=True)
+    args = parser.parse_args()
 
-  with ImageInference(dish_classifier.model()) as inference:
-    image = Image.open(args.input)
-    classes = dish_classifier.get_classes(
-        inference.run(image), max_num_objects=5, object_prob_threshold=0.1)
-    for i, (label, score) in enumerate(classes):
-      print('Result %d: %s (prob=%f)' % (i, label, score))
+    with ImageInference(dish_classifier.model()) as inference:
+        image = Image.open(args.input)
+        classes = dish_classifier.get_classes(
+            inference.run(image), max_num_objects=5, object_prob_threshold=0.1)
+        for i, (label, score) in enumerate(classes):
+            print('Result %d: %s (prob=%f)' % (i, label, score))
 
 
 if __name__ == '__main__':
-  main()
+    main()

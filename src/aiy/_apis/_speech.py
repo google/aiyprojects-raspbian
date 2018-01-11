@@ -341,7 +341,8 @@ class CloudSpeechRequest(GenericSpeechRequest):
                 resp.speech_event_type)
             logger.info('endpointer_type: %s', speech_event_type)
 
-        END_OF_SINGLE_UTTERANCE = types.StreamingRecognizeResponse.SpeechEventType.Value('END_OF_SINGLE_UTTERANCE')
+        END_OF_SINGLE_UTTERANCE = types.StreamingRecognizeResponse.SpeechEventType.Value(
+            'END_OF_SINGLE_UTTERANCE')
         return resp.speech_event_type == END_OF_SINGLE_UTTERANCE
 
     def _handle_response(self, resp):

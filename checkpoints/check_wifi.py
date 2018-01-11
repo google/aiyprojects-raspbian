@@ -75,6 +75,6 @@ if __name__ == '__main__':
     try:
         main()
         input('Press Enter to close...')
-    except:  # pylint: disable=bare-except
+    except Exception:
         traceback.print_exc()
         input('Press Enter to close...')

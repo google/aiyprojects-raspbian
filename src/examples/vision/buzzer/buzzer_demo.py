@@ -46,7 +46,7 @@ def main():
     ]
 
     player = aiy.toneplayer.TonePlayer(22)
-    player.play(*tetris_theme);
+    player.play(*tetris_theme)
 
 
 if __name__ == '__main__':

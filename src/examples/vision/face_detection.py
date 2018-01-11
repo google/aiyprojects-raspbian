@@ -29,23 +29,23 @@ from aiy.vision.models import face_detection
 
 
 def main():
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--input', '-i', dest='input', required=True)
-  parser.add_argument('--output', '-o', dest='output')
-  args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', '-i', dest='input', required=True)
+    parser.add_argument('--output', '-o', dest='output')
+    args = parser.parse_args()
 
-  with ImageInference(face_detection.model()) as inference:
-    image = Image.open(
-        io.BytesIO(sys.stdin.buffer.read())
-        if args.input == '-' else args.input)
-    draw = ImageDraw.Draw(image)
-    for i, face in enumerate(face_detection.get_faces(inference.run(image))):
-      print('Face #%d: %s' % (i, str(face)))
-      x, y, width, height = face.bounding_box
-      draw.rectangle((x, y, x + width, y + height), outline='red')
-    if args.output:
-      image.save(args.output)
+    with ImageInference(face_detection.model()) as inference:
+        image = Image.open(
+            io.BytesIO(sys.stdin.buffer.read())
+            if args.input == '-' else args.input)
+        draw = ImageDraw.Draw(image)
+        for i, face in enumerate(face_detection.get_faces(inference.run(image))):
+            print('Face #%d: %s' % (i, str(face)))
+            x, y, width, height = face.bounding_box
+            draw.rectangle((x, y, x + width, y + height), outline='red')
+        if args.output:
+            image.save(args.output)
 
 
 if __name__ == '__main__':
-  main()
+    main()

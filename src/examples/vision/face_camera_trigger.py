@@ -20,22 +20,21 @@ from picamera import PiCamera
 
 
 def main():
-  with PiCamera() as camera:
-    # Configure camera
-    camera.resolution = (1640, 922)  # Full Frame, 16:9 (Camera v2)
-    camera.start_preview()
+    with PiCamera() as camera:
+        # Configure camera
+        camera.resolution = (1640, 922)  # Full Frame, 16:9 (Camera v2)
+        camera.start_preview()
 
-    # Do inference on VisionBonnet
-    with CameraInference(face_detection.model()) as inference:
-      for result in inference.run():
-        if len(face_detection.get_faces(result)) >= 1:
-          camera.capture('faces.jpg')
-          break
+        # Do inference on VisionBonnet
+        with CameraInference(face_detection.model()) as inference:
+            for result in inference.run():
+                if len(face_detection.get_faces(result)) >= 1:
+                    camera.capture('faces.jpg')
+                    break
 
-    # Stop preview
-    camera.stop_preview()
+        # Stop preview
+        camera.stop_preview()
 
 
 if __name__ == '__main__':
-  main()
-
+    main()
