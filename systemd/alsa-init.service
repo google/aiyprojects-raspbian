@@ -10,7 +10,7 @@ After=local-fs.target sysinit.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/aplay -q -d 1 -c 1 -t raw -f S32_LE /dev/zero
+ExecStart=-/usr/bin/aplay -q -d 1 -c 1 -t raw -f S32_LE /dev/zero
 
 [Install]
 WantedBy=basic.target
