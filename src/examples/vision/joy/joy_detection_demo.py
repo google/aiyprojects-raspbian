@@ -22,16 +22,16 @@ import threading
 import time
 
 from aiy._drivers._hat import get_aiy_device_name
-from aiy._drivers._rgbled import PrivacyLED
-from aiy._drivers._rgbled import RGBLED
 from aiy.toneplayer import TonePlayer
 from aiy.vision.inference import CameraInference
+from aiy.vision.leds import Leds
+from aiy.vision.leds import PrivacyLed
 from aiy.vision.models import face_detection
+
 from picamera import PiCamera
 
 JOY_COLOR = (255, 70, 0)
 SAD_COLOR = (0, 0, 64)
-NONE_COLOR = (0, 0, 1)
 
 JOY_SCORE_PEAK = 0.85
 JOY_SCORE_MIN = 0.1
@@ -53,7 +53,7 @@ def blend(color_a, color_b, alpha):
 class JoyDetector(object):
 
     def __init__(self, num_frames, preview_alpha):
-        self._rgbled = RGBLED(debug=False)
+        self._leds = Leds()
         self._num_frames = num_frames
         self._preview_alpha = preview_alpha
         self._toneplayer = TonePlayer(22, bpm=10)
@@ -107,13 +107,13 @@ class JoyDetector(object):
                 self._sound_played = False
 
             if joy_score > 0:
-                self._rgbled.SetColorMix(*blend(JOY_COLOR, SAD_COLOR, joy_score))
+                self._leds.update(Leds.rgb_on(blend(JOY_COLOR, SAD_COLOR, joy_score)))
             else:
-                self._rgbled.SetColorMix(*NONE_COLOR)
+                self._leds.update(Leds.rgb_off())
             time.sleep(0.1)
 
     def _run_detector(self):
-        with PiCamera() as camera, PrivacyLED():
+        with PiCamera() as camera, PrivacyLed(self._leds):
             # Forced sensor mode, 1640x1232, full FoV. See:
             # https://picamera.readthedocs.io/en/release-1.13/fov.html#sensor-modes
             # This is the resolution inference run on.
