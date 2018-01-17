@@ -78,6 +78,7 @@ def _decode_and_nms_detection_result(logit_scores, box_encodings, anchors,
     assert len(logit_scores) == len(anchors)
 
     x0, y0 = offset
+    width, height = image_size
     results = []
     for logit_score, box_encoding, anchor in zip(logit_scores, box_encodings,
                                                  anchors):
@@ -87,8 +88,12 @@ def _decode_and_nms_detection_result(logit_scores, box_encodings, anchors,
         if max_score <= score_threshold or max_score_index == 0:
             continue
 
-        x, y, w, h = _decode_box_encoding(box_encoding, anchor, image_size)
-        results.append(Object((x0 + x, y0 + y, w, h), max_score_index, max_score))
+        xmin, ymin, xmax, ymax = _decode_box_encoding(box_encoding, anchor)
+        x = int(x0 + xmin * width)
+        y = int(y0 + ymin * height)
+        w = int((xmax - xmin) * width)
+        h = int((ymax - ymin) * height)
+        results.append(Object((x, y, w, h), max_score_index, max_score))
 
     return _non_maximum_suppression(results)
 
@@ -97,15 +102,19 @@ def _logit_score_to_score(logit_score):
     return [1.0 / (1.0 + math.exp(-val)) for val in logit_score]
 
 
-def _decode_box_encoding(box_encoding, anchor, image_size):
+def _clamp(value):
+    """Clamps value to range [0.0, 1.0]."""
+    return min(max(0.0, value), 1.0)
+
+
+def _decode_box_encoding(box_encoding, anchor):
     """Decodes bounding box encoding.
 
     Args:
       box_encoding: a tuple of 4 floats.
       anchor: a tuple of 4 floats.
-      image_size: a tuple of 2 ints, (width, height)
     Returns:
-      A tuple of 4 integer, in the order of (left, upper, right, lower).
+      A tuple of 4 floats (xmin, ymin, xmax, ymax), each has range [0.0, 1.0].
     """
     assert len(box_encoding) == 4
     assert len(anchor) == 4
@@ -130,12 +139,14 @@ def _decode_box_encoding(box_encoding, anchor, image_size):
     height = math.exp(rel_height_dilation) * anchor_height
     width = math.exp(rel_width_dilation) * anchor_width
 
-    image_width, image_height = image_size
-    x0 = int(max(0.0, xcenter - width / 2) * image_width)
-    y0 = int(max(0.0, ycenter - height / 2) * image_height)
-    x1 = int(min(1.0, xcenter + width / 2) * image_width)
-    y1 = int(min(1.0, ycenter + height / 2) * image_height)
-    return (x0, y0, x1 - x0, y1 - y0)
+    # Clamp value to [0.0, 1.0] range, otherwise, part of the bounding box may
+    # fall outside of the image.
+    xmin = _clamp(xcenter - width / 2)
+    ymin = _clamp(ycenter - height / 2)
+    xmax = _clamp(xcenter + width / 2)
+    ymax = _clamp(ycenter + height / 2)
+
+    return (xmin, ymin, xmax, ymax)
 
 
 def _overlap_ratio(box1, box2):
