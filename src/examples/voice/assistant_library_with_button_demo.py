@@ -29,6 +29,7 @@ import sys
 import threading
 
 import aiy.assistant.auth_helpers
+import aiy.assistant.device_helpers
 import aiy.voicehat
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
@@ -47,7 +48,6 @@ class MyAssistant(object):
     thread. Otherwise, the on_button_pressed() method will never get a chance to
     be invoked.
     """
-
     def __init__(self):
         self._task = threading.Thread(target=self._run_task)
         self._can_start_conversation = False
@@ -62,7 +62,8 @@ class MyAssistant(object):
 
     def _run_task(self):
         credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
-        with Assistant(credentials) as assistant:
+        model_id, device_id = aiy.assistant.device_helpers.get_ids(credentials)
+        with Assistant(credentials, model_id) as assistant:
             self._assistant = assistant
             for event in assistant.start():
                 self._process_event(event)
