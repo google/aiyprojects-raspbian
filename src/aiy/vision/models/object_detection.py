@@ -13,12 +13,15 @@
 # limitations under the License.
 """API for Object Detection tasks."""
 import math
+import sys
 
 from aiy.vision.inference import ModelDescriptor
 from aiy.vision.models import utils
 from aiy.vision.models.object_detection_anchors import ANCHORS
 
 _COMPUTE_GRAPH_NAME = 'mobilenet_ssd_256res_0.125_person_cat_dog.binaryproto'
+_NUM_ANCHORS = len(ANCHORS)
+_MACHINE_EPS = sys.float_info.epsilon
 
 
 class Object(object):
@@ -53,14 +56,9 @@ class Object(object):
                                                    str(self.bounding_box))
 
 
-def _reshape(array, height, width):
-    assert len(array) == height * width
-    return [array[i * width:(i + 1) * width] for i in range(height)]
-
-
-def _decode_and_nms_detection_result(logit_scores, box_encodings, anchors,
-                                     score_threshold, image_size, offset):
-    """Decodes result as bounding boxes and runs Non-Maximum Suppression.
+def _decode_detection_result(logit_scores, box_encodings, anchors,
+                             score_threshold, image_size, offset):
+    """Decodes result as bounding boxes.
 
     Args:
       logit_scores: list of scores
@@ -73,33 +71,32 @@ def _decode_and_nms_detection_result(logit_scores, box_encodings, anchors,
     Returns:
       A list of ObjectDetection.Result.
     """
-
-    assert len(box_encodings) == len(anchors)
-    assert len(logit_scores) == len(anchors)
+    assert len(box_encodings) == 4 * _NUM_ANCHORS
+    assert len(logit_scores) == 4 * _NUM_ANCHORS
 
     x0, y0 = offset
     width, height = image_size
-    results = []
-    for logit_score, box_encoding, anchor in zip(logit_scores, box_encodings,
-                                                 anchors):
-        scores = _logit_score_to_score(logit_score)
-        max_score_index, max_score = max(enumerate(scores), key=lambda x: x[1])
+    objs = []
+
+    score_threshold = max(score_threshold, _MACHINE_EPS)
+    logit_score_threshold = math.log(score_threshold / (1 - score_threshold))
+    for i in range(_NUM_ANCHORS):
+        logits = logit_scores[4 * i: 4 * (i + 1)]
+        max_logit_score = max(logits)
+        max_score_index = logits.index(max_logit_score)
         # Skip if max score is below threshold or max score is 'background'.
-        if max_score <= score_threshold or max_score_index == 0:
+        if max_score_index == 0 or max_logit_score <= logit_score_threshold:
             continue
 
-        xmin, ymin, xmax, ymax = _decode_box_encoding(box_encoding, anchor)
+        box_encoding = box_encodings[4 * i: 4 * (i + 1)]
+        xmin, ymin, xmax, ymax = _decode_box_encoding(box_encoding, anchors[i])
         x = int(x0 + xmin * width)
         y = int(y0 + ymin * height)
         w = int((xmax - xmin) * width)
         h = int((ymax - ymin) * height)
-        results.append(Object((x, y, w, h), max_score_index, max_score))
-
-    return _non_maximum_suppression(results)
-
-
-def _logit_score_to_score(logit_score):
-    return [1.0 / (1.0 + math.exp(-val)) for val in logit_score]
+        max_score = 1.0 / (1.0 + math.exp(-max_logit_score))
+        objs.append(Object((x, y, w, h), max_score_index, max_score))
+    return objs
 
 
 def _clamp(value):
@@ -149,6 +146,25 @@ def _decode_box_encoding(box_encoding, anchor):
     return (xmin, ymin, xmax, ymax)
 
 
+def _area(box):
+    _, _, width, height = box
+    area = width * height
+    assert area >= 0
+    return area
+
+
+def _intersection_area(box1, box2):
+    x1, y1, width1, height1 = box1
+    x2, y2, width2, height2 = box2
+    x = max(x1, x2)
+    y = max(y1, y2)
+    width = max(min(x1 + width1, x2 + width2) - x, 0)
+    height = max(min(y1 + height1, y2 + height2) - y, 0)
+    area = width * height
+    assert area >= 0
+    return area
+
+
 def _overlap_ratio(box1, box2):
     """Computes overlap ratio of two bounding boxes.
 
@@ -159,24 +175,6 @@ def _overlap_ratio(box1, box2):
     Returns:
       float, represents overlap ratio between given boxes.
     """
-
-    def _area(box):
-        _, _, width, height = box
-        area = width * height
-        assert area >= 0
-        return area
-
-    def _intersection_area(box1, box2):
-        x1, y1, width1, height1 = box1
-        x2, y2, width2, height2 = box2
-        x = max(x1, x2)
-        y = max(y1, y2)
-        width = max(min(x1 + width1, x2 + width2) - x, 0)
-        height = max(min(y1 + height1, y2 + height2) - y, 0)
-        area = width * height
-        assert area >= 0
-        return area
-
     intersection_area = _intersection_area(box1, box2)
     union_area = _area(box1) + _area(box2) - intersection_area
     assert union_area >= 0
@@ -185,31 +183,31 @@ def _overlap_ratio(box1, box2):
     return 1.0
 
 
-def _non_maximum_suppression(boxes, overlap_threshold=0.5):
+def _non_maximum_suppression(objs, overlap_threshold=0.5):
     """Runs Non Maximum Suppression.
 
-    Removes box candidate that overlaps with existing candidate who has higher
+    Removes candidate that overlaps with existing candidate who has higher
     score.
 
     Args:
-      boxes: list of Object
+      objs: list of ObjectDetection.Object
       overlap_threshold: float
     Returns:
-      A list of Object
+      A list of ObjectDetection.Object
     """
-    boxes = sorted(boxes, key=lambda x: x.score, reverse=True)
-    for i in range(len(boxes)):
-        if boxes[i].score < 0.0:
+    objs = sorted(objs, key=lambda x: x.score, reverse=True)
+    for i in range(len(objs)):
+        if objs[i].score < 0.0:
             continue
         # Suppress any nearby bounding boxes having lower score than boxes[i]
-        for j in range(i + 1, len(boxes)):
-            if boxes[j].score < 0.0:
+        for j in range(i + 1, len(objs)):
+            if objs[j].score < 0.0:
                 continue
-            if _overlap_ratio(boxes[i].bounding_box,
-                              boxes[j].bounding_box) > overlap_threshold:
-                boxes[j].score = -1.0  # Suppress box
+            if _overlap_ratio(objs[i].bounding_box,
+                              objs[j].bounding_box) > overlap_threshold:
+                objs[j].score = -1.0  # Suppress box
 
-    return [box for box in boxes if box.score >= 0.0]  # Exclude suppressed boxes
+    return [obj for obj in objs if obj.score >= 0.0]  # Exclude suppressed boxes
 
 
 def model():
@@ -223,11 +221,10 @@ def model():
 # TODO: check all tensor shapes
 def get_objects(result, score_threshold=0.3, offset=(0, 0)):
     assert len(result.tensors) == 2
-    logit_scores = result.tensors['concat_1'].data
-    logit_scores = _reshape(logit_scores, len(ANCHORS), 4)
-    box_encodings = result.tensors['concat'].data
-    box_encodings = _reshape(box_encodings, len(ANCHORS), 4)
+    logit_scores = tuple(result.tensors['concat_1'].data)
+    box_encodings = tuple(result.tensors['concat'].data)
 
     size = (result.window.width, result.window.height)
-    return _decode_and_nms_detection_result(logit_scores, box_encodings, ANCHORS,
-                                            score_threshold, size, offset)
+    objs = _decode_detection_result(logit_scores, box_encodings, ANCHORS,
+                                    score_threshold, size, offset)
+    return _non_maximum_suppression(objs)
