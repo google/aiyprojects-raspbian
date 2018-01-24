@@ -41,11 +41,6 @@ def _write(path, data):
 def _device_file(prop):
     return '/sys/class/leds/ktd202x:led1/device/%s' % prop
 
-
-def _brightness_file(index):
-    return '/sys/class/leds/ktd202x:led%d/brightness' % index
-
-
 class Pattern(object):
     """Class to define blinking pattern."""
     def __init__(self, period_ms, on_percent=0.5, rise_ms=0, fall_ms=0):
@@ -147,7 +142,7 @@ class Leds(object):
     def update(self, channels):
         for index, channel in channels.items():
             if channel.brightness is not None:
-                _write(_brightness_file(index), channel.brightness)
+                _write(_device_file('led%d' % index), channel.brightness)
 
             if channel.state is not None:
                 _write(_device_file('ch%d_enable' % index), channel.state)
