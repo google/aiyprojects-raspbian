@@ -48,6 +48,7 @@ class MyAssistant(object):
     thread. Otherwise, the on_button_pressed() method will never get a chance to
     be invoked.
     """
+
     def __init__(self):
         self._task = threading.Thread(target=self._run_task)
         self._can_start_conversation = False
