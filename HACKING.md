@@ -73,12 +73,12 @@ To execute any of these scripts on the Raspberry Pi, login to it and run
 ``` shell
 cd ~/AIY-projects-python
 source env/bin/activate
-python3 src/assistant_library_demo.py
+python3 src/examples/voice/assistant_library_demo.py
 ```
 
 If you want the voice recognizer service to run automatically when the Pi
 boots, you need to have a file in the `src` directory named `main.py`. You can
-make a copy of one of the sample scripts and rename it. Then run this command:
+make a copy of one of the example scripts and rename it. Then run this command:
 
 ``` shell
 sudo systemctl enable voice-recognizer.service
