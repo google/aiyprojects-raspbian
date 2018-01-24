@@ -37,3 +37,9 @@ done
 
 sudo cp scripts/asound.conf "$global_asoundrc"
 echo "Installed voiceHAT ALSA config at $global_asoundrc"
+
+# TODO(rodrigoq): it shouldn't be necessary to install at both locations, but
+# if we don't install to $HOME then the volume widget (volumealsa) has a
+# tendency to create an incompatible ~/.asoundrc and break the Voice Kit audio.
+sudo cp scripts/asound.conf "$asoundrc"
+echo "Installed voiceHAT ALSA config at $asoundrc"
