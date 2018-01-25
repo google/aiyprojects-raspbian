@@ -13,7 +13,7 @@ First, make sure you have `git` installed and clone this repository in
 ```shell
 sudo apt-get install git
 cd
-git clone https://github.com/google/aiyprojects-raspbian.git voice-recognizer-raspi
+git clone https://github.com/google/aiyprojects-raspbian.git AIY-projects-python
 ```
 
 Then, install the project dependencies and setup the services:
