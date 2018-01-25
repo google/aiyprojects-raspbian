@@ -8,18 +8,18 @@ to setup Raspbian yourself, there are some manual steps you need to take.
 ## Installing the dependencies
 
 First, make sure you have `git` installed and clone this repository in
-`~/voice-recognizer-raspi`:
+`~/AIY-projects-python`:
 
 ```shell
 sudo apt-get install git
 cd
-git clone https://github.com/google/aiyprojects-raspbian.git voice-recognizer-raspi
+git clone https://github.com/google/aiyprojects-raspbian.git AIY-projects-python
 ```
 
 Then, install the project dependencies and setup the services:
 
 ``` shell
-cd ~/voice-recognizer-raspi
+cd ~/AIY-projects-python
 scripts/install-deps.sh
 sudo scripts/install-services.sh
 ```
@@ -37,8 +37,9 @@ sudo reboot
 After your Pi has rebooted with the driver enabled, run:
 
 ```
-cd ~/voice-recognizer-raspi
+cd ~/AIY-projects-python
 sudo scripts/install-alsa-config.sh
+source env/bin/activate
 python3 checkpoints/check_audio.py
 sudo reboot
 ```
@@ -71,7 +72,7 @@ To execute any of these scripts on the Raspberry Pi, login to it and run
 (replacing the filename with the script you want to run):
 
 ``` shell
-cd ~/voice-recognizer-raspi
+cd ~/AIY-projects-python
 source env/bin/activate
 python3 src/assistant_library_demo.py
 ```
