@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Demonstrates simultaneous control of two servos on the hat.
 
 One servo uses the simple default configuration, the other servo is tuned to

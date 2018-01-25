@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Demonstrates on board LED support with correct polarity.
 
 Demo will turn on, then off the first LED on the hat.

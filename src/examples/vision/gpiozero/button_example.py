@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Example code that demonstrates using a standard pin along with a hat pin.
 
 The button uses a standard GPIO pin through the raspberry pi's memory mapped io,

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Example code that demonstrates using a button connected through the hat.
 
 The button uses a hat pin through the sysfs driver illustrating the edge
