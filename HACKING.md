@@ -1,5 +1,9 @@
 # Setting up the image
 
+**Deprecated:** The newest instructions are in the
+[aiyprojects
+branch](https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/HACKING.md).
+
 We recommend using [the images](https://aiyprojects.withgoogle.com/voice) we
 provide. Those images are based on [Raspbian](https://www.raspberrypi.org/downloads/raspbian/),
 with a few customizations and are tested on the Raspberry Pi 3. If you prefer
