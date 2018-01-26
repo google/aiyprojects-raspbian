@@ -28,6 +28,8 @@ import traceback
 import aiy.audio  # noqa
 from aiy._drivers._hat import get_aiy_device_name
 
+AIY_PROJECTS_DIR = os.path.dirname(os.path.dirname(__file__))
+
 CARDS_PATH = '/proc/asound/cards'
 CARDS_ID = {
     "Voice Hat": "googlevoicehat",
@@ -80,6 +82,20 @@ def check_voicehat_is_first_card():
     return 0 in cards and card_id in cards[0]
 
 
+def check_asoundrc_is_not_bad():
+    """Check that ~/.asoundrc is absent or has the AIY config."""
+    asoundrc = os.path.expanduser('~/.asoundrc')
+    if not os.path.exists(asoundrc):
+        return True
+
+    with open(os.path.join(AIY_PROJECTS_DIR, 'scripts', 'asound.conf')) as f:
+        wanted_contents = f.read()
+    with open(asoundrc) as f:
+        contents = f.read()
+
+    return contents == wanted_contents
+
+
 def check_speaker_works():
     """Check the speaker makes a sound."""
     print('Playing a test sound...')
@@ -122,10 +138,20 @@ how to setup the voiceHAT driver: https://git.io/v99yK"""))
 may be unable to find it. Please try removing other sound drivers."""))
         return
 
-    if not check_speaker_works():
-        print(textwrap.fill(
-            """There may be a problem with your speaker. Check that it's
+    try:
+        if not check_speaker_works():
+            print(textwrap.fill(
+                """There may be a problem with your speaker. Check that it's
 connected properly."""))
+            return
+    except BrokenPipeError:
+        # aplay crashed - check if ~/.asoundrc is the culprit
+        if not check_asoundrc_is_not_bad():
+            print(textwrap.fill(
+                """~/.asoundrc exists, and it doesn't have the expected
+contents. Try deleting it with `rm ~/.asoundrc`."""))
+        else:
+            print("aplay crashed - try checking your ALSA config.")
         return
 
     if not check_mic_works():
@@ -139,8 +165,7 @@ connected properly."""))
 
 def enable_audio_driver():
     print("Enabling audio driver for VoiceKit.")
-    configure_driver = os.path.join(
-        os.path.dirname(__file__), '..', 'scripts', 'configure-driver.sh')
+    configure_driver = os.path.join(AIY_PROJECTS_DIR, 'scripts', 'configure-driver.sh')
     subprocess.check_call(['sudo', configure_driver])
 
 
