@@ -26,11 +26,46 @@ from aiy._drivers._transport import make_transport
 from aiy.vision.proto import protocol_pb2
 
 
+_SUPPORTED_FIRMWARE_VERSION = (1, 0)
+
+
 def _tobytes(img):
     try:
         return img.tobytes()
     except AttributeError:
         return img.tostring()
+
+
+class FirmwareVersionException(Exception):
+
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+
+
+def _check_firmware_info(info):
+    major, minor = info
+    fw_version = '.'.join(map(str,info))
+    supported_version = '.'.join(map(str,_SUPPORTED_FIRMWARE_VERSION))
+    if major > _SUPPORTED_FIRMWARE_VERSION[0]:
+        raise FirmwareVersionException(
+            'AIY library supports firmware version %s, current firmware '
+            'version is %s. You should upgrade AIY library.' %
+            (supported_version, fw_version))
+    if major < _SUPPORTED_FIRMWARE_VERSION[0]:
+        raise FirmwareVersionException(
+            'AIY library supports firmware version %s, current firmware '
+            'version is %s. You should upgrade firmware.' %
+            (supported_version, fw_version))
+    if minor > _SUPPORTED_FIRMWARE_VERSION[1]:
+        logging.warn(
+            'AIY library supports firmware version %s, current firmware '
+            'version is %s. Consider upgrading AIY library.',
+            supported_version, fw_version)
+    if minor < _SUPPORTED_FIRMWARE_VERSION[1]:
+        logging.warn(
+            'AIY library supports firmware version %s, current firmware '
+            'version is %s. Consider upgrading firmware.',
+            supported_version, fw_version)
 
 
 class CameraInference(object):
@@ -145,13 +180,11 @@ class InferenceEngine(object):
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.close()
 
-    def _communicate(self, request, debug=False):
+    def _communicate(self, request):
         """Gets response and logs messages if need to.
 
         Args:
           request: protocol_pb2.Request
-          debug: boolean, if True and response contains inference result, print up
-            to the first 10 elements of each returned vector.
 
         Returns:
           protocol_pb2.Response
@@ -160,15 +193,6 @@ class InferenceEngine(object):
         response.ParseFromString(self._transport.send(request.SerializeToString()))
         if response.status.code != protocol_pb2.Response.Status.OK:
             raise InferenceException(response.status.message)
-
-        if debug:
-            # Print up to the first 10 elements of each returned vector.
-            for name, tensor in response.result.tensors.items():
-                data = tensor.data[0:10]
-                logging.info('First %d elements of output tensor:', len(data))
-                for index, value in enumerate(data):
-                    logging.info('  %s[%d] = %f', name, index, value)
-
         return response
 
     def load_model(self, descriptor):
@@ -180,6 +204,8 @@ class InferenceEngine(object):
         Returns:
           Model identifier.
         """
+        _check_firmware_info(self.get_firmware_info())
+
         logging.info('Loading model "%s"...', descriptor.name)
 
         batch, height, width, depth = descriptor.input_shape
@@ -243,6 +269,17 @@ class InferenceEngine(object):
         request = protocol_pb2.Request()
         request.get_camera_state.SetInParent()
         return self._communicate(request).camera_state
+
+    def get_firmware_info(self):
+        """Returns firmware version as (major, minor) tuple."""
+        request = protocol_pb2.Request()
+        request.get_firmware_info.SetInParent()
+        try:
+            info = self._communicate(request).firmware_info
+            return (info.major_version, info.minor_version)
+        except InferenceException:
+            # Request is not supported by firmware, use version 0.9.
+            return (0, 9)
 
     def image_inference(self, model_name, image, params=None):
         """Runs inference on image using model (identified by model_name).
