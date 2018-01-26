@@ -18,9 +18,6 @@
 The Google Assistant Library has direct access to the audio API, so this Python
 code doesn't need to record audio. Hot word detection "OK, Google" is supported.
 
-The Google Assistant Library can be installed with:
-    env/bin/pip install google-assistant-library==0.0.2
-
 It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 """
 
