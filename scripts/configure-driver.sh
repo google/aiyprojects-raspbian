@@ -25,7 +25,9 @@ set -e
 
 sed -i \
   -e "s/^dtparam=audio=on/#\0/" \
-  -e "s/^#\(dtparam=i2s=on\)/\1/" \
+  -e "s/^#\s*\(dtparam=i2s=on\)/\1/" \
+  -e "s/^#\s*\(dtoverlay=i2s-mmap\)/\1/" \
+  -e "s/^#\s*\(dtoverlay=googlevoicehat-soundcard\)/\1/" \
   /boot/config.txt
 grep -q "dtoverlay=i2s-mmap" /boot/config.txt || \
   echo "dtoverlay=i2s-mmap" >> /boot/config.txt
@@ -34,3 +36,4 @@ grep -q "dtoverlay=googlevoicehat-soundcard" /boot/config.txt || \
 grep -q "dtparam=i2s=on" /boot/config.txt || \
   echo "dtparam=i2s=on" >> /boot/config.txt
 
+dtoverlay googlevoicehat-soundcard

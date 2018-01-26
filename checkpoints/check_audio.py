@@ -19,6 +19,7 @@
 import fileinput
 import os
 import re
+import subprocess
 import sys
 import tempfile
 import textwrap
@@ -137,15 +138,10 @@ connected properly."""))
 
 
 def enable_audio_driver():
-    print(textwrap.fill(
-        """Enabling audio driver for VoiceKit."""))
-    for line in fileinput.input("/boot/config.txt",
-                                inplace=True, backup=".bak"):
-        if re.match("^# dtoverlay=googlevoicehat-soundcard", line):
-            print("dtoverlay=googlevoicehat-soundcard")
-        else:
-            print(line, end='')
-    os.system("dtoverlay googlevoicehat-soundcard")
+    print("Enabling audio driver for VoiceKit.")
+    configure_driver = os.path.join(
+        os.path.dirname(__file__), '..', 'scripts', 'configure-driver.sh')
+    subprocess.check_call(['sudo', configure_driver])
 
 
 def main():
