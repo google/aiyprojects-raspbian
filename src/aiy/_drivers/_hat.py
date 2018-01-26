@@ -44,7 +44,9 @@ def _get_hat_product_id():
 
 def get_aiy_device_name():
     if not _is_hat_attached():
-        return None
+        # Early Voice HATs don't have correctly programmed EEPROM, so no entry
+        # shows up in /proc/device-tree.
+        return 'Voice Hat'
     product = _get_hat_product()
     if 'AIY' not in product:
         return None
