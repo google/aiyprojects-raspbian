@@ -1,18 +1,17 @@
 #!/bin/sh
 # git hook to ensure code style
-# cp scripts/pre-commit .git/hooks/
+# ln ../../scripts/pre-commit .git/hooks/
 
-which >/dev/null pep8 || (echo "please install pep8"; exit 1)
+which >/dev/null autopep8 || { echo "please install autopep8"; exit 1; }
 files=$(git diff --name-only --staged --diff-filter=ACMRTUXB | egrep "*.py$")
 
 if test -n "$files"; then
-  pep8 --max-line-length=100 $files
-  res=$?
-  if [ $res -ne 0 ]; then
+  diff=$(autopep8 --max-line-length=100 --diff $files)
+  if [[ -n "${diff}" ]]; then
     echo
     autopep8 --max-line-length=100 --diff $files
     echo
     echo "To fix run: autopep8 --max-line-length=100 -i $files"
+    exit 1
   fi
-  exit $res
 fi
