@@ -47,10 +47,14 @@ WINDOW_SIZE = 10
 
 
 def blend(color_a, color_b, alpha):
-    return tuple([
-        math.ceil(a * alpha + b * (1.0 - alpha))
-        for a, b in zip(color_a, color_b)
-    ])
+    return tuple([math.ceil(alpha * color_a[i] + (1.0 - alpha) * color_b[i]) for i in range(3)])
+
+
+def average_joy_score(faces):
+    if faces:
+        return sum([face.joy_score for face in faces]) / len(faces)
+    return 0.0
+
 
 class AtomicValue(object):
     def __init__(self, value):
@@ -67,6 +71,18 @@ class AtomicValue(object):
         with self._lock:
             self._value = value
 
+class MovingAverage(object):
+
+    def __init__(self, size):
+        self._window = collections.deque(maxlen=size)
+
+    def add(self, value):
+        self._window.append(value)
+
+    @property
+    def value(self):
+        return sum(self._window) / len(self._window)
+
 
 class JoyDetector(object):
 
@@ -75,13 +91,11 @@ class JoyDetector(object):
         self._num_frames = num_frames
         self._preview_alpha = preview_alpha
         self._toneplayer = TonePlayer(22, bpm=10)
-        self._sound_played = False
         self._detector = threading.Thread(target=self._run_detector)
         self._animator = threading.Thread(target=self._run_animator)
         self._photographer = threading.Thread(target=self._run_photographer)
         self._requests = queue.Queue()
         self._joy_score = AtomicValue(0.0)
-        self._joy_score_window = collections.deque(maxlen=WINDOW_SIZE)
         self._run_event = threading.Event()
         signal.signal(signal.SIGINT, lambda signal, frame: self.stop())
         signal.signal(signal.SIGTERM, lambda signal, frame: self.stop())
@@ -89,6 +103,7 @@ class JoyDetector(object):
     def start(self):
         print('Starting JoyDetector...')
         self._run_event.set()
+        self._animator.start()
         self._detector.start()
         self._photographer.start()
 
@@ -103,32 +118,32 @@ class JoyDetector(object):
         self._requests.put(None)
 
     def _play_sound(self, sound):
-        if not self._sound_played:
-            self._sound_played = True
-            self._sound = threading.Thread(target=self._toneplayer.play, args=(*sound,))
-            self._sound.start()
+        threading.Thread(target=self._toneplayer.play, args=(*sound,)).start()
+
 
     def _run_animator(self):
+        prev_joy_score = -1.0
         while self._run_event.is_set():
             joy_score = self._joy_score.value
-            if joy_score > JOY_SCORE_PEAK:
+
+            if joy_score > JOY_SCORE_PEAK > prev_joy_score:
                 self._play_sound(JOY_SOUND)
-            elif joy_score < JOY_SCORE_MIN:
+            elif joy_score < JOY_SCORE_MIN < prev_joy_score:
                 self._play_sound(SAD_SOUND)
-            else:
-                self._sound_played = False
 
             if joy_score > 0:
                 self._leds.update(Leds.rgb_on(blend(JOY_COLOR, SAD_COLOR, joy_score)))
             else:
                 self._leds.update(Leds.rgb_off())
-            time.sleep(0.1)
+
+            prev_joy_score = joy_score
 
     def _run_photographer(self):
         while True:
             request = self._requests.get()
             if request is None:
                 break
+
             camera, faces = request
             filename = os.path.expanduser(
                 '~/Pictures/photo_%s.jpg' % time.strftime('%Y-%m-%d@%H.%M.%S'))
@@ -157,22 +172,14 @@ class JoyDetector(object):
             button = Button(23)
             button.when_pressed = take_photo
 
+            joy_score_moving_average = MovingAverage(WINDOW_SIZE)
             with CameraInference(face_detection.model()) as inference:
                 self._play_sound(MODEL_LOAD_SOUND)
-                self._animator.start()
                 for i, result in enumerate(inference.run()):
                     faces = face_detection.get_faces(result)
                     detected_faces.value = faces
-
-                    # Calculate joy score as an average for all detected faces.
-                    joy_score = 0.0
-                    if faces:
-                        joy_score = sum([face.joy_score for face in faces]) / len(faces)
-
-                    # Append new joy score to the window and calculate mean value.
-                    self._joy_score_window.append(joy_score)
-                    self._joy_score.value = sum(self._joy_score_window) / len(
-                        self._joy_score_window)
+                    joy_score_moving_average.add(average_joy_score(faces))
+                    self._joy_score.value = joy_score_moving_average.value
                     if self._num_frames == i or not self._run_event.is_set():
                         break
 
