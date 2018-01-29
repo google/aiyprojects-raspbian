@@ -20,6 +20,7 @@ import logging
 import os
 import os.path
 import sys
+import webbrowser
 
 import google_auth_oauthlib.flow
 import google.auth.transport
@@ -68,6 +69,10 @@ def _credentials_flow_interactive(client_secrets_path):
         client_secrets_path,
         scopes=[_ASSISTANT_OAUTH_SCOPE])
     if 'DISPLAY' in os.environ:
+        # Use chromium-browser by default. Raspbian Stretch uses Epiphany by
+        # default but that seems to cause issues:
+        # https://github.com/google/aiyprojects-raspbian/issues/269
+        webbrowser.register('chromium-browser', None, webbrowser.Chrome('chromium-browser'), -1)
         credentials = flow.run_local_server()
     else:
         credentials = flow.run_console()
