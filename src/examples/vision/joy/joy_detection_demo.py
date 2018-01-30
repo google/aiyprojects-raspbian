@@ -19,7 +19,6 @@ import math
 import os
 import queue
 import signal
-import sys
 import threading
 import time
 
@@ -57,6 +56,7 @@ def average_joy_score(faces):
 
 
 class AtomicValue(object):
+
     def __init__(self, value):
         self._lock = threading.Lock()
         self._value = value
@@ -71,148 +71,181 @@ class AtomicValue(object):
         with self._lock:
             self._value = value
 
+
 class MovingAverage(object):
 
     def __init__(self, size):
         self._window = collections.deque(maxlen=size)
 
-    def add(self, value):
+    def next(self, value):
         self._window.append(value)
-
-    @property
-    def value(self):
         return sum(self._window) / len(self._window)
 
 
-class JoyDetector(object):
+class Service(object):
 
-    def __init__(self, num_frames, preview_alpha):
-        self._leds = Leds()
-        self._num_frames = num_frames
-        self._preview_alpha = preview_alpha
-        self._toneplayer = TonePlayer(22, bpm=10)
-        self._detector = threading.Thread(target=self._run_detector)
-        self._animator = threading.Thread(target=self._run_animator)
-        self._photographer = threading.Thread(target=self._run_photographer)
+    def __init__(self):
         self._requests = queue.Queue()
-        self._joy_score = AtomicValue(0.0)
-        self._run_event = threading.Event()
-        signal.signal(signal.SIGINT, lambda signal, frame: self.stop())
-        signal.signal(signal.SIGTERM, lambda signal, frame: self.stop())
+        self._thread = threading.Thread(target=self._run)
+        self._thread.start()
 
-    def start(self):
-        print('Starting JoyDetector...')
-        self._run_event.set()
-        self._animator.start()
-        self._detector.start()
-        self._photographer.start()
+    def _run(self):
+        while True:
+            request = self._requests.get()
+            if request is None:
+                break
+            self.process(request)
+            self._requests.task_done()
 
     def join(self):
-        self._detector.join()
-        self._animator.join()
-        self._photographer.join()
+        self._thread.join()
 
     def stop(self):
-        print('Stopping JoyDetector...')
-        self._run_event.clear()
         self._requests.put(None)
 
-    def _play_sound(self, sound):
-        threading.Thread(target=self._toneplayer.play, args=(*sound,)).start()
+    def process(self, request):
+        pass
+
+    def submit(self, request):
+        self._requests.put(request)
 
 
-    def _run_animator(self):
-        prev_joy_score = -1.0
-        while self._run_event.is_set():
+class Player(Service):
+    """Controls buzzer."""
+
+    def __init__(self, gpio, bpm):
+        super().__init__()
+        self._toneplayer = TonePlayer(gpio, bpm)
+
+    def process(self, sound):
+        self._toneplayer.play(*sound)
+
+    def play(self, sound):
+        self.submit(sound)
+
+
+class Photographer(Service):
+    """Saves photographs to disk."""
+
+    def __init__(self):
+        super().__init__()
+
+    def process(self, request):
+        camera, faces = request
+        filename = os.path.expanduser(
+            '~/Pictures/photo_%s.jpg' % time.strftime('%Y-%m-%d@%H.%M.%S'))
+        print(filename)
+        camera.capture(filename, use_video_port=True)
+        # TODO(dkovalev): Generate and save overlay image with faces.
+
+    def shoot(self, camera, faces):
+        self.submit((camera, faces))
+
+
+class Animator(object):
+    """Controls RGB LEDs."""
+
+    def __init__(self, leds, done):
+        self._leds = leds
+        self._done = done
+        self._joy_score = AtomicValue(0.0)
+        self._thread = threading.Thread(target=self._run)
+        self._thread.start()
+
+    def _run(self):
+        while not self._done.is_set():
             joy_score = self._joy_score.value
-
-            if joy_score > JOY_SCORE_PEAK > prev_joy_score:
-                self._play_sound(JOY_SOUND)
-            elif joy_score < JOY_SCORE_MIN < prev_joy_score:
-                self._play_sound(SAD_SOUND)
-
             if joy_score > 0:
                 self._leds.update(Leds.rgb_on(blend(JOY_COLOR, SAD_COLOR, joy_score)))
             else:
                 self._leds.update(Leds.rgb_off())
 
-            prev_joy_score = joy_score
+    def update_joy_score(self, value):
+        self._joy_score.value = value
 
-    def _run_photographer(self):
-        while True:
-            request = self._requests.get()
-            if request is None:
-                break
-
-            camera, faces = request
-            filename = os.path.expanduser(
-                '~/Pictures/photo_%s.jpg' % time.strftime('%Y-%m-%d@%H.%M.%S'))
-            print(filename)
-            camera.capture(filename, use_video_port=True)
-            # TODO(dkovalev): Generate and save overlay image with faces.
-            self._requests.task_done()
+    def join(self):
+        self._thread.join()
 
 
-    def _run_detector(self):
-        with PiCamera() as camera, PrivacyLed(self._leds):
-            detected_faces = AtomicValue([])
+class JoyDetector(object):
 
-            def take_photo():
-                self._requests.put((camera, detected_faces.value))
+    def __init__(self):
+        self._done = threading.Event()
+        signal.signal(signal.SIGINT, lambda signal, frame: self.stop())
+        signal.signal(signal.SIGTERM, lambda signal, frame: self.stop())
 
+    def stop(self):
+        print('Stopping JoyDetector...')
+        self._done.set()
+
+    def run(self, num_frames, preview_alpha):
+        print('Starting JoyDetector...')
+        leds = Leds()
+        player = Player(gpio=22, bpm=10)
+        photographer = Photographer()
+        animator = Animator(leds, self._done)
+
+        try:
             # Forced sensor mode, 1640x1232, full FoV. See:
             # https://picamera.readthedocs.io/en/release-1.13/fov.html#sensor-modes
             # This is the resolution inference run on.
-            camera.sensor_mode = 4
-            camera.resolution = (1640, 1232)
-            camera.framerate = 15
-            # Blend the preview layer with the alpha value from the flags.
-            camera.start_preview(alpha=self._preview_alpha)
+            with PiCamera(sensor_mode=4, resolution=(1640, 1232)) as camera, PrivacyLed(leds):
+                detected_faces = AtomicValue([])
+                def take_photo():
+                    photographer.shoot(camera, detected_faces.value)
 
-            button = Button(23)
-            button.when_pressed = take_photo
+                # Blend the preview layer with the alpha value from the flags.
+                camera.start_preview(alpha=preview_alpha)
 
-            joy_score_moving_average = MovingAverage(WINDOW_SIZE)
-            with CameraInference(face_detection.model()) as inference:
-                self._play_sound(MODEL_LOAD_SOUND)
-                for i, result in enumerate(inference.run()):
-                    faces = face_detection.get_faces(result)
-                    detected_faces.value = faces
-                    joy_score_moving_average.add(average_joy_score(faces))
-                    self._joy_score.value = joy_score_moving_average.value
-                    if self._num_frames == i or not self._run_event.is_set():
-                        break
+                button = Button(23)
+                button.when_pressed = take_photo
+
+                joy_score_moving_average = MovingAverage(WINDOW_SIZE)
+                prev_joy_score = 0.0
+                with CameraInference(face_detection.model()) as inference:
+                    player.play(MODEL_LOAD_SOUND)
+                    for i, result in enumerate(inference.run()):
+                        faces = face_detection.get_faces(result)
+                        detected_faces.value = faces
+
+                        joy_score = joy_score_moving_average.next(average_joy_score(faces))
+                        animator.update_joy_score(joy_score)
+
+                        if joy_score > JOY_SCORE_PEAK > prev_joy_score:
+                            player.play(JOY_SOUND)
+                        elif joy_score < JOY_SCORE_MIN < prev_joy_score:
+                            player.play(SAD_SOUND)
+
+                        prev_joy_score = joy_score
+
+                        if self._done.is_set() or i == num_frames:
+                            break
+        finally:
+            player.stop()
+            photographer.stop()
+
+            player.join()
+            photographer.join()
+            animator.join()
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--num_frames',
-        '-n',
-        type=int,
-        dest='num_frames',
-        default=-1,
+    parser.add_argument('--num_frames', '-n', type=int, dest='num_frames', default=-1,
         help='Sets the number of frames to run for. '
         'Setting this parameter to -1 will '
         'cause the demo to not automatically terminate.')
-    parser.add_argument(
-        '--preview_alpha',
-        '-pa',
-        type=int,
-        dest='preview_alpha',
-        default=0,
+    parser.add_argument('--preview_alpha', '-pa', type=int, dest='preview_alpha', default=0,
         help='Sets the transparency value of the preview overlay (0-255).')
     args = parser.parse_args()
 
     device = get_aiy_device_name()
     if not device or not 'Vision' in device:
         print('Do you have an AIY Vision bonnet installed? Exiting.')
-        sys.exit(0)
+        return
 
-    detector = JoyDetector(args.num_frames, args.preview_alpha)
-    detector.start()
-    detector.join()
-
+    detector = JoyDetector()
+    detector.run(args.num_frames, args.preview_alpha)
 
 if __name__ == '__main__':
     main()
