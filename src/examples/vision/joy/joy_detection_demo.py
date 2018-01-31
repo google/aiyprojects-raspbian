@@ -15,6 +15,7 @@
 """Joy detection demo."""
 import argparse
 import collections
+import io
 import math
 import os
 import queue
@@ -32,15 +33,18 @@ from aiy.vision.models import face_detection
 from gpiozero import Button
 from picamera import PiCamera
 
+from PIL import Image
+from PIL import ImageDraw
+
 JOY_COLOR = (255, 70, 0)
 SAD_COLOR = (0, 0, 64)
 
 JOY_SCORE_PEAK = 0.85
 JOY_SCORE_MIN = 0.1
 
-JOY_SOUND = ['C5q', 'E5q', 'C6q']
-SAD_SOUND = ['C6q', 'E5q', 'C5q']
-MODEL_LOAD_SOUND = ['C6w', 'c6w', 'C6w']
+JOY_SOUND = ('C5q', 'E5q', 'C6q')
+SAD_SOUND = ('C6q', 'E5q', 'C5q')
+MODEL_LOAD_SOUND = ('C6w', 'c6w', 'C6w')
 
 WINDOW_SIZE = 10
 
@@ -54,6 +58,11 @@ def average_joy_score(faces):
         return sum([face.joy_score for face in faces]) / len(faces)
     return 0.0
 
+def draw_faces(image, faces):
+    draw = ImageDraw.Draw(image)
+    for face in faces:
+        x, y, width, height = face.bounding_box
+        draw.rectangle((x, y, x + width, y + height), outline='red')
 
 class AtomicValue(object):
 
@@ -127,19 +136,42 @@ class Player(Service):
 class Photographer(Service):
     """Saves photographs to disk."""
 
-    def __init__(self):
+    def __init__(self, format):
         super().__init__()
+        assert format in ('jpeg', 'bmp', 'png')
 
-    def process(self, request):
-        camera, faces = request
-        filename = os.path.expanduser(
-            '~/Pictures/photo_%s.jpg' % time.strftime('%Y-%m-%d@%H.%M.%S'))
+        self._faces = AtomicValue(())
+        self._format = format
+
+    def process(self, camera):
+        faces = self._faces.value
+        timestamp = time.strftime('%Y-%m-%d_%H.%M.%S')
+        # TODO(dkovalev): Use logging module instead of print.
+        print('Taking photo: %s' % timestamp)
+
+        stream = io.BytesIO()
+        camera.capture(stream, format=self._format, use_video_port=True)
+
+        # Save original image.
+        stream.seek(0)
+        filename = os.path.expanduser('~/Pictures/%s.%s' % (timestamp, self._format))
         print(filename)
-        camera.capture(filename, use_video_port=True)
-        # TODO(dkovalev): Generate and save overlay image with faces.
+        with open(filename,'wb') as f:
+            f.write(stream.read())
 
-    def shoot(self, camera, faces):
-        self.submit((camera, faces))
+        # Save annotated image.
+        stream.seek(0)
+        image = Image.open(stream)
+        draw_faces(image, faces)
+        filename = os.path.expanduser('~/Pictures/%s_annotated.%s' % (timestamp, self._format))
+        print(filename)
+        image.save(filename)
+
+    def update_faces(self, faces):
+        self._faces.value = faces
+
+    def shoot(self, camera):
+        self.submit(camera)
 
 
 class Animator(object):
@@ -178,11 +210,11 @@ class JoyDetector(object):
         print('Stopping JoyDetector...')
         self._done.set()
 
-    def run(self, num_frames, preview_alpha):
+    def run(self, num_frames, preview_alpha, image_format):
         print('Starting JoyDetector...')
         leds = Leds()
         player = Player(gpio=22, bpm=10)
-        photographer = Photographer()
+        photographer = Photographer(image_format)
         animator = Animator(leds, self._done)
 
         try:
@@ -190,9 +222,8 @@ class JoyDetector(object):
             # https://picamera.readthedocs.io/en/release-1.13/fov.html#sensor-modes
             # This is the resolution inference run on.
             with PiCamera(sensor_mode=4, resolution=(1640, 1232)) as camera, PrivacyLed(leds):
-                detected_faces = AtomicValue([])
                 def take_photo():
-                    photographer.shoot(camera, detected_faces.value)
+                    photographer.shoot(camera)
 
                 # Blend the preview layer with the alpha value from the flags.
                 camera.start_preview(alpha=preview_alpha)
@@ -206,7 +237,7 @@ class JoyDetector(object):
                     player.play(MODEL_LOAD_SOUND)
                     for i, result in enumerate(inference.run()):
                         faces = face_detection.get_faces(result)
-                        detected_faces.value = faces
+                        photographer.update_faces(faces)
 
                         joy_score = joy_score_moving_average.next(average_joy_score(faces))
                         animator.update_joy_score(joy_score)
@@ -232,12 +263,15 @@ class JoyDetector(object):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_frames', '-n', type=int, dest='num_frames', default=-1,
-        help='Sets the number of frames to run for. '
-        'Setting this parameter to -1 will '
-        'cause the demo to not automatically terminate.')
+        help='Number of frames to run for, -1 to not terminate')
     parser.add_argument('--preview_alpha', '-pa', type=int, dest='preview_alpha', default=0,
-        help='Sets the transparency value of the preview overlay (0-255).')
+        help='Transparency value of the preview overlay (0-255).')
+    parser.add_argument('--image_format', '-if', type=str, dest='image_format', default='jpeg',
+        choices=('jpeg', 'bmp', 'png'), help='Format of captured images.')
     args = parser.parse_args()
+
+    if args.preview_alpha < 0 or args.preview_alpha > 255:
+        parser.error('Invalid preview_alpha value: %d' % args.preview_alpha)
 
     device = get_aiy_device_name()
     if not device or not 'Vision' in device:
@@ -245,7 +279,7 @@ def main():
         return
 
     detector = JoyDetector()
-    detector.run(args.num_frames, args.preview_alpha)
+    detector.run(args.num_frames, args.preview_alpha, args.image_format)
 
 if __name__ == '__main__':
     main()
