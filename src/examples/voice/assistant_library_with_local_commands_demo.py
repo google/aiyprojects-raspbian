@@ -78,7 +78,9 @@ def process_event(assistant, event):
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
 
-    elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
+    elif (event.type == EventType.ON_CONVERSATION_TURN_FINISHED
+          or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
+          or event.type == EventType.ON_NO_RESPONSE):
         status_ui.status('ready')
 
     elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
