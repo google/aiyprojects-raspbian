@@ -313,7 +313,7 @@ class InferenceEngine(object):
             request.image_inference.tensor.shape.depth = 1
             request.image_inference.tensor.data = _tobytes(image)
         else:
-            assert False, 'Only RGB and L modes are supported.'
+            raise InferenceException('Unsupported image format: %s. Must be L or RGB.' % image.mode)
 
         for key, value in (params or {}).items():
             request.image_inference.params[key] = str(value)
