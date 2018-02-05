@@ -86,6 +86,7 @@ class CameraInference(object):
     def close(self):
         self._engine.stop_camera_inference()
         self._engine.unload_model(self._key)
+        self._engine.close()
 
     def __enter__(self):
         return self
@@ -106,6 +107,7 @@ class ImageInference(object):
 
     def close(self):
         self._engine.unload_model(self._key)
+        self._engine.close()
 
     def __enter__(self):
         return self
