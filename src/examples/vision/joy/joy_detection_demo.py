@@ -16,6 +16,7 @@
 import argparse
 import collections
 import io
+import logging
 import math
 import os
 import queue
@@ -30,23 +31,38 @@ from aiy.vision.leds import Leds
 from aiy.vision.leds import PrivacyLed
 from aiy.vision.models import face_detection
 
+from contextlib import contextmanager
 from gpiozero import Button
 from picamera import PiCamera
 
 from PIL import Image
 from PIL import ImageDraw
+from PIL import ImageFont
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 JOY_COLOR = (255, 70, 0)
 SAD_COLOR = (0, 0, 64)
 
 JOY_SCORE_PEAK = 0.85
-JOY_SCORE_MIN = 0.1
+JOY_SCORE_MIN = 0.10
 
 JOY_SOUND = ('C5q', 'E5q', 'C6q')
 SAD_SOUND = ('C6q', 'E5q', 'C5q')
 MODEL_LOAD_SOUND = ('C6w', 'c6w', 'C6w')
+BEEP_SOUND = ('C6w', 'c6w', 'C6w')
 
-WINDOW_SIZE = 10
+
+@contextmanager
+def stopwatch(message):
+    try:
+        logger.info('%s...', message)
+        begin = time.time()
+        yield
+    finally:
+        end = time.time()
+        logger.info('%s done. (%fs)', message, end - begin)
 
 
 def blend(color_a, color_b, alpha):
@@ -58,11 +74,11 @@ def average_joy_score(faces):
         return sum([face.joy_score for face in faces]) / len(faces)
     return 0.0
 
-def draw_faces(image, faces):
-    draw = ImageDraw.Draw(image)
-    for face in faces:
-        x, y, width, height = face.bounding_box
-        draw.rectangle((x, y, x + width, y + height), outline='red')
+
+def draw_rectangle(draw, x0, y0, x1, y1, border, fill=None, outline=None):
+    assert border % 2 == 1
+    for i in range(-border // 2, border // 2 + 1):
+        draw.rectangle((x0 + i, y0 + i, x1 - i, y1 - i), fill=fill, outline=outline)
 
 class AtomicValue(object):
 
@@ -136,36 +152,45 @@ class Player(Service):
 class Photographer(Service):
     """Saves photographs to disk."""
 
-    def __init__(self, format):
+    def __init__(self, format, folder):
         super().__init__()
         assert format in ('jpeg', 'bmp', 'png')
 
+        self._font = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', size=40)
         self._faces = AtomicValue(())
         self._format = format
+        self._folder = folder
+
+    def _make_filename(self, timestamp, annotated):
+        path = '%s/%s_annotated.%s' if annotated else '%s/%s.%s'
+        return os.path.expanduser(path % (self._folder, timestamp, self._format))
 
     def process(self, camera):
         faces = self._faces.value
         timestamp = time.strftime('%Y-%m-%d_%H.%M.%S')
-        # TODO(dkovalev): Use logging module instead of print.
-        print('Taking photo: %s' % timestamp)
 
         stream = io.BytesIO()
-        camera.capture(stream, format=self._format, use_video_port=True)
+        with stopwatch('Taking photo'):
+            camera.capture(stream, format=self._format, use_video_port=True)
 
-        # Save original image.
-        stream.seek(0)
-        filename = os.path.expanduser('~/Pictures/%s.%s' % (timestamp, self._format))
-        print(filename)
-        with open(filename,'wb') as f:
-            f.write(stream.read())
+        filename = self._make_filename(timestamp, annotated=False)
+        with stopwatch('Saving original %s' % filename):
+            stream.seek(0)
+            with open(filename, 'wb') as file:
+                file.write(stream.read())
 
-        # Save annotated image.
-        stream.seek(0)
-        image = Image.open(stream)
-        draw_faces(image, faces)
-        filename = os.path.expanduser('~/Pictures/%s_annotated.%s' % (timestamp, self._format))
-        print(filename)
-        image.save(filename)
+        if faces:
+            filename = self._make_filename(timestamp, annotated=True)
+            with stopwatch('Saving annotated %s' % filename):
+                stream.seek(0)
+                image = Image.open(stream)
+                draw = ImageDraw.Draw(image)
+                for face in faces:
+                    x, y, width, height = face.bounding_box
+                    draw_rectangle(draw, x, y, x + width, y + height, 5, outline='red')
+                    draw.text((x + 5, y), 'joy=%.2f' % face.joy_score, font=self._font, fill='red')
+                del draw
+                image.save(filename)
 
     def update_faces(self, faces):
         self._faces.value = faces
@@ -207,14 +232,14 @@ class JoyDetector(object):
         signal.signal(signal.SIGTERM, lambda signal, frame: self.stop())
 
     def stop(self):
-        print('Stopping JoyDetector...')
+        logger.info('Stopping...')
         self._done.set()
 
-    def run(self, num_frames, preview_alpha, image_format):
-        print('Starting JoyDetector...')
+    def run(self, num_frames, preview_alpha, image_format, image_folder):
+        logger.info('Starting...')
         leds = Leds()
         player = Player(gpio=22, bpm=10)
-        photographer = Photographer(image_format)
+        photographer = Photographer(image_format, image_folder)
         animator = Animator(leds, self._done)
 
         try:
@@ -223,6 +248,8 @@ class JoyDetector(object):
             # This is the resolution inference run on.
             with PiCamera(sensor_mode=4, resolution=(1640, 1232)) as camera, PrivacyLed(leds):
                 def take_photo():
+                    logger.info('Button pressed.')
+                    player.play(BEEP_SOUND)
                     photographer.shoot(camera)
 
                 # Blend the preview layer with the alpha value from the flags.
@@ -231,9 +258,10 @@ class JoyDetector(object):
                 button = Button(23)
                 button.when_pressed = take_photo
 
-                joy_score_moving_average = MovingAverage(WINDOW_SIZE)
+                joy_score_moving_average = MovingAverage(10)
                 prev_joy_score = 0.0
                 with CameraInference(face_detection.model()) as inference:
+                    logger.info('Model loaded.')
                     player.play(MODEL_LOAD_SOUND)
                     for i, result in enumerate(inference.run()):
                         faces = face_detection.get_faces(result)
@@ -266,8 +294,10 @@ def main():
         help='Number of frames to run for, -1 to not terminate')
     parser.add_argument('--preview_alpha', '-pa', type=int, dest='preview_alpha', default=0,
         help='Transparency value of the preview overlay (0-255).')
-    parser.add_argument('--image_format', '-if', type=str, dest='image_format', default='jpeg',
+    parser.add_argument('--image_format', type=str, dest='image_format', default='jpeg',
         choices=('jpeg', 'bmp', 'png'), help='Format of captured images.')
+    parser.add_argument('--image_folder', type=str, dest='image_folder', default='~/Pictures',
+        help='Folder to save captured images.')
     args = parser.parse_args()
 
     if args.preview_alpha < 0 or args.preview_alpha > 255:
@@ -275,11 +305,11 @@ def main():
 
     device = get_aiy_device_name()
     if not device or not 'Vision' in device:
-        print('Do you have an AIY Vision bonnet installed? Exiting.')
+        logger.error('AIY VisionBonnet is not detected.')
         return
 
     detector = JoyDetector()
-    detector.run(args.num_frames, args.preview_alpha, args.image_format)
+    detector.run(args.num_frames, args.preview_alpha, args.image_format, args.image_folder)
 
 if __name__ == '__main__':
     main()
