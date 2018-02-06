@@ -26,14 +26,7 @@ from aiy._drivers._transport import make_transport
 from aiy.vision.proto import protocol_pb2
 
 
-_SUPPORTED_FIRMWARE_VERSION = (1, 0)
-
-
-def _tobytes(img):
-    try:
-        return img.tobytes()
-    except AttributeError:
-        return img.tostring()
+_SUPPORTED_FIRMWARE_VERSION = (1, 0)  # major, minor
 
 
 class FirmwareVersionException(Exception):
@@ -43,29 +36,28 @@ class FirmwareVersionException(Exception):
 
 
 def _check_firmware_info(info):
-    major, minor = info
-    fw_version = '.'.join(map(str,info))
-    supported_version = '.'.join(map(str,_SUPPORTED_FIRMWARE_VERSION))
-    if major > _SUPPORTED_FIRMWARE_VERSION[0]:
+    firmware_version = '%d.%d' % info
+    supported_version = '%d.%d' % _SUPPORTED_FIRMWARE_VERSION
+    if info[0] > _SUPPORTED_FIRMWARE_VERSION[0]:
         raise FirmwareVersionException(
             'AIY library supports firmware version %s, current firmware '
             'version is %s. You should upgrade AIY library.' %
-            (supported_version, fw_version))
-    if major < _SUPPORTED_FIRMWARE_VERSION[0]:
+            (supported_version, firmware_version))
+    if info[0] < _SUPPORTED_FIRMWARE_VERSION[0]:
         raise FirmwareVersionException(
             'AIY library supports firmware version %s, current firmware '
             'version is %s. You should upgrade firmware.' %
-            (supported_version, fw_version))
-    if minor > _SUPPORTED_FIRMWARE_VERSION[1]:
+            (supported_version, firmware_version))
+    if info[1] > _SUPPORTED_FIRMWARE_VERSION[1]:
         logging.warn(
             'AIY library supports firmware version %s, current firmware '
             'version is %s. Consider upgrading AIY library.',
-            supported_version, fw_version)
-    if minor < _SUPPORTED_FIRMWARE_VERSION[1]:
+            supported_version, firmware_version)
+    if info[1] < _SUPPORTED_FIRMWARE_VERSION[1]:
         logging.warn(
             'AIY library supports firmware version %s, current firmware '
             'version is %s. Consider upgrading firmware.',
-            supported_version, fw_version)
+            supported_version, firmware_version)
 
 
 class CameraInference(object):
@@ -211,9 +203,12 @@ class InferenceEngine(object):
         logging.info('Loading model "%s"...', descriptor.name)
 
         batch, height, width, depth = descriptor.input_shape
-        assert batch == 1, 'Only batch == 1 is currently supported'
-        assert depth == 3, 'Only depth == 3 is currently supported'
         mean, stddev = descriptor.input_normalizer
+        if batch != 1:
+            raise ValueError('Unsupported batch value: %d. Must be 1.')
+
+        if depth != 3:
+            raise ValueError('Unsupported depth value: %d. Must be 3.')
 
         request = protocol_pb2.Request()
         request.load_model.model_name = descriptor.name
@@ -294,8 +289,8 @@ class InferenceEngine(object):
         Returns:
           protocol_pb2.Response
         """
-
-        assert model_name, 'model_name must not be empty'
+        if not model_name:
+            raise ValueError('Model name must not be empty.')
 
         logging.info('Image inference with model "%s"...', model_name)
 
@@ -309,11 +304,10 @@ class InferenceEngine(object):
         if image.mode == 'RGB':
             r, g, b = image.split()
             request.image_inference.tensor.shape.depth = 3
-            request.image_inference.tensor.data = _tobytes(r) + _tobytes(
-                g) + _tobytes(b)
+            request.image_inference.tensor.data = r.tobytes() + g.tobytes() + b.tobytes()
         elif image.mode == 'L':
             request.image_inference.tensor.shape.depth = 1
-            request.image_inference.tensor.data = _tobytes(image)
+            request.image_inference.tensor.data = image.tobytes()
         else:
             raise InferenceException('Unsupported image format: %s. Must be L or RGB.' % image.mode)
 
