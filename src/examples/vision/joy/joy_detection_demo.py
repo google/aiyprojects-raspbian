@@ -51,7 +51,7 @@ JOY_SCORE_MIN = 0.10
 JOY_SOUND = ('C5q', 'E5q', 'C6q')
 SAD_SOUND = ('C6q', 'E5q', 'C5q')
 MODEL_LOAD_SOUND = ('C6w', 'c6w', 'C6w')
-BEEP_SOUND = ('C6w', 'c6w', 'C6w')
+BEEP_SOUND = ('E6q', 'C6q')
 
 
 @contextmanager
