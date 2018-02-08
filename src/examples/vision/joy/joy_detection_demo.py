@@ -156,7 +156,7 @@ class Photographer(Service):
         super().__init__()
         assert format in ('jpeg', 'bmp', 'png')
 
-        self._font = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', size=40)
+        self._font = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', size=25)
         self._faces = AtomicValue(())
         self._format = format
         self._folder = folder
@@ -164,6 +164,17 @@ class Photographer(Service):
     def _make_filename(self, timestamp, annotated):
         path = '%s/%s_annotated.%s' if annotated else '%s/%s.%s'
         return os.path.expanduser(path % (self._folder, timestamp, self._format))
+
+    def _draw_face(self, draw, face):
+        x, y, width, height = face.bounding_box
+        text = 'Joy: %.2f' % face.joy_score
+        _, text_height = self._font.getsize(text)
+        margin = 3
+        bottom = y + height
+        text_bottom = bottom + margin + text_height + margin
+        draw_rectangle(draw, x, y, x + width, bottom, 3, outline='white')
+        draw_rectangle(draw, x, bottom, x + width, text_bottom, 3, fill='white', outline='white')
+        draw.text((x + 1 + margin, y + height + 1 + margin), text, font=self._font, fill='black')
 
     def process(self, camera):
         faces = self._faces.value
@@ -186,9 +197,7 @@ class Photographer(Service):
                 image = Image.open(stream)
                 draw = ImageDraw.Draw(image)
                 for face in faces:
-                    x, y, width, height = face.bounding_box
-                    draw_rectangle(draw, x, y, x + width, y + height, 5, outline='red')
-                    draw.text((x + 5, y), 'joy=%.2f' % face.joy_score, font=self._font, fill='red')
+                    self._draw_face(draw, face)
                 del draw
                 image.save(filename)
 
