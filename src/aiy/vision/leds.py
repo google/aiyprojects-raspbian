@@ -133,19 +133,22 @@ class Leds(object):
     @pattern.setter
     def pattern(self, value):
         self._pattern = value
-
-        _write(_device_file('tflash'), _tflash_reg(value.period_ms))
-        _write(_device_file('pwm1'), _pwm1_reg(value.on_percent))
-        _write(_device_file('trise'), _trise_tfall_reg(value.rise_ms))
-        _write(_device_file('tfall'), _trise_tfall_reg(value.fall_ms))
+        command = 'tflash=%d;pwm1=%d;trise=%d;tfall=%d;' % (
+            _tflash_reg(value.period_ms),
+            _pwm1_reg(value.on_percent),
+            _trise_tfall_reg(value.rise_ms),
+            _trise_tfall_reg(value.fall_ms))
+        _write(_device_file('registers'), command)
 
     def update(self, channels):
+        command = ''
         for index, channel in channels.items():
             if channel.brightness is not None:
-                _write(_device_file('led%d' % index), channel.brightness)
-
+                command += 'led%d=%d;' % (index, channel.brightness)
             if channel.state is not None:
-                _write(_device_file('ch%d_enable' % index), channel.state)
+                command += 'ch%d_enable=%d;' % (index, channel.state)
+        if command:
+            _write(_device_file('registers'), command)
 
 
 class PrivacyLed(object):
