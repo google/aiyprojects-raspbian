@@ -25,13 +25,8 @@ then
     exec sudo -u $RUN_AS $0
 fi
 
-sudo apt-get -y install alsa-utils python3-all-dev python3-pip python3-numpy \
-  python3-rpi.gpio python3-pysocks virtualenv rsync libttspico-utils ntpdate
-sudo pip3 install --upgrade pip virtualenv
-
 cd "${scripts_dir}/.."
 virtualenv --system-site-packages -p python3 env
-env/bin/pip install -r requirements.txt
 echo "/home/pi/AIY-projects-python/src" > \
   /home/pi/AIY-projects-python/env/lib/python3.5/site-packages/aiy.pth
 
