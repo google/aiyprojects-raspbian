@@ -39,7 +39,7 @@ After your Pi has rebooted with the driver enabled, run:
 ```
 cd ~/AIY-projects-python
 sudo scripts/install-alsa-config.sh
-python3 checkpoints/check_audio.py
+sudo env/bin/python checkpoints/check_audio.py
 sudo reboot
 ```
 
