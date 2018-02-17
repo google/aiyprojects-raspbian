@@ -70,7 +70,12 @@ class LED:
             if self.running:
                 self.running = False
 
-        self.animator.join()
+        try:
+            self.animator.join()
+        except RuntimeError:
+            # Edge case where this is stopped before it starts.
+            pass
+
         self.pwm.stop()
 
     def set_state(self, state):
