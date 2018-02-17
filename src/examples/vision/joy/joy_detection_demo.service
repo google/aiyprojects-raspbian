@@ -4,7 +4,8 @@ Description=AIY Joy Detection Demo
 [Service]
 Type=simple
 Restart=no
-ExecStart=/home/pi/AIY-projects-python/env/bin/python /home/pi/AIY-projects-python/src/examples/vision/joy/joy_detection_demo.py
+User=pi
+ExecStart=/usr/bin/python3 /home/pi/AIY-projects-python/src/examples/vision/joy/joy_detection_demo.py
 
 [Install]
 WantedBy=multi-user.target
