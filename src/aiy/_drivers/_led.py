@@ -69,8 +69,9 @@ class LED:
         with self.lock:  # pylint: disable=E1129
             if self.running:
                 self.running = False
-                self.animator.join()
-                self.pwm.stop()
+
+        self.animator.join()
+        self.pwm.stop()
 
     def set_state(self, state):
         """Set the LED driver's new state.
