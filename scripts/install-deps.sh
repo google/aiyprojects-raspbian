@@ -25,12 +25,7 @@ then
     exec sudo -u $RUN_AS $0
 fi
 
-cd "${scripts_dir}/.."
-virtualenv --system-site-packages -p python3 env
-echo "/home/pi/AIY-projects-python/src" > \
-  /home/pi/AIY-projects-python/env/lib/python3.5/site-packages/aiy.pth
-
 # The google-assistant-library is only available on some platforms.
-if [[ "$(uname -m)" == "armv7l" || "$(uname -m)" == "x86_64" ]] ; then
-  env/bin/pip install google-assistant-library==0.1.0
+if [[ "$(uname -m)" == "armv7l" || "$(uname -m)" == "x86_64" || "$(uname -m)" == "armv6l" ]] ; then
+  pip3 install google-assistant-library==0.1.0
 fi
