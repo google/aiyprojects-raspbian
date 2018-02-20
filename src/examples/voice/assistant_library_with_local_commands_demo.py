@@ -22,6 +22,7 @@ It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 """
 
 import logging
+import platform
 import subprocess
 import sys
 
@@ -88,6 +89,10 @@ def process_event(assistant, event):
 
 
 def main():
+    if platform.machine() == 'armv6l':
+        print('Cannot run hotword demo on Pi Zero!')
+        exit(-1)
+
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
     with Assistant(credentials) as assistant:
         for event in assistant.start():
