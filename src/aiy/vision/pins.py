@@ -7,6 +7,7 @@ support the pins routed through the hat. Should not disrupt usage of other pins.
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+import os
 from collections import namedtuple
 from copy import deepcopy
 from os import listdir
@@ -37,9 +38,34 @@ def _detect_gpio_offset(module_path):
 
 _FsNodeSpec = namedtuple('_FsNodeSpec', ['pin', 'name'])
 
+VISIONBONNET_PRODUCT = r"AIY VisionBonnet"
+VOICEBONNET_PROUDCT = r"AIY VoiceBonnet"
+
+MCU_I2C_ADDRESS_DICT = {
+    VISIONBONNET_PRODUCT: 0x51,
+    VOICEBONNET_PROUDCT: 0x52
+}
+
+HAT_PRODUCT_NAME_PATH = "/sys/firmware/devicetree/base/hat/product"
+
+
+def _get_product_name():
+    if not os.path.exists(HAT_PRODUCT_NAME_PATH):
+        raise IOError('Hat not found.')
+    with open(HAT_PRODUCT_NAME_PATH, "r") as f:
+        hat_product_name = str(f.read()).strip("\x00").strip()
+    return hat_product_name
+
+
+def _get_i2c_address():
+    mcu_i2c_address = MCU_I2C_ADDRESS_DICT.get(_get_product_name())
+    if mcu_i2c_address is None:
+        raise ValueError('I2C address undetermined.')
+    return mcu_i2c_address
+
 
 class GpioSpec(_FsNodeSpec):
-    _MODULE_PATH = '/sys/bus/i2c/drivers/aiy-io-i2c/1-0051/gpio-aiy-io/gpio'
+    _MODULE_PATH = '/sys/bus/i2c/drivers/aiy-io-i2c/1-00%2X/gpio-aiy-io/gpio' % _get_i2c_address()
     _PIN_OFFSET = _detect_gpio_offset(_MODULE_PATH)
 
     def __new__(cls, pin, name):
@@ -286,7 +312,8 @@ class SysFsPwmPin(SysFsPin):
 
     def set_function(self, function):
         if function != 'pwm' and function != 'output':
-            raise ValueError('PWM pins only support pwm and output functionality')
+            raise ValueError(
+                'PWM pins only support pwm and output functionality')
         self._state.function = function
 
     def get_function(self):
@@ -548,14 +575,16 @@ class HatPin(Pin):
 
     def _set_pull(self, pull):
         if pull != 'up':
-            raise PinFixedPull('Only pull up is supported right now (%s)' % pull)
+            raise PinFixedPull(
+                'Only pull up is supported right now (%s)' % pull)
 
     def _get_pull(self):
         return 'up'
 
     def _set_edges(self, edges):
         if edges not in HatPin._EDGE_DETECTORS.keys():
-            raise PinInvalidEdges('Edge must be "both", "falling", "rising", or None')
+            raise PinInvalidEdges(
+                'Edge must be "both", "falling", "rising", or None')
         self._poller.detector = HatPin._EDGE_DETECTORS[edges]
         self._edges = edges
 
