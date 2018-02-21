@@ -3,5 +3,5 @@ Encoding=UTF-8
 Type=Application
 Name=Check Cloud
 Comment=Check that the Cloud Speech API can be used.
-Exec=/home/pi/AIY-projects-python/env/bin/python /home/pi/AIY-projects-python/checkpoints/check_cloud.py
+Exec=/home/pi/AIY-projects-python/checkpoints/check_cloud.py
 Terminal=true
