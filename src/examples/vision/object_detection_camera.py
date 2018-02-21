@@ -12,13 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Camera image classification demo code.
+"""Camera object detection demo code.
 
-Runs continuous image classification on the VisionBonnet and prints the object and
+Runs continuous object detection on the VisionBonnet and prints the object and
 probability for top three objects.
 
 Example:
-image_classification_camera.py --num_frames 10
+object_detection_camera.py --num_frames 10
 """
 import argparse
 
@@ -28,7 +28,7 @@ from picamera import PiCamera
 
 
 def main():
-    """Image classification camera inference example."""
+    """Object detection camera inference example."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--num_frames',
