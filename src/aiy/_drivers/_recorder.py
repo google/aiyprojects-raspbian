@@ -53,7 +53,7 @@ class Recorder(threading.Thread):
         """
 
         super().__init__(daemon=True)
-
+        self._record_event = threading.Event()
         self._processors = []
 
         self._chunk_bytes = int(self.CHUNK_S * sample_rate_hz) * channels * bytes_per_sample
@@ -85,6 +85,7 @@ class Recorder(threading.Thread):
 
         The added processor may be called multiple times with chunks of audio data.
         """
+        self._record_event.set()
         self._processors.append(processor)
 
     def remove_processor(self, processor):
@@ -93,11 +94,11 @@ class Recorder(threading.Thread):
             self._processors.remove(processor)
         except ValueError:
             logger.warn("processor was not found in the list")
+        self._record_event.clear()
 
     def run(self):
         """Reads data from arecord and passes to processors."""
 
-        self._arecord = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
         logger.info("started recording")
 
         # Check for race-condition when __exit__ is called at the same time as
@@ -107,8 +108,13 @@ class Recorder(threading.Thread):
             return
 
         this_chunk = b''
-
         while True:
+            if not self._record_event.is_set() and self._arecord:
+                self._arecord.kill()
+                self._arecord = None
+            self._record_event.wait()
+            if not self._arecord:
+                self._arecord = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
             input_data = self._arecord.stdout.read(self._chunk_bytes)
             if not input_data:
                 break
