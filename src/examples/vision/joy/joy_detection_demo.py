@@ -80,6 +80,7 @@ def draw_rectangle(draw, x0, y0, x1, y1, border, fill=None, outline=None):
     for i in range(-border // 2, border // 2 + 1):
         draw.rectangle((x0 + i, y0 + i, x1 - i, y1 - i), fill=fill, outline=outline)
 
+
 class AtomicValue(object):
 
     def __init__(self, value):
@@ -300,25 +301,26 @@ class JoyDetector(object):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_frames', '-n', type=int, dest='num_frames', default=-1,
-        help='Number of frames to run for, -1 to not terminate')
+                        help='Number of frames to run for, -1 to not terminate')
     parser.add_argument('--preview_alpha', '-pa', type=int, dest='preview_alpha', default=0,
-        help='Transparency value of the preview overlay (0-255).')
+                        help='Transparency value of the preview overlay (0-255).')
     parser.add_argument('--image_format', type=str, dest='image_format', default='jpeg',
-        choices=('jpeg', 'bmp', 'png'), help='Format of captured images.')
+                        choices=('jpeg', 'bmp', 'png'), help='Format of captured images.')
     parser.add_argument('--image_folder', type=str, dest='image_folder', default='~/Pictures',
-        help='Folder to save captured images.')
+                        help='Folder to save captured images.')
     args = parser.parse_args()
 
     if args.preview_alpha < 0 or args.preview_alpha > 255:
         parser.error('Invalid preview_alpha value: %d' % args.preview_alpha)
 
     device = get_aiy_device_name()
-    if not device or not 'Vision' in device:
+    if not device or 'Vision' not in device:
         logger.error('AIY VisionBonnet is not detected.')
         return
 
     detector = JoyDetector()
     detector.run(args.num_frames, args.preview_alpha, args.image_format, args.image_folder)
+
 
 if __name__ == '__main__':
     main()

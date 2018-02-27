@@ -28,8 +28,10 @@ PURPLE = (0xFF, 0x00, 0xFF)
 CYAN = (0x00, 0xFF, 0xFF)
 WHITE = (0xFF, 0xFF, 0xFF)
 
+
 def blend(color_a, color_b, alpha):
     return tuple([math.ceil(alpha * color_a[i] + (1.0 - alpha) * color_b[i]) for i in range(3)])
+
 
 leds = Leds()
 

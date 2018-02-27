@@ -30,7 +30,7 @@ _DEVICE_NAME = "Voice Kit"
 _DEVICE_TYPE = "action.devices.types.LIGHT"
 
 _DEVICE_ID_FILE = os.path.join(
-        aiy.assistant.auth_helpers._VR_CACHE_DIR, 'device_id.json')
+    aiy.assistant.auth_helpers._VR_CACHE_DIR, 'device_id.json')
 
 
 def _get_project_id():
@@ -41,7 +41,7 @@ def _get_project_id():
 
 def _get_api_url(*args):
     return "/".join(
-            ("https://embeddedassistant.googleapis.com/v1alpha2/projects",) + args)
+        ("https://embeddedassistant.googleapis.com/v1alpha2/projects",) + args)
 
 
 def _load_ids(id_path):
@@ -55,8 +55,8 @@ def _save_ids(id_path, model_id, device_id):
         os.makedirs(os.path.dirname(id_path))
 
     id_data = {
-            "model_id": model_id,
-            "device_id": device_id,
+        "model_id": model_id,
+        "device_id": device_id,
     }
     with open(id_path, 'w') as f:
         json.dump(id_data, f)
@@ -78,13 +78,13 @@ def register_model_id(credentials, model_id=None):
 
     model_id = model_id or "%s-%s" % (project_id, _DEVICE_MODEL)
     payload = {
-            "device_model_id": model_id,
-            "project_id": project_id,
-            "device_type": _DEVICE_TYPE,
-            "manifest": {
-                    "manufacturer": _DEVICE_MANUFACTURER,
-                    "product_name": _DEVICE_NAME,
-            },
+        "device_model_id": model_id,
+        "project_id": project_id,
+        "device_type": _DEVICE_TYPE,
+        "manifest": {
+            "manufacturer": _DEVICE_MANUFACTURER,
+            "product_name": _DEVICE_NAME,
+        },
     }
     r = session.get(_get_api_url(project_id, "deviceModels", model_id))
     if r.status_code == 404:
@@ -115,9 +115,9 @@ def register_device_id(credentials, model_id, device_id, client_type):
     session = google.auth.transport.requests.AuthorizedSession(credentials)
 
     payload = {
-            "id": device_id,
-            "model_id": model_id,
-            "client_type": client_type,
+        "id": device_id,
+        "model_id": model_id,
+        "client_type": client_type,
     }
     r = session.get(_get_api_url(project_id, "devices", device_id))
     if r.status_code == 404:

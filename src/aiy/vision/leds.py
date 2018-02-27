@@ -41,8 +41,10 @@ def _write(path, data):
 def _device_file(prop):
     return '/sys/class/leds/ktd202x:led1/device/%s' % prop
 
+
 class Pattern(object):
     """Class to define blinking pattern."""
+
     def __init__(self, period_ms, on_percent=0.5, rise_ms=0, fall_ms=0):
         if on_percent < 0 or on_percent > 0.996:
             raise ValueError('on_percent must be in the range [0..0.996]')
@@ -153,6 +155,7 @@ class Leds(object):
 
 class PrivacyLed(object):
     """Helper class to turn Privacy LED off automatically."""
+
     def __init__(self, leds, brightness=32):
         self._leds = leds
         self._brightness = brightness
@@ -163,8 +166,10 @@ class PrivacyLed(object):
     def __exit__(self, exc_type, exc_value, exc_tb):
         self._leds.update(Leds.privacy_off())
 
+
 class RgbLeds(object):
     """Helper class to turn RGB LEDs off automatically."""
+
     def __init__(self, leds, channels):
         self._leds = leds
         self._channels = channels

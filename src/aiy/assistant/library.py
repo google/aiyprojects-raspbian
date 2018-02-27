@@ -20,6 +20,7 @@ import google.assistant.library
 
 import aiy.assistant.device_helpers as device_helpers
 
+
 class Assistant(google.assistant.library.Assistant):
     """Client for the Google Assistant Library.
 
@@ -37,6 +38,6 @@ class Assistant(google.assistant.library.Assistant):
         events = super().start()
 
         device_helpers.register_device_id(
-                self._credentials, self._model_id, self.device_id, "SDK_LIBRARY")
+            self._credentials, self._model_id, self.device_id, "SDK_LIBRARY")
 
         return events
