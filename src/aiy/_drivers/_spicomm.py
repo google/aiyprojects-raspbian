@@ -25,7 +25,7 @@ SPICOMM_IOCTL_BASE = 0x8900
 SPICOMM_IOCTL_TRANSACT = 0xc0100000 + SPICOMM_IOCTL_BASE + 3
 
 HEADER_SIZE = 16
-PAYLOAD_SIZE = 12 * 1024 * 1024  # 12 M
+DEFAULT_PAYLOAD_SIZE = 12 * 1024 * 1024  # 12 M
 
 FLAG_ERROR = 1 << 0
 FLAG_TIMEOUT = 1 << 1
@@ -64,6 +64,13 @@ class SpicommInternalError(SpicommError):
     pass
 
 
+def _fill_buffer(buf, timeout, data):
+    buf[0:4] = struct.pack('I', 0)  # flags, not currently used.
+    buf[4:8] = struct.pack('I', int(timeout * 1000))  # timeout, ms.
+    buf[8:12] = struct.pack('I', len(buf))  # total buffer size.
+    buf[12:16] = struct.pack('I', len(data))  # filled range of buffer.
+    buf[16:16 + len(data)] = data
+
 class Spicomm(object):
     """VisionBonnet Spicomm wrapper.
 
@@ -80,7 +87,7 @@ class Spicomm(object):
             self._dev = open(SPICOMM_DEV, 'r+b', 0)
         except (IOError, OSError):
             raise SpicommDevNotFoundError
-        self._tbuf = bytearray(HEADER_SIZE + PAYLOAD_SIZE)
+        self._tbuf = bytearray(HEADER_SIZE + DEFAULT_PAYLOAD_SIZE)
 
     def __enter__(self):
         return self
@@ -111,28 +118,24 @@ class Spicomm(object):
           SpicommTimeoutError : Transaction timed out.
           SpicommInternalError: Unexpected error interacting with kernel driver.
         """
-
         payload_len = len(request)
-        if payload_len > PAYLOAD_SIZE:
-            raise SpicommOverflowError(PAYLOAD_SIZE)
+        if payload_len > DEFAULT_PAYLOAD_SIZE:
+            buf = bytearray(HEADER_SIZE + payload_len)
+        else:
+            buf = self._tbuf
 
-        # Fill in transaction buffer.
-        self._tbuf[0:4] = struct.pack('I', 0)  # flags, not currently used.
-        self._tbuf[4:8] = struct.pack('I', int(timeout * 1000))  # timeout, ms.
-        self._tbuf[8:12] = struct.pack('I', len(self._tbuf))  # total buffer size.
-        self._tbuf[12:16] = struct.pack('I', payload_len)  # filled range of buffer.
-        self._tbuf[16:16 + payload_len] = request
+        _fill_buffer(buf, timeout, request)
 
         try:
             # Send transaction to kernel driver.
-            fcntl.ioctl(self._dev, SPICOMM_IOCTL_TRANSACT, self._tbuf)
+            fcntl.ioctl(self._dev, SPICOMM_IOCTL_TRANSACT, buf)
 
-            # No exception means errno 0 and self._tbuf is now mutated.
-            _, _, _, payload_len = struct.unpack('IIII', self._tbuf[0:16])
-            return self._tbuf[16:16 + payload_len]
+            # No exception means errno 0 and buf is now mutated.
+            _, _, _, payload_len = struct.unpack('IIII', buf[0:16])
+            return buf[16:16 + payload_len]
         except (IOError, OSError):
             # FLAG_ERROR is set if we actually talked to the kernel.
-            flags, _, _, payload_len = struct.unpack('IIII', self._tbuf[0:16])
+            flags, _, _, payload_len = struct.unpack('IIII', buf[0:16])
             if flags & FLAG_ERROR:
                 if flags & FLAG_TIMEOUT:
                     raise SpicommTimeoutError
