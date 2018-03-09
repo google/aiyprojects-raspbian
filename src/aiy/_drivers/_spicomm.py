@@ -64,12 +64,16 @@ class SpicommInternalError(SpicommError):
     pass
 
 
-def _fill_buffer(buf, timeout, data):
+def _fill_buffer(buf, timeout_s, data):
     buf[0:4] = struct.pack('I', 0)  # flags, not currently used.
-    buf[4:8] = struct.pack('I', int(timeout * 1000))  # timeout, ms.
+    buf[4:8] = struct.pack('I', int(timeout_s * 1000))  # timeout, ms.
     buf[8:12] = struct.pack('I', len(buf))  # total buffer size.
     buf[12:16] = struct.pack('I', len(data))  # filled range of buffer.
     buf[16:16 + len(data)] = data
+
+def _get_timeout(payload_len):
+    """Conservatively assume min 5 seconds or 3 seconds per 1MB."""
+    return max(3 * payload_len / 1024 / 1024, 5)
 
 class Spicomm(object):
     """VisionBonnet Spicomm wrapper.
@@ -99,7 +103,7 @@ class Spicomm(object):
         if self._dev:
             self._dev.close()
 
-    def transact(self, request, timeout=15):
+    def transact(self, request, timeout=None):
         """Execute a Spicomm transaction.
 
         The bytes in request are sent, a response is waited for and returned.
@@ -124,7 +128,9 @@ class Spicomm(object):
         else:
             buf = self._tbuf
 
-        _fill_buffer(buf, timeout, request)
+        timeout_s = timeout if timeout else _get_timeout(payload_len)
+
+        _fill_buffer(buf, timeout_s, request)
 
         try:
             # Send transaction to kernel driver.
