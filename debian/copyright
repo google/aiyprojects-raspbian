@@ -1,0 +1,7 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: aiy-projects-python
+Source: https://aiyprojects.withgoogle.com
+
+Files: *
+Copyright: Copyright 2017 Google, LLC <support-aiyprojects@google.com>
+License: Apache-2.0

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+
+pip3 install --no-deps -e /opt/aiy/projects-python/src
+chown -R pi:pi /opt/aiy/projects-python
