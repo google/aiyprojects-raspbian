@@ -1,4 +1,50 @@
-aiy-projects-python (0.1-0) UNRELEASED; urgency=medium
+aiy-projects-python (0.1-1~1.gbp38480e) UNRELEASED; urgency=medium
+
+  ** SNAPSHOT build @38480edc035be0359cc6e9273cc384eaf80b2240 **
+
+  [ Dmitry Kovalev ]
+  * Run Joy Demo under pi user by default.
+
+  [ Aaron Loo ]
+  * handling edge case where stop is called before start
+
+  [ Weiran Zhao ]
+  * Rename object_detection_camera.py to image_classification_camera.py
+
+  [ Peter Malkin ]
+  * Use pip3 system wide, install google-assistant-library for rpi0 as well
+
+  [ Alex Van Damme ]
+  * Add Pi Zero checks to some voice samples
+
+  [ Peter Malkin ]
+  * Revert "Rename object_detection_camera.py to image_classification_camera.py"
+
+  [ Alex Van Damme ]
+  * Don't arecord and aplay at the same time
+
+  [ Weiran Zhao ]
+  * Rename object_detection_camera.py to image_classification_camera.py
+
+  [ henryherman ]
+  * Fix mcu address issue for voice bonnet.
+
+  [ Peter Malkin ]
+  * Use system-wide python to run desktop check scripts
+
+  [ Michael Brooks ]
+  * Formatting changes to make Travis happy.
+
+  [ Dmitry Kovalev ]
+  * Flexible SPI buffer allocation.
+  * Calculate default timeout based on payload_len.
+
+  [ Alex Van Damme ]
+  * Re-debianize aiy-projects-python
+
+ -- Alex Van Damme <atv@google.com>  Tue, 20 Mar 2018 11:50:11 -0700
+
+aiy-projects-python (0.1-0) stable; urgency=medium
 
   * Initial release. 
 

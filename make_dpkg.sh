@@ -36,5 +36,5 @@ pushd ${WORK_DIR}
 dpkg-buildpackage -b -rfakeroot -us -uc
 popd
 
-cp ${TMP_DIR}/aiy-projects-python_0.1-0_all.deb ${SCRIPT_DIR}
+cp ${TMP_DIR}/aiy-projects-python_*_all.deb ${SCRIPT_DIR}
 rm -rf ${WORK_DIR}
