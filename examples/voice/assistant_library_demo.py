@@ -27,7 +27,7 @@ import sys
 
 import aiy.assistant.auth_helpers
 from aiy.assistant.library import Assistant
-import aiy.voicehat
+from aiy.util import LED
 from google.assistant.library.event import EventType
 
 logging.basicConfig(
@@ -35,26 +35,33 @@ logging.basicConfig(
     format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
 )
 
+led = LED(channel=25)
+led.start()
+
 
 def process_event(event):
-    status_ui = aiy.voicehat.get_status_ui()
     if event.type == EventType.ON_START_FINISHED:
-        status_ui.status('ready')
+        print(event)
+        led.set_state(LED.BEACON_DARK)
         if sys.stdout.isatty():
             print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
 
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
-        status_ui.status('listening')
+        print(event)
+        led.set_state(LED.ON)
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
-        status_ui.status('thinking')
+        print(event)
+        led.set_state(LED.PULSE_QUICK)
 
     elif (event.type == EventType.ON_CONVERSATION_TURN_FINISHED
           or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
           or event.type == EventType.ON_NO_RESPONSE):
-        status_ui.status('ready')
+        print(event)
+        led.set_state(LED.BEACON_DARK)
 
     elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
+        print(event)
         sys.exit(1)
 
 

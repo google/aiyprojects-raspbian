@@ -18,7 +18,6 @@ import aiy._apis._speech
 import aiy.assistant.auth_helpers
 import aiy.assistant.device_helpers
 import aiy.audio
-import aiy.voicehat
 
 # Global variables. They are lazily initialized.
 _assistant_recognizer = None

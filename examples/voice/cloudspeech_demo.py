@@ -17,7 +17,7 @@
 
 import aiy.audio
 import aiy.cloudspeech
-import aiy.voicehat
+from aiy.util import Button, LED
 
 
 def main():
@@ -26,8 +26,10 @@ def main():
     recognizer.expect_phrase('turn on the light')
     recognizer.expect_phrase('blink')
 
-    button = aiy.voicehat.get_button()
-    led = aiy.voicehat.get_led()
+    button = Button(channel=23)
+    led = LED(channel=25)
+    led.set_state(LED.OFF)
+    led.start()
     aiy.audio.get_recorder().start()
 
     while True:
@@ -40,11 +42,11 @@ def main():
         else:
             print('You said "', text, '"')
             if 'turn on the light' in text:
-                led.set_state(aiy.voicehat.LED.ON)
+                led.set_state(LED.ON)
             elif 'turn off the light' in text:
-                led.set_state(aiy.voicehat.LED.OFF)
+                led.set_state(LED.OFF)
             elif 'blink' in text:
-                led.set_state(aiy.voicehat.LED.BLINK)
+                led.set_state(LED.BLINK)
             elif 'goodbye' in text:
                 break
 

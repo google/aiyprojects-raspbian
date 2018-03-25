@@ -19,7 +19,7 @@ import logging
 
 import aiy.assistant.grpc
 import aiy.audio
-import aiy.voicehat
+from aiy.util import Button, LED
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,21 +28,23 @@ logging.basicConfig(
 
 
 def main():
-    status_ui = aiy.voicehat.get_status_ui()
-    status_ui.status('starting')
+    button = Button(channel=23)
+    led = LED(channel=25)
+    led.set_state(LED.PULSE_QUICK)
+    led.start()
+
     assistant = aiy.assistant.grpc.get_assistant()
-    button = aiy.voicehat.get_button()
     with aiy.audio.get_recorder():
         while True:
-            status_ui.status('ready')
+            led.set_state(LED.BEACON_DARK)
             print('Press the button and speak')
             button.wait_for_press()
-            status_ui.status('listening')
+            led.set_state(LED.ON)
             print('Listening...')
             text, audio = assistant.recognize()
             if text:
                 if text == 'goodbye':
-                    status_ui.status('stopping')
+                    led.set_state(LED.PULSE_QUICK)
                     print('Bye!')
                     break
                 print('You said "', text, '"')
