@@ -3,13 +3,12 @@
 
 [Unit]
 Description=voice recognizer
-After=network.target ntpdate.service
+After=network.target systemd-timesyncd.service
 
 [Service]
-Environment=VIRTUAL_ENV=/home/pi/AIY-projects-python/env
-Environment=PATH=/home/pi/AIY-projects-python/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=/home/pi/AIY-projects-python/env/bin/python3 -u src/main.py
-WorkingDirectory=/home/pi/AIY-projects-python
+Environment=DISPLAY=:0
+ExecStart=/usr/bin/python3 -u main.py
+WorkingDirectory=/home/pi/AIY-projects-python/src
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
