@@ -5,5 +5,5 @@ __pycache__
 MANIFEST
 *.egg-info
 dist/
+.pypirc
 .remote-sync.json
-NOTESSS.txt

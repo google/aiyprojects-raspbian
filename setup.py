@@ -1,38 +1,21 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='aiy-projects-python',
-    version='1.0',
-    author='Peter Malkin',
-    author_email='petermalkin@google.com',
+    name='aiy-voice-only',
+    version='1',
+    author='Nick Lee',
+    author_email='lee1nick@yahoo.ca',
     packages=find_packages(),
-    url="https://aiyprojects.withgoogle.com/",
+    url="https://github.com/nickoala/aiy-voice-only",
     license='LICENSE.txt',
-    description="AIY Python API",
-    data_files=[
-        ('share/doc/aiy', ['README.md']),
-        ('share/doc/aiy/examples', [
-            "examples/vision/buzzer/congratulations.track",
-            "examples/vision/buzzer/dramatic.track",
-            "examples/vision/buzzer/laughing.track",
-            "examples/vision/buzzer/sadtrombone.track",
-            "examples/vision/buzzer/tetris.track",
-        ]),
-    ],
+    description="Use AIY Voice Kit's Software without the Shackle of its Hardware",
     install_requires=[
-        'google-assistant-grpc>=0.1.0',
-        'google-cloud-speech>=0.30.0',
-        'google-auth-oauthlib>=0.2.0',
-        'pyasn1>=0.4.2',
-        'grpcio>=1.7.0',
+        'google-assistant-library==0.1.0',
+        'google-assistant-grpc==0.1.0',
+        'google-cloud-speech==0.30.0',
+        'google-auth-oauthlib==0.2.0',
+        'pyasn1==0.4.2',
+        'grpcio==1.7.0',
     ],
     python_requires='~=3.5',
-    scripts=[
-        "examples/buzzer/buzzer_demo.py",
-        "examples/buzzer/buzzer_tracker_demo.py",
-        "examples/voice/assistant_grpc_demo.py",
-        "examples/voice/assistant_library_demo.py",
-        "examples/voice/assistant_library_with_button_demo.py",
-        "examples/voice/assistant_library_with_local_commands_demo.py",
-        "examples/voice/cloudspeech_demo.py",
-    ])
+)
