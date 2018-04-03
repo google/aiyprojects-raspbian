@@ -21,7 +21,7 @@ from aiy.vision.pins import PIN_A
 from aiy.vision.pins import BUTTON_GPIO_PIN
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import image_classification
-from examples.vision.annotator import Annotator
+from aiy.vision.annotator import Annotator
 from gpiozero import Button
 from gpiozero import AngularServo
 from wordnet_grouping import category_mapper
