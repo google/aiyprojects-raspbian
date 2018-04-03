@@ -47,7 +47,7 @@ def main():
                     break
                 print('You said "', text, '"')
             if audio:
-                aiy.audio.play_audio(audio)
+                aiy.audio.play_audio(audio, assistant.get_volume())
 
 
 if __name__ == '__main__':

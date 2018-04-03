@@ -32,6 +32,9 @@ class _AssistantRecognizer(object):
         self._request = aiy._apis._speech.AssistantSpeechRequest(credentials, model_id, device_id)
         self._recorder = aiy.audio.get_recorder()
 
+    def get_volume(self):
+        return self._request._volume_percentage
+
     def recognize(self):
         """Recognizes the user's speech and gets answers from Google Assistant.
 

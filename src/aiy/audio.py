@@ -14,6 +14,8 @@
 
 """Drivers for audio functionality provided by the VoiceHat."""
 
+import numpy as np
+import struct
 import time
 import wave
 
@@ -104,10 +106,18 @@ def play_wave(wave_file):
     player.play_wav(wave_file)
 
 
-def play_audio(audio_data):
+def play_audio(audio_data, volume=50):
     """Plays the given audio data."""
     player = get_player()
-    player.play_bytes(audio_data, sample_width=AUDIO_SAMPLE_SIZE, sample_rate=AUDIO_SAMPLE_RATE_HZ)
+
+    db_range = -60.0 - (-60.0 * (volume / 100.0))
+    db_scaler = 10 ** (db_range / 20)
+
+    adjusted_audio_data = np.multiply(np.frombuffer(
+        audio_data, dtype=np.int16), db_scaler).astype(np.int16).tobytes()
+
+    player.play_bytes(adjusted_audio_data, sample_width=AUDIO_SAMPLE_SIZE,
+                      sample_rate=AUDIO_SAMPLE_RATE_HZ)
 
 
 def say(words, lang=None, volume=None, pitch=None):

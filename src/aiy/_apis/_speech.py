@@ -363,6 +363,20 @@ class AssistantSpeechRequest(GenericSpeechRequest):
         self.model_id = model_id
         self.device_id = device_id
 
+        # google-assistant-library stores its volume levels in this location.
+        # If it exists, use that to set our volume.
+        volume_path = os.path.expanduser(
+            '~/.config/google-assistant-library/assistant/volume/system')
+        if os.path.exists(volume_path) and os.path.isfile(volume_path):
+            with open(volume_path, 'r') as f:
+                try:
+                    self._volume_percentage = int(
+                        float(f.readline().strip()) * 100)
+                except ValueError:
+                    self._volume_percentage = 60
+        else:
+            self._volume_percentage = 60
+
         self._conversation_state = None
         self._response_audio = b''
         self._transcript = None
@@ -383,7 +397,7 @@ class AssistantSpeechRequest(GenericSpeechRequest):
         audio_out_config = embedded_assistant_pb2.AudioOutConfig(
             encoding='LINEAR16',
             sample_rate_hertz=AUDIO_SAMPLE_RATE_HZ,
-            volume_percentage=50,
+            volume_percentage=self._volume_percentage,
         )
         device_config = embedded_assistant_pb2.DeviceConfig(
             device_id=self.device_id,
@@ -425,6 +439,20 @@ class AssistantSpeechRequest(GenericSpeechRequest):
             logger.info('transcript: %s', self._transcript)
 
         self._response_audio += resp.audio_out.audio_data
+
+        if resp.dialog_state_out.volume_percentage:
+            # Store our new volume level in the google-assistant-library path.
+            volume_path = os.path.expanduser(
+                '~/.config/google-assistant-library/assistant/volume/system')
+            try:
+                os.makedirs(os.path.dirname(volume_path))
+            except FileExistsError:
+                pass
+
+            with open(volume_path, 'w') as f:
+                f.write('%f\n' %
+                        (resp.dialog_state_out.volume_percentage / 100.0))
+            self._volume_percentage = resp.dialog_state_out.volume_percentage
 
         if resp.dialog_state_out.conversation_state:
             self._conversation_state = resp.dialog_state_out.conversation_state
