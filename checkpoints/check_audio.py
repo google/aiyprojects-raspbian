@@ -163,15 +163,7 @@ connected properly."""))
     print('The audio seems to be working.')
 
 
-def enable_audio_driver():
-    print("Enabling audio driver for VoiceKit.")
-    configure_driver = os.path.join(AIY_PROJECTS_DIR, 'scripts', 'configure-driver.sh')
-    subprocess.check_call(['sudo', configure_driver])
-
-
 def main():
-    if get_aiy_device_name() == 'Voice Hat':
-        enable_audio_driver()
     do_checks()
 
 
