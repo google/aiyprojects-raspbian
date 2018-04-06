@@ -7,8 +7,8 @@ ensure the full range is reachable.
 
 from time import sleep
 from gpiozero import Servo
-from aiy.vision.pins import PIN_A
-from aiy.vision.pins import PIN_B
+from aiy.pins import PIN_A
+from aiy.pins import PIN_B
 
 # Create a default servo that will not be able to use quite the full range.
 simple_servo = Servo(PIN_A)

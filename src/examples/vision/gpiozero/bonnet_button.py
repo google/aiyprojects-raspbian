@@ -9,8 +9,8 @@ The demo will light up the on board LED whenever PIN_D is drawn high.
 from signal import pause
 from gpiozero import Button
 from gpiozero import LED
-from aiy.vision.pins import LED_1
-from aiy.vision.pins import PIN_D
+from aiy.pins import LED_1
+from aiy.pins import PIN_D
 
 
 # Set up a gpiozero LED using the first onboard LED on the vision hat.

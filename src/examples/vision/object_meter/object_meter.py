@@ -17,8 +17,8 @@ import argparse
 import time
 import picamera
 
-from aiy.vision.pins import PIN_A
-from aiy.vision.pins import BUTTON_GPIO_PIN
+from aiy.pins import PIN_A
+from aiy.pins import BUTTON_GPIO_PIN
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import image_classification
 from aiy.vision.annotator import Annotator
