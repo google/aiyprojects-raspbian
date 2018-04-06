@@ -14,7 +14,9 @@
 # limitations under the License.
 """Script to run generic MobileNet based classification model."""
 import argparse
+import time
 
+from picamera import Color
 from picamera import PiCamera
 
 from aiy.vision import inference
@@ -24,6 +26,14 @@ from aiy.vision.models import utils
 def read_labels(label_path):
   with open(label_path) as label_file:
     return [label.strip() for label in label_file.readlines()]
+
+def get_message(processed_result, threshold, top_k):
+  if processed_result:
+    message = 'Detecting:\n %s' % ('\n'.join(processed_result))
+  else:
+    message = 'Nothing detected when threshold=%.2f, top_k=%d' % (
+              threshold, top_k)
+  return message
 
 
 def process(result, labels, out_tensor_name, threshold, top_k):
@@ -73,6 +83,16 @@ def main():
       help='Threshold for classification score (from output tensor).')
   parser.add_argument(
       '--top_k', type=int, default=3, help='Keep at most top_k labels.')
+  parser.add_argument(
+      '--preview',
+      action='store_true',
+      default=False,
+      help='Enables camera preview in addition to printing result to terminal.')
+  parser.add_argument(
+      '--show_fps',
+      action='store_true',
+      default=False,
+      help='Shows end to end FPS.')
   args = parser.parse_args()
 
   model = inference.ModelDescriptor(
@@ -83,18 +103,33 @@ def main():
   labels = read_labels(args.label_path)
 
   with PiCamera(sensor_mode=4, resolution=(1640, 1232), framerate=30) as camera:
+    if args.preview:
+      camera.start_preview()
     with inference.CameraInference(model) as camera_inference:
+      last_time = time.time()
       for i, result in enumerate(camera_inference.run()):
         if i == args.num_frames:
           break
         processed_result = process(result, labels, args.output_layer,
                                    args.threshold, args.top_k)
-        if processed_result:
-          print('Detecting:')
-          print('\n'.join(processed_result))
-        else:
-          print('Nothing detected with threshold=%.2f and top_k=%d' % (args.threshold, args.top_k))
+        cur_time = time.time()
+        fps = 1.0 / (cur_time - last_time)
+        last_time = cur_time
 
+        message = get_message(processed_result, args.threshold, args.top_k)
+        if args.show_fps:
+          message += '\nWith %.1f FPS.' % fps
+        print(message)
+
+        if args.preview:
+          camera.annotate_foreground = Color('black')
+          camera.annotate_background = Color('white')
+          # PiCamera text annotation only supports ascii.
+          camera.annotate_text = '\n %s' % message.encode(
+              'ascii','backslashreplace').decode('ascii')
+
+    if args.preview:
+      camera.stop_preview()
 
 if __name__ == '__main__':
   main()
