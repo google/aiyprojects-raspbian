@@ -28,7 +28,6 @@ setup(
     ],
     python_requires='~=3.5',
     scripts=[
-        "examples/vision/annotator.py",
         "examples/vision/buzzer/buzzer_demo.py",
         "examples/vision/buzzer/buzzer_tracker_demo.py",
         "examples/vision/dish_classifier.py",
