@@ -27,5 +27,5 @@ fi
 
 # The google-assistant-library is only available on some platforms.
 if [[ "$(uname -m)" == "armv7l" || "$(uname -m)" == "x86_64" || "$(uname -m)" == "armv6l" ]] ; then
-  pip3 install google-assistant-library==0.1.0
+  pip3 install --user google-assistant-library==0.1.0
 fi
