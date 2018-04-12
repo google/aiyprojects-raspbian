@@ -26,6 +26,8 @@ from aiy.vision.models import image_classification
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', '-i', dest='input', required=True)
+    parser.add_argument('--use_squeezenet', action='store_true', default=False,
+                        help='Uses SqueezeNet based model.')
     args = parser.parse_args()
 
     # There are two models available for image classification task:
@@ -33,7 +35,8 @@ def main():
     # accuracy on ImageNet;
     # 2) SqueezeNet based (image_classification.SQUEEZENET), which has 45.3% top-1
     # accuracy on ImageNet;
-    model_type = image_classification.MOBILENET
+    model_type = (image_classification.SQUEEZENET if args.use_sequeezenet
+                  else image_classification.MOBILENET)
     with ImageInference(image_classification.model(model_type)) as inference:
         image = Image.open(
             io.BytesIO(sys.stdin.buffer.read())
