@@ -14,16 +14,18 @@ cp -r debian ${WORK_DIR}
 
 # Copy aiyprojects and set remote to github.
 AIY_PYTHON_DIR=${WORK_DIR}/opt/aiy/projects-python
+WORK_BRANCH=aiyprojects
 rm -f ${AIY_PYTHON_DIR}/.git
 if [ -d ${AIY_PYTHON_DIR}/.git ]; then
     rsync -rL --exclude=.git/shallow ${SCRIPT_DIR}/.git ${AIY_PYTHON_DIR}
 else
+    WORK_BRANCH=$(git -C ${SCRIPT_DIR}/.. submodule status aiy-projects-python | awk '{print $1}' | sed 's/[+-]//g')
     cp -r ${SCRIPT_DIR}/../.git/modules/aiy-projects-python ${AIY_PYTHON_DIR}/.git
 fi
 ls -la ${AIY_PYTHON_DIR}/.git/
 sed -i '/\tworktree =/d' ${AIY_PYTHON_DIR}/.git/config
-git -C ${AIY_PYTHON_DIR} checkout aiyprojects
-for BRANCH in $(git -C ${AIY_PYTHON_DIR} branch | sed 's/\*//'); do
+git -C ${AIY_PYTHON_DIR} checkout "${WORK_BRANCH}"
+for BRANCH in $(git -C ${AIY_PYTHON_DIR} branch | grep -v 'detached' | sed 's/\*//'); do
     if [[ "$BRANCH" != "aiyprojects" ]]; then
         git -C ${AIY_PYTHON_DIR} branch -D ${BRANCH}
     fi
@@ -31,6 +33,7 @@ done
 git -C ${AIY_PYTHON_DIR} remote remove origin | true
 git -C ${AIY_PYTHON_DIR} remote add origin \
     https://github.com/google/aiyprojects-raspbian
+git -C ${AIY_PYTHON_DIR} reset --hard ${WORK_BRANCH}
 
 pushd ${WORK_DIR}
 dpkg-buildpackage -b -rfakeroot -us -uc
