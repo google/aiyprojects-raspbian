@@ -35,7 +35,7 @@ def main():
     # accuracy on ImageNet;
     # 2) SqueezeNet based (image_classification.SQUEEZENET), which has 45.3% top-1
     # accuracy on ImageNet;
-    model_type = (image_classification.SQUEEZENET if args.use_sequeezenet
+    model_type = (image_classification.SQUEEZENET if args.use_squeezenet
                   else image_classification.MOBILENET)
     with ImageInference(image_classification.model(model_type)) as inference:
         image = Image.open(
