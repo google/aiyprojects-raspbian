@@ -263,7 +263,11 @@ class JoyDetector(object):
                     photographer.shoot(camera)
 
                 # Blend the preview layer with the alpha value from the flags.
-                camera.start_preview(alpha=preview_alpha)
+                if preview_alpha > 0:
+                    logger.info('Starting preview with alpha %d', preview_alpha)
+                    camera.start_preview(alpha=preview_alpha)
+                else:
+                    logger.info('Not starting preview, alpha 0')
 
                 button = Button(23)
                 button.when_pressed = take_photo
