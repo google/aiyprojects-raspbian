@@ -1,6 +1,4 @@
-aiy-projects-python (0.1-1~1.gbp38480e) UNRELEASED; urgency=medium
-
-  ** SNAPSHOT build @38480edc035be0359cc6e9273cc384eaf80b2240 **
+aiy-projects-python (1.0-0) stable; urgency=medium
 
   [ Dmitry Kovalev ]
   * Run Joy Demo under pi user by default.
@@ -17,14 +15,8 @@ aiy-projects-python (0.1-1~1.gbp38480e) UNRELEASED; urgency=medium
   [ Alex Van Damme ]
   * Add Pi Zero checks to some voice samples
 
-  [ Peter Malkin ]
-  * Revert "Rename object_detection_camera.py to image_classification_camera.py"
-
   [ Alex Van Damme ]
   * Don't arecord and aplay at the same time
-
-  [ Weiran Zhao ]
-  * Rename object_detection_camera.py to image_classification_camera.py
 
   [ henryherman ]
   * Fix mcu address issue for voice bonnet.
@@ -40,9 +32,25 @@ aiy-projects-python (0.1-1~1.gbp38480e) UNRELEASED; urgency=medium
   * Calculate default timeout based on payload_len.
 
   [ Alex Van Damme ]
-  * Re-debianize aiy-projects-python
+  * Unify volume between assistant_{grpc,library}_demo
 
- -- Alex Van Damme <atv@google.com>  Tue, 20 Mar 2018 11:50:11 -0700
+  [ Weiran Zhao ]
+  * Add script to run generic MobileNet based classification model.
+
+  [ Dmitry Kovalev ]
+  * Remove outdated configure-driver.sh script.
+  * Makefile is not needed anymore since we are using deb packages.
+
+  [ henryherman ]
+  * Fix import error for annotator.
+
+  [ Alex Van Damme ]
+  * Remove annotator.py from setup.py scripts
+
+  [ Weiran Zhao ]
+  * Add option to enable camera preview and show FPS.
+
+ -- Alex Van Damme <atv@balefire.mtv.corp.google.com>  Fri, 13 Apr 2018 10:58:29 -0700
 
 aiy-projects-python (0.1-0) stable; urgency=medium
 
