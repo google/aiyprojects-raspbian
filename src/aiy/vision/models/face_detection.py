@@ -50,7 +50,7 @@ class Face(object):
 
 def model():
     # Face detection model has special implementation in VisionBonnet firmware.
-    # input_shape, input_normalizer, and computate_graph params have on effect.
+    # input_shape, input_normalizer, and compute_graph params have on effect.
     return ModelDescriptor(
         name='FaceDetection',
         input_shape=(1, 0, 0, 3),
@@ -59,7 +59,7 @@ def model():
 
 
 def get_faces(result):
-    """Retunrs list of Face objects decoded from the inference result."""
+    """Returns list of Face objects decoded from the inference result."""
     assert len(result.tensors) == 3
     # TODO(dkovalev): check tensor shapes
     bboxes = _reshape(result.tensors['bounding_boxes'].data, 4)

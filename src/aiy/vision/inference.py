@@ -26,7 +26,7 @@ from aiy._drivers._transport import make_transport
 from aiy.vision.proto import protocol_pb2
 
 
-_SUPPORTED_FIRMWARE_VERSION = (1, 0)  # major, minor
+_SUPPORTED_FIRMWARE_VERSION = (1, 1)  # major, minor
 
 
 class FirmwareVersionException(Exception):
