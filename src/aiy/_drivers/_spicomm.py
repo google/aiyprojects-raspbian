@@ -71,9 +71,11 @@ def _fill_buffer(buf, timeout_s, data):
     buf[12:16] = struct.pack('I', len(data))  # filled range of buffer.
     buf[16:16 + len(data)] = data
 
+
 def _get_timeout(payload_len):
     """Conservatively assume min 5 seconds or 3 seconds per 1MB."""
     return max(3 * payload_len / 1024 / 1024, 5)
+
 
 class Spicomm(object):
     """VisionBonnet Spicomm wrapper.

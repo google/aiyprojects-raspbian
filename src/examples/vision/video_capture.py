@@ -114,7 +114,7 @@ def detect_object(inference, camera, classes, threshold, out_dir, range_x=[0, 1]
     debug_data = []
     detection = False
     max_accumulator = 0.
-    print ('Inferring...')
+    print('Inferring...')
     for p in crop_parameters(image, range_x, range_y):
         im_crop = image.crop(p)
         accumulator = 0.
