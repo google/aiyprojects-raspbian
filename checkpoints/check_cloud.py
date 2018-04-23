@@ -80,8 +80,9 @@ def main():
     """Run all checks and print status."""
     if not os.path.exists(CREDENTIALS_PATH):
         print(
-            """Please follow these instructions to get Google Cloud credentials:
-https://cloud.google.com/speech/docs/getting-started#set_up_your_project
+            """Please follow the Custom Voice User Interface instructions on the AIY website
+to download credentials:
+https://aiyprojects.withgoogle.com/voice-v1/#makers-guide-3-custom-voice-user-interface
 and save them to""", CREDENTIALS_PATH)
         return
 
