@@ -1,8 +1,8 @@
 # Setting up the image
 
-We recommend using [the images](https://aiyprojects.withgoogle.com/voice) we
+We recommend using [the latest image](https://dl.google.com/dl/aiyprojects/aiyprojects-latest.img.xz) we
 provide. Those images are based on [Raspbian](https://www.raspberrypi.org/downloads/raspbian/),
-with a few customizations and are tested on the Raspberry Pi 3. If you prefer
+with a few customizations and are tested on the Raspberry Pi 3, 3B+ and Zero. If you prefer
 to setup Raspbian yourself, there are some manual steps you need to take.
 
 ## Installing the dependencies
@@ -19,9 +19,8 @@ git clone https://github.com/google/aiyprojects-raspbian.git AIY-projects-python
 Then, install the project dependencies and setup the services:
 
 ``` shell
-cd ~/AIY-projects-python
-scripts/install-deps.sh
-sudo scripts/install-services.sh
+cd ~/AIY-projects-python/src
+sudo pip3 install .
 ```
 
 ## Configuring the Voice HAT driver
@@ -46,17 +45,8 @@ effect on the state of ALSA, the sound architecture.
 
 To access the cloud services you need to register a project and generate
 credentials for cloud APIs. This is documented in the
-[setup instructions](https://aiyprojects.withgoogle.com/voice#users-guide-1-1--connect-to-google-cloud-platform) on the
+[setup instructions](https://aiyprojects.withgoogle.com/voice#google-assistant--get-credentials) on the
 webpage.
-
-## Making code changes
-
-If you edit the code on a different computer, you can deploy it to your
-Raspberry Pi by running:
-
-``` shell
-make deploy
-```
 
 ## Running automatically
 
@@ -68,7 +58,6 @@ To execute any of these scripts on the Raspberry Pi, login to it and run
 
 ``` shell
 cd ~/AIY-projects-python
-source env/bin/activate
 python3 src/examples/voice/assistant_library_demo.py
 ```
 
@@ -77,5 +66,6 @@ boots, you need to have a file in the `src` directory named `main.py`. You can
 make a copy of one of the example scripts and rename it. Then run this command:
 
 ``` shell
+sudo cp ~/AIY-projects-python/systemd/voice-recognizer.service /lib/systemd/system
 sudo systemctl enable voice-recognizer.service
 ```
