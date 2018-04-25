@@ -7,9 +7,9 @@ voice commands with simple while loops - have a look at the
 [demos](https://github.com/google/aiyprojects-raspbian/tree/aiyprojects/src/examples).
 Documentation is at the [AIY Projects site](https://aiyprojects.withgoogle.com).
 
-For guidelines on contributing, look at [CONTRIBUTING.md](CONTRIBUTING.md).
+For guidelines on contributing, look at [CONTRIBUTING.md](../CONTRIBUTING.md).
 If you're using Raspbian instead of Google's provided image, read
-[HACKING.md](HACKING.md) for information on getting started.
+[HACKING.md](../HACKING.md) for information on getting started.
 
 For returning users:
 The code for all AIY kits is in the `aiyprojects` branch, and is included in
