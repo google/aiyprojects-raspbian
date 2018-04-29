@@ -159,6 +159,10 @@ def process_event(assistant, event):
             assistant.stop_conversation()
             _powerSwitch.run(text[7:])
 
+        elif text.startswith('media center '):
+            assistant.stop_conversation()
+            _kodiRemote.run(text[13:])
+
         elif text.startswith('kodi ') or text.startswith('cody '):
             assistant.stop_conversation()
             _kodiRemote.run(text[5:])
@@ -179,7 +183,7 @@ def process_event(assistant, event):
             assistant.stop_conversation()
             _kodiRemote.run(text)
 
-        elif text == 'power off' or text == 'shutdown' or text == 'shut down' or text == 'self destruct':
+        elif text in ['power off','shutdown','shut down','self destruct']:
             assistant.stop_conversation()
             PowerCommand().run('shutdown')
 
@@ -262,6 +266,7 @@ def main():
     with Assistant(credentials, model_id) as assistant:
         for event in assistant.start():
             process_event(assistant, event)
+
 
 if __name__ == '__main__':
 #    try:

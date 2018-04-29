@@ -96,9 +96,12 @@ class KodiRemote(object):
             result = self.kodi.Player.Stop(playerid=1)
             logging.info('Kodi response: ' + str(result))
 
-        elif voice_command == 'play' or voice_command == 'pause' or voice_command == 'paws' or voice_command == 'resume':
+        elif voice_command in ['play','pause','paws','resume']:
             result = self.kodi.Player.PlayPause(playerid=1)
             logging.info('Kodi response: ' + str(result))
+
+        elif voice_command == 'update tv shows':
+            self.kodi.VideoLibrary.Scan()
 
         elif voice_command == 'shutdown' or voice_command == 'shut down':
             self.kodi.System.Shutdown()

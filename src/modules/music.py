@@ -18,23 +18,22 @@ class Music(object):
         self.configPath = configpath
         self._confirmPlayback = False
         self._podcastURL = None
-        self._podcasts = {}
-        self._mpd = MPDClient(use_unicode=True)
+        self.mpd = MPDClient(use_unicode=True)
 
     def run(self, module, voice_command):
         self.resetVariables()
-        self._mpd.connect("localhost", 6600)
+        self.mpd.connect("localhost", 6600)
 
         if module == 'music':
             if voice_command == 'stop':
-                self._mpd.stop()
-                self._mpd.clear()
+                self.mpd.stop()
+                self.mpd.clear()
 
             elif voice_command == 'resume' or voice_command == 'play':
-                self._mpd.pause(0)
+                self.mpd.pause(0)
 
             elif voice_command == 'pause':
-                self._mpd.pause(1)
+                self.mpd.pause(1)
 
         elif module == 'radio':
             self.playRadio(voice_command)
@@ -48,20 +47,20 @@ class Music(object):
             button.on_press(self._buttonPressCancel)
 
             # Keep alive until the user cancels music with button press
-            while self._mpd.status()['state'] != "stop":
+            while self.mpd.status()['state'] != "stop":
                 if self._cancelAction == True:
                     logging.info('stopping Music by button press')
-                    self._mpd.stop()
+                    self.mpd.stop()
                     self._podcastURL = None
                     break
 
                 time.sleep(0.1)
             button.on_press(None)
             logging.info('Music stopped playing')
-            self._mpd.clear()
+            self.mpd.clear()
 
-        self._mpd.close()
-        self._mpd.disconnect()
+        self.mpd.close()
+        self.mpd.disconnect()
 
     def playRadio(self, station):
         config = configparser.ConfigParser()
@@ -86,9 +85,9 @@ class Music(object):
 
         self._cancelAction = False
 
-        self._mpd.clear()
-        self._mpd.add(stations[station])
-        self._mpd.play()
+        self.mpd.clear()
+        self.mpd.add(stations[station])
+        self.mpd.play()
 
     def playPodcast(self, podcast):
 
@@ -154,9 +153,9 @@ class Music(object):
 
         self._cancelAction = False
 
-        self._mpd.clear()
-        self._mpd.add(self._podcastURL)
-        self._mpd.play()
+        self.mpd.clear()
+        self.mpd.add(self._podcastURL)
+        self.mpd.play()
 
         self._podcastURL = None
 
@@ -177,7 +176,7 @@ class Music(object):
         logging.info('feed contains ' + str(resCount) + ' items')
 
         # exit out if empty
-        if resCount < offset:
+        if resCount < offset or resCount == 0:
             logging.info(podcast + ' podcast feed is empty')
             aiy.audio.say('There are no episodes available of ' + podcast)
             return None
@@ -198,10 +197,12 @@ class Music(object):
         if 'published' in rssItem:
             result['published'] = rssItem.published
 
-        if 'enclosures' in rssItem:
+        if 'enclosures' in rssItem and len(rssItem.enclosures) > 0:
+            logging.info(str(len(rssItem.enclosures)) + ' enclosures found')
             result['url'] = rssItem.enclosures[0]['href']
 
-        elif 'media_content' in rssItem:
+        elif 'media_content' in rssItem and len(rssItem.media_content) > 0:
+            logging.info(str(len(rssItem.media_content)) + ' media found')
             result['url'] = rssItem.media_content[0]['url']
 
         else:
@@ -228,12 +229,3 @@ class Music(object):
 
     def resetVariables(self):
         self._cancelAction = False
-
-    def _syncPodcasts(self):
-        logging.info('Starting Podcast sync')
-        config = configparser.ConfigParser()
-        config.read(self.configPath)
-        podcasts = config['podcasts']
-
-		for title,url in podcasts.items():
-            self._podcasts[podcast] = self.getPodcastItem(podcast, url, 0)
