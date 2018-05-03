@@ -57,6 +57,10 @@ class PowerSwitch(object):
                self.processCommand(device, action)
 
     def processCommand(self, device, action):
+        if device.startswith('the '):
+
+            device = device[4:]
+
         if device in self.devices:
 
             code = int(self.config[device].get('code'))
