@@ -34,4 +34,4 @@ done
 # voice-recognizer is not enabled by default, as it doesn't work until
 # credentials are set up, so we explicitly enable the other services.
 systemctl enable alsa-init.service
-systemctl enable ntpdate.service
+
