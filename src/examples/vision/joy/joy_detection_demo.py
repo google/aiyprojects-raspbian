@@ -25,8 +25,8 @@ import threading
 import time
 
 from aiy._drivers._hat import get_aiy_device_name
-from aiy.leds import Leds
-from aiy.leds import PrivacyLed
+from aiy.vision.leds import Leds
+from aiy.vision.leds import PrivacyLed
 from aiy.toneplayer import TonePlayer
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import face_detection
