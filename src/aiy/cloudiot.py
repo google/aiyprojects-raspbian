@@ -52,29 +52,31 @@ class CloudIot(object):
         self._mqtt_bridge_hostname = config['MQTTBridgeHostName']
         self._mqtt_bridge_port = config.getint('MQTTBridgePort')
 
-        # TODO(michaelbrooks): Implement SW fallback.
-        if not ecc608_is_valid():
-            logging.warn('SW-based Cloud IoT is not yet enabled.')
-            self._enabled = False
-            return
-        # For the HW Crypto chip, use ES256.
-        self._algorithm = 'ES256'
+        if ecc608_is_valid():
+            # For the HW Crypto chip, use ES256. No key is needed.
+            self._algorithm = 'ES256'
+            self._private_key = None
+        else:
+            # For SW, use RS256 on a key file provided in the configuration.
+            self._algorithm = 'RS256'
+            rsa_cert = config['RSACertFile']
+            with open(rsa_cert, 'r') as f:
+                self._private_key = f.read()
 
         # Create our MQTT client. The client_id is a unique string that identifies
         # this device. For Google Cloud IoT Core, it must be in the format below.
         self._client = mqtt.Client(
             client_id='projects/%s/locations/%s/registries/%s/devices/%s' %
-                       (self._project_id,
-                        self._cloud_region,
-                        self._registry_id,
-                        self._device_id))
+            (self._project_id,
+             self._cloud_region,
+             self._registry_id,
+             self._device_id))
 
         # With Google Cloud IoT Core, the username field is ignored, and the
         # password field is used to transmit a JWT to authorize the device.
         self._client.username_pw_set(
             username='unused',
-            password=self._create_jwt(
-                self._project_id, self._algorithm))
+            password=self._create_jwt())
 
         # Enable SSL/TLS support.
         self._client.tls_set(ca_certs=self._ca_certs)
@@ -126,7 +128,7 @@ class CloudIot(object):
         if 'on_log' in callbacks:
             self._client.on_log = callbacks['on_log']
 
-    def _create_jwt(self, project_id, algorithm):
+    def _create_jwt(self):
         """Creates a JWT (https://jwt.io) to establish an MQTT connection.
             Args:
                 Project_id: The cloud project ID this device belongs to
@@ -135,8 +137,6 @@ class CloudIot(object):
                 An MQTT generated from the given project_id and private key, which
                 expires in 20 minutes. After 20 minutes, your client will be
                 disconnected, and a new JWT will have to be generated.
-            Raises:
-                ValueError: If the private_key_file does not contain a known key.
         """
 
         token = {
@@ -145,9 +145,14 @@ class CloudIot(object):
             # The time the token expires.
             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
             # The audience field should always be set to the GCP project id.
-            'aud': project_id
+            'aud': self._project_id
         }
 
-        # Use HW Crypto Chip (ATECC608) to obtain private key.
-        jwt_inst = ecc608_jwt_with_hw_alg()
-        return jwt_inst.encode(token, None, algorithm=algorithm)
+        if self._algorithm is 'ES256':
+            # For HW crypto, use custom ES256 Algorithm.
+            jwt_inst = ecc608_jwt_with_hw_alg()
+        else:
+            # For SW crypto, use default RS256 Algorithm.
+            jwt_inst = jwt.PyJWT()
+
+        return jwt_inst.encode(token, self._private_key, algorithm=self._algorithm)
