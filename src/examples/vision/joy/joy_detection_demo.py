@@ -26,6 +26,7 @@ import time
 
 from aiy._drivers._hat import get_aiy_device_name
 from aiy.leds import Leds
+from aiy.leds import Pattern
 from aiy.leds import PrivacyLed
 from aiy.toneplayer import TonePlayer
 from aiy.vision.inference import CameraInference
@@ -42,6 +43,8 @@ from PIL import ImageFont
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+RED_COLOR = (255, 0, 0)
+
 JOY_COLOR = (255, 70, 0)
 SAD_COLOR = (0, 0, 64)
 
@@ -52,6 +55,8 @@ JOY_SOUND = ('C5q', 'E5q', 'C6q')
 SAD_SOUND = ('C6q', 'E5q', 'C5q')
 MODEL_LOAD_SOUND = ('C6w', 'c6w', 'C6w')
 BEEP_SOUND = ('E6q', 'C6q')
+
+FONT_FILE = '/usr/share/fonts/truetype/freefont/FreeSans.ttf'
 
 
 @contextmanager
@@ -112,7 +117,7 @@ class Service(object):
 
     def __init__(self):
         self._requests = queue.Queue()
-        self._thread = threading.Thread(target=self._run)
+        self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
     def _run(self):
@@ -157,7 +162,7 @@ class Photographer(Service):
         super().__init__()
         assert format in ('jpeg', 'bmp', 'png')
 
-        self._font = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', size=25)
+        self._font = ImageFont.truetype(FONT_FILE, size=25)
         self._faces = AtomicValue(())
         self._format = format
         self._folder = folder
@@ -209,29 +214,21 @@ class Photographer(Service):
         self.submit(camera)
 
 
-class Animator(object):
+class Animator(Service):
     """Controls RGB LEDs."""
 
-    def __init__(self, leds, done):
+    def __init__(self, leds):
+        super().__init__()
         self._leds = leds
-        self._done = done
-        self._joy_score = AtomicValue(0.0)
-        self._thread = threading.Thread(target=self._run)
-        self._thread.start()
 
-    def _run(self):
-        while not self._done.is_set():
-            joy_score = self._joy_score.value
-            if joy_score > 0:
-                self._leds.update(Leds.rgb_on(blend(JOY_COLOR, SAD_COLOR, joy_score)))
-            else:
-                self._leds.update(Leds.rgb_off())
+    def process(self, joy_score):
+        if joy_score > 0:
+            self._leds.update(Leds.rgb_on(blend(JOY_COLOR, SAD_COLOR, joy_score)))
+        else:
+            self._leds.update(Leds.rgb_off())
 
-    def update_joy_score(self, value):
-        self._joy_score.value = value
-
-    def join(self):
-        self._thread.join()
+    def update_joy_score(self, joy_score):
+        self.submit(joy_score)
 
 
 class JoyDetector(object):
@@ -250,7 +247,7 @@ class JoyDetector(object):
         leds = Leds()
         player = Player(gpio=22, bpm=10)
         photographer = Photographer(image_format, image_folder)
-        animator = Animator(leds, self._done)
+        animator = Animator(leds)
 
         try:
             # Forced sensor mode, 1640x1232, full FoV. See:
@@ -296,6 +293,7 @@ class JoyDetector(object):
         finally:
             player.stop()
             photographer.stop()
+            animator.stop()
 
             player.join()
             photographer.join()
@@ -312,6 +310,8 @@ def main():
                         choices=('jpeg', 'bmp', 'png'), help='Format of captured images.')
     parser.add_argument('--image_folder', type=str, dest='image_folder', default='~/Pictures',
                         help='Folder to save captured images.')
+    parser.add_argument('--blink_on_error', dest='blink_on_error', default=False,
+                        action='store_true', help='Blink red if error occurred.')
     args = parser.parse_args()
 
     if args.preview_alpha < 0 or args.preview_alpha > 255:
@@ -323,7 +323,15 @@ def main():
         return
 
     detector = JoyDetector()
-    detector.run(args.num_frames, args.preview_alpha, args.image_format, args.image_folder)
+    try:
+        detector.run(args.num_frames, args.preview_alpha, args.image_format, args.image_folder)
+    except KeyboardInterrupt:
+        pass
+    except:
+        if args.blink_on_error:
+            leds = Leds()
+            leds.pattern = Pattern.blink(500)
+            leds.update(Leds.rgb_pattern(RED_COLOR))
 
 
 if __name__ == '__main__':
