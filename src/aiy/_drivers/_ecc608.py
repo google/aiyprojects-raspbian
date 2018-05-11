@@ -31,12 +31,29 @@ CRYPTO_ADDRESS_DICT = {
     'Voice Bonnet': 0x62,
 }
 
+class AtcaIfaceCfgLong(Structure):
+  _fields_ = (
+    ('iface_type', c_ulong),
+    ('devtype', c_ulong),
+    ('slave_address', c_ubyte),
+    ('bus', c_ubyte),
+    ('baud', c_ulong)
+ )
+
 # Global cryptolib instance.
 _cryptolib = None
 
-
 def ecc608_is_valid():
     return _cryptolib is not None
+
+def _ecc608_check_address(address):
+  cfg = AtcaIfaceCfgLong.in_dll(_cryptolib, 'cfg_ateccx08a_i2c_default')
+  cfg.slave_address = address
+
+  if _cryptolib.atcab_init(_cryptolib.cfg_ateccx08a_i2c_default) == 0:
+    return True
+  else:
+    return False
 
 
 def ecc608_init_and_update_address():
@@ -53,9 +70,7 @@ def ecc608_init_and_update_address():
         board_name = 'Vision Bonnet'
 
     for name, addr in CRYPTO_ADDRESS_DICT.items():
-        status = _cryptolib.atcab_init_w_address(_cryptolib.cfg_ateccx08a_i2c_default,
-                                                 addr << 1)
-        if status == 0:
+        if _ecc608_check_address(addr << 1):
             # Found a valid crypto chip, validate it is the correct address.
             if name in board_name:
                 return True
