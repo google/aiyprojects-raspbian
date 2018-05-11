@@ -22,9 +22,10 @@ how to use this API.
 """
 
 import logging
+import aiy.vision.proto.protocol_pb2 as pb2
 from aiy._drivers._transport import make_transport
-from aiy.vision.proto import protocol_pb2
 
+logger = logging.getLogger(__name__)
 
 _SUPPORTED_FIRMWARE_VERSION = (1, 1)  # major, minor
 
@@ -49,12 +50,12 @@ def _check_firmware_info(info):
             'version is %s. You should upgrade firmware.' %
             (supported_version, firmware_version))
     if info[1] > _SUPPORTED_FIRMWARE_VERSION[1]:
-        logging.warn(
+        logger.warning(
             'AIY library supports firmware version %s, current firmware '
             'version is %s. Consider upgrading AIY library.',
             supported_version, firmware_version)
     if info[1] < _SUPPORTED_FIRMWARE_VERSION[1]:
-        logging.warn(
+        logger.warning(
             'AIY library supports firmware version %s, current firmware '
             'version is %s. Consider upgrading firmware.',
             supported_version, firmware_version)
@@ -138,6 +139,40 @@ class InferenceException(Exception):
         Exception.__init__(self, *args, **kwargs)
 
 
+def _image_to_tensor(image):
+    width, height = image.size
+    if image.mode == 'RGB':
+        r, g, b = image.split()
+        return pb2.ByteTensor(
+            shape=pb2.TensorShape(batch=1, width=width, height=height, depth=3),
+            data=r.tobytes() + g.tobytes() + b.tobytes())
+    elif image.mode == 'L':
+        return pb2.ByteTensor(
+            shape=pb2.TensorShape(batch=1, width=width, height=height, depth=1),
+            data=image.tobytes())
+    else:
+        raise InferenceException('Unsupported image format: %s. Must be L or RGB.' % image.mode)
+
+
+def _get_params(params):
+    return {key: str(value) for key, value in (params or {}).items()}
+
+
+def _check_model_name(model_name):
+    if not model_name:
+        raise ValueError('Model name must not be empty.')
+
+
+def _request_bytes(*args, **kwargs):
+    return pb2.Request(*args, **kwargs).SerializeToString()
+
+
+_REQ_GET_FIRMWARE_INFO = _request_bytes(get_firmware_info=pb2.Request.GetFirmwareInfo())
+_REQ_CAMERA_INFERENCE = _request_bytes(camera_inference=pb2.Request.CameraInference())
+_REQ_STOP_CAMERA_INFERENCE = _request_bytes(stop_camera_inference=pb2.Request.StopCameraInference())
+_REQ_GET_CAMERA_STATE = _request_bytes(get_camera_state=pb2.Request.GetCameraState())
+
+
 class InferenceEngine(object):
     """Class to access InferenceEngine on VisionBonnet board.
 
@@ -162,8 +197,7 @@ class InferenceEngine(object):
 
     def __init__(self):
         self._transport = make_transport()
-        logging.info('InferenceEngine transport: %s',
-                     self._transport.__class__.__name__)
+        logger.info('InferenceEngine transport: %s', self._transport.__class__.__name__)
 
     def close(self):
         self._transport.close()
@@ -175,17 +209,12 @@ class InferenceEngine(object):
         self.close()
 
     def _communicate(self, request):
-        """Gets response and logs messages if need to.
+        return self._communicate_bytes(request.SerializeToString())
 
-        Args:
-          request: protocol_pb2.Request
-
-        Returns:
-          protocol_pb2.Response
-        """
-        response = protocol_pb2.Response()
-        response.ParseFromString(self._transport.send(request.SerializeToString()))
-        if response.status.code != protocol_pb2.Response.Status.OK:
+    def _communicate_bytes(self, request_bytes):
+        response = pb2.Response()
+        response.ParseFromString(self._transport.send(request_bytes))
+        if response.status.code != pb2.Response.Status.OK:
             raise InferenceException(response.status.message)
         return response
 
@@ -200,31 +229,31 @@ class InferenceEngine(object):
         """
         _check_firmware_info(self.get_firmware_info())
 
-        logging.info('Loading model "%s"...', descriptor.name)
+        logger.info('Loading model "%s"...', descriptor.name)
 
-        batch, height, width, depth = descriptor.input_shape
         mean, stddev = descriptor.input_normalizer
+        batch, height, width, depth = descriptor.input_shape
         if batch != 1:
             raise ValueError('Unsupported batch value: %d. Must be 1.')
 
         if depth != 3:
             raise ValueError('Unsupported depth value: %d. Must be 3.')
 
-        request = protocol_pb2.Request()
-        request.load_model.model_name = descriptor.name
-        request.load_model.input_shape.batch = batch
-        request.load_model.input_shape.height = height
-        request.load_model.input_shape.width = width
-        request.load_model.input_shape.depth = depth
-        request.load_model.input_normalizer.mean = mean
-        request.load_model.input_normalizer.stddev = stddev
-        if descriptor.compute_graph:
-            request.load_model.compute_graph = descriptor.compute_graph
-
         try:
-            self._communicate(request)
+            self._communicate(pb2.Request(
+                load_model=pb2.Request.LoadModel(
+                    model_name=descriptor.name,
+                    input_shape=pb2.TensorShape(
+                        batch=batch,
+                        height=height,
+                        width=width,
+                        depth=depth),
+                    input_normalizer=pb2.TensorNormalizer(
+                        mean=mean,
+                        stddev=stddev),
+                    compute_graph=descriptor.compute_graph)))
         except InferenceException as e:
-            logging.warning(str(e))
+            logger.warning(str(e))
 
         return descriptor.name
 
@@ -234,52 +263,43 @@ class InferenceEngine(object):
         Args:
           model_name: string, unique identifier used to refer a model.
         """
-        logging.info('Unloading model "%s"...', model_name)
+        _check_model_name(model_name)
 
-        request = protocol_pb2.Request()
-        request.unload_model.model_name = model_name
-        self._communicate(request)
+        logger.info('Unloading model "%s"...', model_name)
+        self._communicate(pb2.Request(
+            unload_model=pb2.Request.UnloadModel(model_name=model_name)))
 
     def start_camera_inference(self, model_name, params=None):
         """Starts inference running on VisionBonnet."""
-        request = protocol_pb2.Request()
-        request.start_camera_inference.model_name = model_name
+        _check_model_name(model_name)
 
-        for key, value in (params or {}).items():
-            request.start_camera_inference.params[key] = str(value)
-
-        self._communicate(request)
+        self._communicate(pb2.Request(
+            start_camera_inference=pb2.Request.StartCameraInference(
+                model_name=model_name,
+                params=_get_params(params))))
 
     def camera_inference(self):
         """Returns the latest inference result from VisionBonnet."""
-        request = protocol_pb2.Request()
-        request.camera_inference.SetInParent()
-        return self._communicate(request).inference_result
+        return self._communicate_bytes(_REQ_CAMERA_INFERENCE).inference_result
 
     def stop_camera_inference(self):
         """Stops inference running on VisionBonnet."""
-        request = protocol_pb2.Request()
-        request.stop_camera_inference.SetInParent()
-        self._communicate(request)
+        self._communicate_bytes(_REQ_STOP_CAMERA_INFERENCE)
 
     def get_camera_state(self):
-        request = protocol_pb2.Request()
-        request.get_camera_state.SetInParent()
-        return self._communicate(request).camera_state
+        """Returns current camera state."""
+        return self._communicate_bytes(_REQ_GET_CAMERA_STATE).camera_state
 
     def get_firmware_info(self):
         """Returns firmware version as (major, minor) tuple."""
-        request = protocol_pb2.Request()
-        request.get_firmware_info.SetInParent()
         try:
-            info = self._communicate(request).firmware_info
+            info = self._communicate_bytes(_REQ_GET_FIRMWARE_INFO).firmware_info
             return (info.major_version, info.minor_version)
         except InferenceException:
-            # Request is not supported by firmware, default to 1.0
-            return (1, 0)
+            return (1, 0)  # Request is not supported by firmware, default to 1.0
 
     def image_inference(self, model_name, image, params=None):
-        """Runs inference on image using model (identified by model_name).
+        """Runs inference on image using model identified by model_name.
 
         Args:
           model_name: string, unique identifier used to refer a model.
@@ -287,31 +307,13 @@ class InferenceEngine(object):
           params: dict, additional parameters to run inference
 
         Returns:
-          protocol_pb2.Response
+          pb2.Response.InferenceResult
         """
-        if not model_name:
-            raise ValueError('Model name must not be empty.')
+        _check_model_name(model_name)
 
-        logging.info('Image inference with model "%s"...', model_name)
-
-        width, height = image.size
-
-        request = protocol_pb2.Request()
-        request.image_inference.model_name = model_name
-        request.image_inference.tensor.shape.height = height
-        request.image_inference.tensor.shape.width = width
-
-        if image.mode == 'RGB':
-            r, g, b = image.split()
-            request.image_inference.tensor.shape.depth = 3
-            request.image_inference.tensor.data = r.tobytes() + g.tobytes() + b.tobytes()
-        elif image.mode == 'L':
-            request.image_inference.tensor.shape.depth = 1
-            request.image_inference.tensor.data = image.tobytes()
-        else:
-            raise InferenceException('Unsupported image format: %s. Must be L or RGB.' % image.mode)
-
-        for key, value in (params or {}).items():
-            request.image_inference.params[key] = str(value)
-
-        return self._communicate(request).inference_result
+        logger.info('Image inference with model "%s"...', model_name)
+        return self._communicate(pb2.Request(
+            image_inference=pb2.Request.ImageInference(
+                model_name=model_name,
+                tensor=_image_to_tensor(image),
+                params=_get_params(params)))).inference_result
