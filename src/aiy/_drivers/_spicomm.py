@@ -17,9 +17,9 @@ import array
 import fcntl
 import multiprocessing as mp
 import os
+import signal
 import struct
 import sys
-
 
 SPICOMM_DEV = '/dev/vision_spicomm'
 
@@ -101,22 +101,16 @@ def _get_exception(header):
     return SpicommError()
 
 
-def _async_loop(pipe):
+def _async_loop(dev, pipe):
+    def terminate(signum, frame):
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    signal.signal(signal.SIGTERM, terminate)
+
     allocated_buf = bytearray(HEADER_SIZE + DEFAULT_PAYLOAD_SIZE)
-
-    try:
-        dev = open(SPICOMM_DEV, 'r+b', 0)
-        pipe.send(None)
-    except (IOError, OSError) as e:
-        pipe.send(e)
-        return
-
     while True:
-        message = pipe.recv()
-        if message is None:
-            return
-
-        size, timeout = message
+        size, timeout = pipe.recv()
         if size <= DEFAULT_PAYLOAD_SIZE:
             buf = allocated_buf
         else:
@@ -134,7 +128,6 @@ def _async_loop(pipe):
         except (IOError, OSError) as e:
             pipe.send(_get_exception(buf))
 
-
 class AsyncSpicomm(object):
     """Class for communication with VisionBonnet via kernel driver.
 
@@ -144,14 +137,11 @@ class AsyncSpicomm(object):
     """
 
     def __init__(self):
-        ctx = mp.get_context('fork')
+        self._dev = open(SPICOMM_DEV, 'r+b', 0)
         self._pipe, pipe = mp.Pipe()
-        self._process = ctx.Process(target=_async_loop, daemon=True, args=(pipe,))
+        ctx = mp.get_context('fork')
+        self._process = ctx.Process(target=_async_loop, daemon=True, args=(self._dev, pipe))
         self._process.start()
-
-        status = self._pipe.recv()
-        if isinstance(status, Exception):
-            raise status
 
     def __enter__(self):
         return self
@@ -160,8 +150,9 @@ class AsyncSpicomm(object):
         self.close()
 
     def close(self):
-        self._pipe.send(None)
+        self._process.terminate()
         self._process.join()
+        self._dev.close()
 
     def transact(self, request, timeout=None):
         """Execute transaction in a separate process.
@@ -178,9 +169,24 @@ class AsyncSpicomm(object):
           SpicommTimeoutError: Transaction timed out.
           SpicommError: Transaction error.
         """
+
+        # Setup temporary SIGINT handler
+        captured_args = None
+        def handler(*args):
+            nonlocal captured_args
+            captured_args = args
+        old_handler = signal.signal(signal.SIGINT, handler)
+
+        # Execute communication transaction without SIGINT interruptions
         self._pipe.send((len(request), timeout))
         self._pipe.send_bytes(request)
         response = self._pipe.recv()
+
+        # Setup old SIGINT handler or call it directly if SIGINT already happened
+        signal.signal(signal.SIGINT, old_handler)
+        if captured_args:
+            old_handler(*captured_args)
+
         if isinstance(response, Exception):
             raise response
         return response
