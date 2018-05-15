@@ -144,11 +144,11 @@ def _image_to_tensor(image):
     if image.mode == 'RGB':
         r, g, b = image.split()
         return pb2.ByteTensor(
-            shape=pb2.TensorShape(batch=1, width=width, height=height, depth=3),
+            shape=pb2.TensorShape(batch=1, height=height, width=width, depth=3),
             data=r.tobytes() + g.tobytes() + b.tobytes())
     elif image.mode == 'L':
         return pb2.ByteTensor(
-            shape=pb2.TensorShape(batch=1, width=width, height=height, depth=1),
+            shape=pb2.TensorShape(batch=1, height=height, width=width, depth=1),
             data=image.tobytes())
     else:
         raise InferenceException('Unsupported image format: %s. Must be L or RGB.' % image.mode)

@@ -35,8 +35,7 @@ paddlewheel/paddle wheel
 submarine/pigboat/sub/U-boat
 fireboat
 
-A full list of possible categories can be obtained here:
-<url>
+A full list of possible categories can be found in image_classification_classes.py.
 """
 
 import argparse
