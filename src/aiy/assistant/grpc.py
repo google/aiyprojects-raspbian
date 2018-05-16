@@ -19,6 +19,7 @@ import aiy.assistant.auth_helpers
 import aiy.assistant.device_helpers
 import aiy.audio
 import aiy.voicehat
+from requests.exceptions import HTTPError
 
 # Global variables. They are lazily initialized.
 _assistant_recognizer = None
@@ -78,5 +79,10 @@ def get_assistant():
     global _assistant_recognizer
     if not _assistant_recognizer:
         credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
-        _assistant_recognizer = _AssistantRecognizer(credentials)
+        try:
+            _assistant_recognizer = _AssistantRecognizer(credentials)
+        except HTTPError as e:
+            if e.status_code == 403:
+                print('Got HTTP error 403, did you remember to enable the Google Assistant API?')
+            raise
     return _assistant_recognizer
