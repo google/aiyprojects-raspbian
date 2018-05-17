@@ -10,3 +10,8 @@ def load_compute_graph(name):
 
 def shape_tuple(shape):
     return (shape.batch, shape.height, shape.width, shape.depth)
+
+def reshape(array, width):
+    assert len(array) % width == 0
+    height = len(array) // width
+    return [array[i * width:(i + 1) * width] for i in range(height)]

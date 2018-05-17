@@ -28,6 +28,13 @@ def model():
         compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME))
 
 
+def _get_probs(result):
+    assert len(result.tensors) == 1
+    tensor = result.tensors['MobilenetV1/Predictions/Softmax']
+    assert utils.shape_tuple(tensor.shape) == (1, 1, 1, 2024)
+    return tuple(tensor.data)
+
+
 def get_classes(result, max_num_objects=None, object_prob_threshold=0.0):
     """Converts dish classifier model output to list of detected objects.
 
@@ -45,12 +52,7 @@ def get_classes(result, max_num_objects=None, object_prob_threshold=0.0):
       [('Ramen', 0.981934)
        ('Yaka mein, 0.005497)]
     """
-    assert len(result.tensors) == 1
-    tensor = result.tensors['MobilenetV1/Predictions/Softmax']
-    probs, shape = tensor.data, tensor.shape
-    assert (shape.batch, shape.height, shape.width, shape.depth) == (1, 1, 1,
-                                                                     2024)
-
+    probs = _get_probs(result)
     pairs = [pair for pair in enumerate(probs) if pair[1] > object_prob_threshold]
     pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
     pairs = pairs[0:max_num_objects]

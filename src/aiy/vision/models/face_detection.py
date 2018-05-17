@@ -13,18 +13,10 @@
 # limitations under the License.
 """API for Face Detection."""
 
-from __future__ import division
-
 from aiy.vision.inference import ModelDescriptor
 from aiy.vision.models import utils
 
 _COMPUTE_GRAPH_NAME = 'face_detection.binaryproto'
-
-
-def _reshape(array, width):
-    assert len(array) % width == 0
-    height = len(array) // width
-    return [array[i * width:(i + 1) * width] for i in range(height)]
 
 
 class Face(object):
@@ -62,9 +54,9 @@ def get_faces(result):
     """Returns list of Face objects decoded from the inference result."""
     assert len(result.tensors) == 3
     # TODO(dkovalev): check tensor shapes
-    bboxes = _reshape(result.tensors['bounding_boxes'].data, 4)
-    face_scores = result.tensors['face_scores'].data
-    joy_scores = result.tensors['joy_scores'].data
+    bboxes = utils.reshape(result.tensors['bounding_boxes'].data, 4)
+    face_scores = tuple(result.tensors['face_scores'].data)
+    joy_scores = tuple(result.tensors['joy_scores'].data)
     assert len(bboxes) == len(joy_scores)
     assert len(bboxes) == len(face_scores)
     return [

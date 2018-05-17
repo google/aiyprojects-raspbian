@@ -13,19 +13,11 @@
 # limitations under the License.
 """API for Dish Detection."""
 
-from __future__ import division
-
 from aiy.vision.inference import ModelDescriptor
 from aiy.vision.models.dish_classifier_classes import CLASSES
 from aiy.vision.models import utils
 
 _COMPUTE_GRAPH_NAME = 'dish_detection.binaryproto'
-
-
-def _reshape(array, width):
-    assert len(array) % width == 0
-    height = len(array) // width
-    return [array[i * width:(i + 1) * width] for i in range(height)]
 
 
 def _get_sorted_score_map(score_vector, top_k, threshold):
@@ -60,8 +52,8 @@ def model():
 def get_dishes(result, top_k=3, threshold=0.1):
     """Returns list of Dish objects decoded from the inference result."""
     assert len(result.tensors) == 2
-    bboxes = _reshape(result.tensors['bounding_boxes'].data, 4)
-    dish_scores = _reshape(result.tensors['dish_scores'].data, len(CLASSES))
+    bboxes = utils.reshape(result.tensors['bounding_boxes'].data, 4)
+    dish_scores = utils.reshape(result.tensors['dish_scores'].data, len(CLASSES))
     assert len(bboxes) == len(dish_scores)
     sorted_dish_scores = [_get_sorted_score_map(score_vector, top_k, threshold)
                           for score_vector in dish_scores]
