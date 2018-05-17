@@ -28,7 +28,9 @@ from aiy.vision.annotator import Annotator
 from picamera import PiCamera
 
 def avg_joy_score(faces):
-    return sum(face.joy_score for face in faces) / len(faces)
+    if faces:
+        return sum(face.joy_score for face in faces) / len(faces)
+    return 0.0
 
 def main():
     """Face detection camera inference example."""
@@ -66,9 +68,8 @@ def main():
                     annotator.bounding_box(transform(face.bounding_box), fill=0)
                 annotator.update()
 
-                joy_score = '%.2f' % avg_joy_score(faces) if faces else 'N/A'
-                print('Iteration #%05d: num_faces=%d, avg_joy_score=%s' %
-                    (i, len(faces), joy_score))
+                print('Iteration #%05d (%5.2f fps): num_faces=%d, avg_joy_score=%.2f' %
+                    (i, inference.rate, len(faces), avg_joy_score(faces)))
 
         camera.stop_preview()
 

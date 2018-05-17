@@ -21,8 +21,10 @@ deleted. See image_classification.py and object_recognition.py as examples on
 how to use this API.
 """
 
-import logging
 import aiy.vision.proto.protocol_pb2 as pb2
+import logging
+import time
+
 from aiy._drivers._transport import make_transport
 
 logger = logging.getLogger(__name__)
@@ -68,13 +70,23 @@ class CameraInference(object):
         self._engine = InferenceEngine()
         self._key = self._engine.load_model(descriptor)
         self._engine.start_camera_inference(self._key, params)
+        self._rate = 0.0
 
     def camera_state(self):
         return self._engine.get_camera_state()
 
     def run(self):
+        before = None
         while True:
-            yield self._engine.camera_inference()
+            result = self._engine.camera_inference()
+            now = time.time()
+            self._rate = 1.0 / (now - before) if before else 0.0
+            before = now
+            yield result
+
+    @property
+    def rate(self):
+        return self._rate
 
     def close(self):
         self._engine.stop_camera_inference()

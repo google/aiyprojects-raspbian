@@ -14,7 +14,6 @@
 # limitations under the License.
 """Script to run generic MobileNet based classification model."""
 import argparse
-import time
 
 from picamera import Color
 from picamera import PiCamera
@@ -107,19 +106,14 @@ def main():
         if args.preview:
             camera.start_preview()
         with inference.CameraInference(model) as camera_inference:
-            last_time = time.time()
             for i, result in enumerate(camera_inference.run()):
                 if i == args.num_frames:
                     break
                 processed_result = process(result, labels, args.output_layer,
                                            args.threshold, args.top_k)
-                cur_time = time.time()
-                fps = 1.0 / (cur_time - last_time)
-                last_time = cur_time
-
                 message = get_message(processed_result, args.threshold, args.top_k)
                 if args.show_fps:
-                    message += '\nWith %.1f FPS.' % fps
+                    message += '\nWith %.1f FPS.' % camera_inference.rate
                 print(message)
 
                 if args.preview:

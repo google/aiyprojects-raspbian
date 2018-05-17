@@ -24,28 +24,24 @@ Example:
   --input_width 256
 """
 import argparse
-import time
 
 from picamera import PiCamera
 
 from aiy.vision.inference import CameraInference, ModelDescriptor
 from aiy.vision.models import utils
 
+def tensors_info(tensors):
+    return ', '.join('%s [%d elements]' % (name, len(tensor.data))
+        for name, tensor in tensors.items())
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--model_path',
-        required=True,
+    parser.add_argument('--model_path', required=True,
         help='Path to converted model file that can run on VisionKit.')
-    parser.add_argument(
-        '--input_height', type=int, required=True, help='Input height.')
-    parser.add_argument(
-        '--input_width', type=int, required=True, help='Input width.')
-    parser.add_argument(
-        '--input_mean', type=float, default=128.0, help='Input mean.')
-    parser.add_argument(
-        '--input_std', type=float, default=128.0, help='Input std.')
+    parser.add_argument('--input_height', type=int, required=True, help='Input height.')
+    parser.add_argument('--input_width', type=int, required=True, help='Input width.')
+    parser.add_argument('--input_mean', type=float, default=128.0, help='Input mean.')
+    parser.add_argument('--input_std', type=float, default=128.0, help='Input std.')
     parser.add_argument('--input_depth', type=int, default=3, help='Input depth.')
     args = parser.parse_args()
 
@@ -56,20 +52,10 @@ def main():
         compute_graph=utils.load_compute_graph(args.model_path))
 
     with PiCamera(sensor_mode=4, framerate=30) as camera:
-        with CameraInference(model) as camera_inference:
-            last_time = time.time()
-            for i, result in enumerate(camera_inference.run()):
-                output_tensor_str = [
-                    '%s [%d elements]' % (k, len(v.data))
-                    for k, v in result.tensors.items()
-                ]
-
-                cur_time = time.time()
-                fps = 1.0 / (cur_time - last_time)
-                last_time = cur_time
-
-                print('%d-th inference, fps: %.1f FPS, %s' %
-                      (i, fps, ','.join(output_tensor_str)))
+        with CameraInference(model) as inference:
+            for i, result in enumerate(inference.run()):
+                print('Iteration #%05d (%5.2f fps): %s' %
+                    (i, inference.rate, tensors_info(result.tensors)))
 
 
 if __name__ == '__main__':
