@@ -27,34 +27,20 @@ from aiy.vision.models import face_detection
 from aiy.vision.annotator import Annotator
 from picamera import PiCamera
 
+def avg_joy_score(faces):
+    return sum(face.joy_score for face in faces) / len(faces)
 
 def main():
     """Face detection camera inference example."""
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--num_frames',
-        '-n',
-        type=int,
-        dest='num_frames',
-        default=-1,
+    parser.add_argument('--num_frames', '-n', type=int, dest='num_frames', default=-1,
         help='Sets the number of frames to run for, otherwise runs forever.')
     args = parser.parse_args()
 
-    with PiCamera() as camera:
-        # Forced sensor mode, 1640x1232, full FoV. See:
-        # https://picamera.readthedocs.io/en/release-1.13/fov.html#sensor-modes
-        # This is the resolution inference run on.
-        camera.sensor_mode = 4
-
-        # Scaled and cropped resolution. If different from sensor mode implied
-        # resolution, inference results must be adjusted accordingly. This is
-        # true in particular when camera.start_recording is used to record an
-        # encoded h264 video stream as the Pi encoder can't encode all native
-        # sensor resolutions, or a standard one like 1080p may be desired.
-        camera.resolution = (1640, 1232)
-
-        # Start the camera stream.
-        camera.framerate = 30
+    # Forced sensor mode, 1640x1232, full FoV. See:
+    # https://picamera.readthedocs.io/en/release-1.13/fov.html#sensor-modes
+    # This is the resolution inference run on.
+    with PiCamera(sensor_mode=4, resolution=(1640, 1232), framerate=30) as camera:
         camera.start_preview()
 
         # Annotator renders in software so use a smaller size and scale results
@@ -79,7 +65,10 @@ def main():
                 for face in faces:
                     annotator.bounding_box(transform(face.bounding_box), fill=0)
                 annotator.update()
-                print('Iteration #%d: num_faces=%d' % (i, len(faces)))
+
+                joy_score = '%.2f' % avg_joy_score(faces) if faces else 'N/A'
+                print('Iteration #%05d: num_faces=%d, avg_joy_score=%s' %
+                    (i, len(faces), joy_score))
 
         camera.stop_preview()
 
