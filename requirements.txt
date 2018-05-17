@@ -1,5 +1,0 @@
-google-assistant-grpc==0.1.0
-google-cloud-speech==0.30.0
-google-auth-oauthlib==0.2.0
-pyasn1==0.4.2
-grpcio==1.7.0
