@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+message AiyBound {
+  oneof message {
+    StreamControl stream_control = 1;
+  }
+}
+
+message ClientBound {
+  oneof message {
+    StreamData stream_data = 1;
+  }
+}
+
+message StreamControl {
+  bool enabled = 1;
+}
+
+message StreamData {
+  oneof type {
+    CodecData codec_data = 1;
+    FrameData frame_data = 2;
+    InferenceData inference_data = 3;
+  }
+}
+
+message CodecData {
+  uint32 width = 1;
+  uint32 height = 2;
+  bytes data = 3;
+}
+
+message FrameData {
+  enum FrameType {
+    UNKNOWN = 0;
+    KEY = 1;
+    DELTA = 2;
+  }
+  uint64 seq = 1;
+  uint64 pts = 2;
+  FrameType type = 3;
+  bytes data = 4;
+}
+
+message InferenceData {
+  repeated InferenceElement elements = 1;
+}
+
+message InferenceElement {
+  oneof element {
+    Label label = 1;
+    Rectangle rectangle = 2;
+  }
+}
+
+message Label {
+  string text = 1;
+  float x = 2;
+  float y = 3;
+  uint32 color = 4;
+  uint32 size = 5;
+}
+
+message Rectangle {
+  float x = 1;
+  float y = 2;
+  float w = 3;
+  float h = 4;
+  uint32 color = 5;
+  uint32 weight = 6;
+}

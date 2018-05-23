@@ -5,7 +5,7 @@ Description=AIY Joy Detection Demo
 Type=simple
 Restart=no
 User=pi
-ExecStart=/usr/bin/python3 /home/pi/AIY-projects-python/src/examples/vision/joy/joy_detection_demo.py
+ExecStart=/usr/bin/python3 /home/pi/AIY-projects-python/src/examples/vision/joy/joy_detection_demo.py --enable_streaming
 
 [Install]
 WantedBy=multi-user.target

@@ -31,6 +31,7 @@ from aiy.leds import PrivacyLed
 from aiy.toneplayer import TonePlayer
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import face_detection
+from aiy.vision.streaming.server import StreamingServer, InferenceData
 
 from contextlib import contextmanager
 from gpiozero import Button
@@ -84,6 +85,27 @@ def draw_rectangle(draw, x0, y0, x1, y1, border, fill=None, outline=None):
     assert border % 2 == 1
     for i in range(-border // 2, border // 2 + 1):
         draw.rectangle((x0 + i, y0 + i, x1 - i, y1 - i), fill=fill, outline=outline)
+
+
+def normalize_bounding_box(width, height, bounding_box):
+    x, y, w, h = bounding_box
+    x = x / width
+    y = y / height
+    w = w / width
+    h = h / height
+    return (x, y, w, h)
+
+
+def stream_face_data(server, width, height, faces, joy_score):
+    data = InferenceData()
+    for face in faces:
+        x, y, w, h = normalize_bounding_box(width, height, face.bounding_box)
+        color = blend(JOY_COLOR, SAD_COLOR, face.joy_score)
+        data.add_rectangle(x, y, w, h, color, round(face.joy_score * 10))
+        data.add_label("%.2f" % face.joy_score, x, y, color, 1)
+    data.add_label('Faces: %d Avg. score: %.2f' % (len(faces), joy_score),
+                   0, 0, blend(JOY_COLOR, SAD_COLOR, joy_score), 2)
+    server.send_inference_data(data)
 
 
 class AtomicValue(object):
@@ -242,7 +264,7 @@ class JoyDetector(object):
         logger.info('Stopping...')
         self._done.set()
 
-    def run(self, num_frames, preview_alpha, image_format, image_folder):
+    def run(self, num_frames, preview_alpha, image_format, image_folder, enable_streaming):
         logger.info('Starting...')
         leds = Leds()
         player = Player(gpio=22, bpm=10)
@@ -250,14 +272,18 @@ class JoyDetector(object):
         animator = Animator(leds)
 
         try:
-            # Forced sensor mode, 1640x1232, full FoV. See:
-            # https://picamera.readthedocs.io/en/release-1.13/fov.html#sensor-modes
-            # This is the resolution inference run on.
-            with PiCamera(sensor_mode=4, resolution=(1640, 1232)) as camera, PrivacyLed(leds):
+            with PiCamera() as camera, PrivacyLed(leds), StreamingServer(camera) as server:
                 def take_photo():
                     logger.info('Button pressed.')
                     player.play(BEEP_SOUND)
                     photographer.shoot(camera)
+
+                # Forced sensor mode, 1640x1232, full FoV. See:
+                # https://picamera.readthedocs.io/en/release-1.13/fov.html#sensor-modes
+                # This is the resolution inference run on.
+                # Use half of that for video streaming (820x616).
+                camera.sensor_mode = 4
+                camera.resolution = (820, 616)
 
                 # Blend the preview layer with the alpha value from the flags.
                 if preview_alpha > 0:
@@ -265,6 +291,9 @@ class JoyDetector(object):
                     camera.start_preview(alpha=preview_alpha)
                 else:
                     logger.info('Not starting preview, alpha 0')
+
+                if enable_streaming:
+                    server.run()
 
                 button = Button(23)
                 button.when_pressed = take_photo
@@ -280,6 +309,8 @@ class JoyDetector(object):
 
                         joy_score = joy_score_moving_average.next(average_joy_score(faces))
                         animator.update_joy_score(joy_score)
+                        if enable_streaming:
+                            stream_face_data(server, result.width, result.height, faces, joy_score)
 
                         if joy_score > JOY_SCORE_PEAK > prev_joy_score:
                             player.play(JOY_SOUND)
@@ -312,6 +343,8 @@ def main():
                         help='Folder to save captured images.')
     parser.add_argument('--blink_on_error', dest='blink_on_error', default=False,
                         action='store_true', help='Blink red if error occurred.')
+    parser.add_argument('--enable_streaming', dest='enable_streaming', default=False,
+                        action='store_true', help='Enable streaming server.')
     args = parser.parse_args()
 
     if args.preview_alpha < 0 or args.preview_alpha > 255:
@@ -324,7 +357,8 @@ def main():
 
     detector = JoyDetector()
     try:
-        detector.run(args.num_frames, args.preview_alpha, args.image_format, args.image_folder)
+        detector.run(args.num_frames, args.preview_alpha, args.image_format,
+                     args.image_folder, args.enable_streaming)
     except KeyboardInterrupt:
         pass
     except:
