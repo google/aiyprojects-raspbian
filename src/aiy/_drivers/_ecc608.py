@@ -31,29 +31,35 @@ CRYPTO_ADDRESS_DICT = {
     'Voice Bonnet': 0x62,
 }
 
+
 class AtcaIfaceCfgLong(Structure):
-  _fields_ = (
-    ('iface_type', c_ulong),
-    ('devtype', c_ulong),
-    ('slave_address', c_ubyte),
-    ('bus', c_ubyte),
-    ('baud', c_ulong)
- )
+    _fields_ = (
+        ('iface_type', c_ulong),
+        ('devtype', c_ulong),
+        ('slave_address', c_ubyte),
+        ('bus', c_ubyte),
+        ('baud', c_ulong)
+    )
+
 
 # Global cryptolib instance.
 _cryptolib = None
 
+
 def ecc608_is_valid():
     return _cryptolib is not None
 
-def _ecc608_check_address(address):
-  cfg = AtcaIfaceCfgLong.in_dll(_cryptolib, 'cfg_ateccx08a_i2c_default')
-  cfg.slave_address = address
 
-  if _cryptolib.atcab_init(_cryptolib.cfg_ateccx08a_i2c_default) == 0:
-    return True
-  else:
-    return False
+def _ecc608_check_address(address):
+    cfg = AtcaIfaceCfgLong.in_dll(_cryptolib, 'cfg_ateccx08a_i2c_default')
+    cfg.slave_address = address << 1  # Cryptolib uses 8-bit address.
+    cfg.bus = 1  # ARM I2C
+    cfg.devtype = 3  # ECC608
+
+    if _cryptolib.atcab_init(_cryptolib.cfg_ateccx08a_i2c_default) == 0:
+        return True
+    else:
+        return False
 
 
 def ecc608_init_and_update_address():
@@ -70,13 +76,14 @@ def ecc608_init_and_update_address():
         board_name = 'Vision Bonnet'
 
     for name, addr in CRYPTO_ADDRESS_DICT.items():
-        if _ecc608_check_address(addr << 1):
+        if _ecc608_check_address(addr):
             # Found a valid crypto chip, validate it is the correct address.
             if name in board_name:
+                logger.info('Crypto found at correct address: 0x%x', addr)
                 return True
             else:
                 # The chip was found, but it was mismatched for the board.
-                logger.warn('Crypto found, but at the wrong address: ', addr)
+                logger.warn('Crypto found, but at the wrong address: 0x%x', addr)
                 if board_name in CRYPTO_ADDRESS_DICT:
                     logger.warn('Updating crypto i2c address.')
                     # TODO(michaelbrooks): Update I2C Address.
