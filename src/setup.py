@@ -41,6 +41,7 @@ setup(
         "examples/vision/face_camera_trigger.py",
         "examples/vision/face_detection.py",
         "examples/vision/face_detection_camera.py",
+        "examples/vision/face_detection_raspivid.py",
         "examples/vision/image_classification.py",
         "examples/vision/image_classification_camera.py",
         "examples/vision/joy/joy_detection_demo.py",
