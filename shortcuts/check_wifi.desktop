@@ -1,7 +1,0 @@
-[Desktop Entry]
-Encoding=UTF-8
-Type=Application
-Name=Check WiFi
-Comment=Check that the WiFi is working.
-Exec=/home/pi/AIY-projects-python/checkpoints/check_wifi.py
-Terminal=true
