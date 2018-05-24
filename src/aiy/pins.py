@@ -4,9 +4,6 @@ Defines pin objects, and overrides the pin factory used by gpiozero devices to
 support the pins routed through the hat. Should not disrupt usage of other pins.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 import os
 from collections import namedtuple
 from copy import deepcopy

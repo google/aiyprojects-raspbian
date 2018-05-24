@@ -18,7 +18,6 @@ Super categories are defined by the mapping_data.py file which uses labels from
 nodes above the grouped leaves in the wordnet for defining super-categories.
 """
 
-from __future__ import print_function
 from .mapping_data import CATEGORIES
 from .mapping_data import MAPPINGS
 
