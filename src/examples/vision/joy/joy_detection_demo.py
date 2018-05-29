@@ -15,6 +15,7 @@
 """Joy detection demo."""
 import argparse
 import collections
+import contextlib
 import io
 import logging
 import math
@@ -59,6 +60,8 @@ BEEP_SOUND = ('E6q', 'C6q')
 
 FONT_FILE = '/usr/share/fonts/truetype/freefont/FreeSans.ttf'
 
+BUZZER_GPIO = 22
+BUTTON_GPIO = 23
 
 @contextmanager
 def stopwatch(message):
@@ -77,7 +80,7 @@ def blend(color_a, color_b, alpha):
 
 def average_joy_score(faces):
     if faces:
-        return sum([face.joy_score for face in faces]) / len(faces)
+        return sum(face.joy_score for face in faces) / len(faces)
     return 0.0
 
 
@@ -87,25 +90,21 @@ def draw_rectangle(draw, x0, y0, x1, y1, border, fill=None, outline=None):
         draw.rectangle((x0 + i, y0 + i, x1 - i, y1 - i), fill=fill, outline=outline)
 
 
-def normalize_bounding_box(width, height, bounding_box):
+def normalize_bounding_box(bounding_box, width, height):
     x, y, w, h = bounding_box
-    x = x / width
-    y = y / height
-    w = w / width
-    h = h / height
-    return (x, y, w, h)
+    return (x / width, y / height, w / width, h / height)
 
 
-def stream_face_data(server, width, height, faces, joy_score):
+def server_inference_data(width, height, faces, joy_score):
     data = InferenceData()
     for face in faces:
-        x, y, w, h = normalize_bounding_box(width, height, face.bounding_box)
+        x, y, w, h = normalize_bounding_box(face.bounding_box, width, height)
         color = blend(JOY_COLOR, SAD_COLOR, face.joy_score)
         data.add_rectangle(x, y, w, h, color, round(face.joy_score * 10))
         data.add_label("%.2f" % face.joy_score, x, y, color, 1)
     data.add_label('Faces: %d Avg. score: %.2f' % (len(faces), joy_score),
                    0, 0, blend(JOY_COLOR, SAD_COLOR, joy_score), 2)
-    server.send_inference_data(data)
+    return data
 
 
 class AtomicValue(object):
@@ -150,17 +149,21 @@ class Service(object):
             self.process(request)
             self._requests.task_done()
 
-    def join(self):
-        self._thread.join()
-
-    def stop(self):
-        self._requests.put(None)
-
     def process(self, request):
         pass
 
     def submit(self, request):
         self._requests.put(request)
+
+    def close(self):
+        self._requests.put(None)
+        self._thread.join()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.close()
 
 
 class Player(Service):
@@ -267,68 +270,58 @@ class JoyDetector(object):
     def run(self, num_frames, preview_alpha, image_format, image_folder, enable_streaming):
         logger.info('Starting...')
         leds = Leds()
-        player = Player(gpio=22, bpm=10)
-        photographer = Photographer(image_format, image_folder)
-        animator = Animator(leds)
 
-        try:
-            with PiCamera() as camera, PrivacyLed(leds), StreamingServer(camera) as server:
-                def take_photo():
-                    logger.info('Button pressed.')
-                    player.play(BEEP_SOUND)
-                    photographer.shoot(camera)
+        with contextlib.ExitStack() as stack:
+            player = stack.enter_context(Player(gpio=BUZZER_GPIO, bpm=10))
+            photographer = stack.enter_context(Photographer(image_format, image_folder))
+            animator = stack.enter_context(Animator(leds))
+            # Forced sensor mode, 1640x1232, full FoV. See:
+            # https://picamera.readthedocs.io/en/release-1.13/fov.html#sensor-modes
+            # This is the resolution inference run on.
+            # Use half of that for video streaming (820x616).
+            camera = stack.enter_context(PiCamera(sensor_mode=4, resolution=(820, 616)))
+            stack.enter_context(PrivacyLed(leds))
 
-                # Forced sensor mode, 1640x1232, full FoV. See:
-                # https://picamera.readthedocs.io/en/release-1.13/fov.html#sensor-modes
-                # This is the resolution inference run on.
-                # Use half of that for video streaming (820x616).
-                camera.sensor_mode = 4
-                camera.resolution = (820, 616)
+            server = None
+            if enable_streaming:
+                server = stack.enter_context(StreamingServer(camera))
+                server.run()
 
-                # Blend the preview layer with the alpha value from the flags.
-                if preview_alpha > 0:
-                    logger.info('Starting preview with alpha %d', preview_alpha)
-                    camera.start_preview(alpha=preview_alpha)
-                else:
-                    logger.info('Not starting preview, alpha 0')
+            def take_photo():
+                logger.info('Button pressed.')
+                player.play(BEEP_SOUND)
+                photographer.shoot(camera)
 
-                if enable_streaming:
-                    server.run()
+            if preview_alpha > 0:
+                camera.start_preview(alpha=preview_alpha)
 
-                button = Button(23)
-                button.when_pressed = take_photo
+            button = Button(BUTTON_GPIO)
+            button.when_pressed = take_photo
 
-                joy_score_moving_average = MovingAverage(10)
-                prev_joy_score = 0.0
-                with CameraInference(face_detection.model()) as inference:
-                    logger.info('Model loaded.')
-                    player.play(MODEL_LOAD_SOUND)
-                    for i, result in enumerate(inference.run()):
-                        faces = face_detection.get_faces(result)
-                        photographer.update_faces(faces)
+            joy_score_moving_average = MovingAverage(10)
+            prev_joy_score = 0.0
+            with CameraInference(face_detection.model()) as inference:
+                logger.info('Model loaded.')
+                player.play(MODEL_LOAD_SOUND)
+                for i, result in enumerate(inference.run()):
+                    faces = face_detection.get_faces(result)
+                    photographer.update_faces(faces)
 
-                        joy_score = joy_score_moving_average.next(average_joy_score(faces))
-                        animator.update_joy_score(joy_score)
-                        if enable_streaming:
-                            stream_face_data(server, result.width, result.height, faces, joy_score)
+                    joy_score = joy_score_moving_average.next(average_joy_score(faces))
+                    animator.update_joy_score(joy_score)
+                    if server:
+                        data = server_inference_data(result.width, result.height, faces, joy_score)
+                        server.send_inference_data(data)
 
-                        if joy_score > JOY_SCORE_PEAK > prev_joy_score:
-                            player.play(JOY_SOUND)
-                        elif joy_score < JOY_SCORE_MIN < prev_joy_score:
-                            player.play(SAD_SOUND)
+                    if joy_score > JOY_SCORE_PEAK > prev_joy_score:
+                        player.play(JOY_SOUND)
+                    elif joy_score < JOY_SCORE_MIN < prev_joy_score:
+                        player.play(SAD_SOUND)
 
-                        prev_joy_score = joy_score
+                    prev_joy_score = joy_score
 
-                        if self._done.is_set() or i == num_frames:
-                            break
-        finally:
-            player.stop()
-            photographer.stop()
-            animator.stop()
-
-            player.join()
-            photographer.join()
-            animator.join()
+                    if self._done.is_set() or i == num_frames:
+                        break
 
 
 def main():
