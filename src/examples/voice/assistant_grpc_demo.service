@@ -1,13 +1,11 @@
-# This service can be used to run your code automatically on startup. Look in
-# HACKING.md for instructions on creating main.py and enabling it.
+# This service can be used to run your code automatically on startup.
 
 [Unit]
 Description=voice recognizer
 After=network.target systemd-timesyncd.service
 
 [Service]
-Environment=DISPLAY=:0
-ExecStart=/usr/bin/python3 -u main.py
+ExecStart=/usr/bin/python3 -u examples/voice/assistant_grpc_demo.py
 WorkingDirectory=/home/pi/AIY-projects-python/src
 StandardOutput=inherit
 StandardError=inherit
