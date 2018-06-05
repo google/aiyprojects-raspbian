@@ -35,7 +35,7 @@ def avg_joy_score(faces):
 def main():
     """Face detection camera inference example."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--num_frames', '-n', type=int, dest='num_frames', default=-1,
+    parser.add_argument('--num_frames', '-n', type=int, dest='num_frames', default=None,
         help='Sets the number of frames to run for, otherwise runs forever.')
     args = parser.parse_args()
 
@@ -59,17 +59,15 @@ def main():
                     scale_y * (y + height))
 
         with CameraInference(face_detection.model()) as inference:
-            for i, result in enumerate(inference.run()):
-                if i == args.num_frames:
-                    break
+            for result in inference.run(args.num_frames):
                 faces = face_detection.get_faces(result)
                 annotator.clear()
                 for face in faces:
                     annotator.bounding_box(transform(face.bounding_box), fill=0)
                 annotator.update()
 
-                print('Iteration #%05d (%5.2f fps): num_faces=%d, avg_joy_score=%.2f' %
-                    (i, inference.rate, len(faces), avg_joy_score(faces)))
+                print('#%05d (%5.2f fps): num_faces=%d, avg_joy_score=%.2f' %
+                    (inference.count, inference.rate, len(faces), avg_joy_score(faces)))
 
         camera.stop_preview()
 

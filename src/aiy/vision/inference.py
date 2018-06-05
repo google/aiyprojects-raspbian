@@ -22,6 +22,7 @@ how to use this API.
 """
 
 import aiy.vision.proto.protocol_pb2 as pb2
+import itertools
 import logging
 import time
 
@@ -71,22 +72,28 @@ class CameraInference(object):
         self._key = self._engine.load_model(descriptor)
         self._engine.start_camera_inference(self._key, params)
         self._rate = 0.0
+        self._count = 0
 
     def camera_state(self):
         return self._engine.get_camera_state()
 
-    def run(self):
+    def run(self, count=None):
         before = None
-        while True:
+        for _ in (itertools.count() if count is None else range(count)):
             result = self._engine.camera_inference()
             now = time.time()
             self._rate = 1.0 / (now - before) if before else 0.0
             before = now
+            self._count += 1
             yield result
 
     @property
     def rate(self):
         return self._rate
+
+    @property
+    def count(self):
+        return self._count
 
     def close(self):
         self._engine.stop_camera_inference()

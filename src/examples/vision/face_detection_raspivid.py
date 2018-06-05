@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#
 # Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,7 @@ face_detection_raspivid.py --num_frames 10
 import argparse
 import subprocess
 
+from contextlib import contextmanager
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import face_detection
 
@@ -34,26 +36,27 @@ def avg_joy_score(faces):
 def raspivid_cmd(sensor_mode):
     return ('raspivid', '--mode', str(sensor_mode), '--timeout', '0', '--nopreview')
 
+@contextmanager
+def Process(cmd):
+    process = subprocess.Popen(cmd)
+    try:
+        yield
+    finally:
+        process.terminate()
+        process.wait()
+
 def main():
-    """Face detection camera inference example."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--num_frames', '-n', type=int, dest='num_frames', default=-1,
+    parser = argparse.ArgumentParser('Face detection using raspivid.')
+    parser.add_argument('--num_frames', '-n', type=int, default=None,
         help='Sets the number of frames to run for, otherwise runs forever.')
     args = parser.parse_args()
 
-    raspivid = subprocess.Popen(raspivid_cmd(sensor_mode=4))
-    try:
-        with CameraInference(face_detection.model()) as inference:
-            for i, result in enumerate(inference.run()):
-                if i == args.num_frames:
-                    break
-                faces = face_detection.get_faces(result)
-
-                print('Iteration #%05d (%5.2f fps): num_faces=%d, avg_joy_score=%.2f, dur=%d ms' %
-                    (i, inference.rate, len(faces), avg_joy_score(faces), result.duration_ms))
-    finally:
-        raspivid.terminate()
-        raspivid.wait()
+    with Process(raspivid_cmd(sensor_mode=4)), \
+         CameraInference(face_detection.model()) as inference:
+        for result in inference.run(args.num_frames):
+            faces = face_detection.get_faces(result)
+            print('#%05d (%5.2f fps): num_faces=%d, avg_joy_score=%.2f' %
+                (inference.count, inference.rate, len(faces), avg_joy_score(faces)))
 
 if __name__ == '__main__':
     main()
