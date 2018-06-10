@@ -139,6 +139,12 @@ def process_event(assistant, event):
             if _music.getConfirmPlayback() == True:
                 assistant.start_conversation()
 
+        elif text.startswith('play ') and text.endswith(' podcast'):
+            assistant.stop_conversation()
+            _music.run('podcast', text[5:][:-8])
+            if _music.getConfirmPlayback() == True:
+                assistant.start_conversation()
+
         elif text.startswith('radio '):
             assistant.stop_conversation()
             _music.run('radio', text[6:])

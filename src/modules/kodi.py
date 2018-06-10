@@ -96,7 +96,7 @@ class KodiRemote(object):
             result = self.kodi.Player.Stop(playerid=1)
             logging.info('Kodi response: ' + str(result))
 
-        elif voice_command in ['play','pause','paws','resume']:
+        elif voice_command == 'play' or voice_command == 'pause' or voice_command == 'paws' or voice_command == 'resume':
             result = self.kodi.Player.PlayPause(playerid=1)
             logging.info('Kodi response: ' + str(result))
 

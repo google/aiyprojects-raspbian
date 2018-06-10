@@ -59,8 +59,12 @@ class Music(object):
             logging.info('Music stopped playing')
             self.mpd.clear()
 
-        self.mpd.close()
-        self.mpd.disconnect()
+        try:
+            self.mpd.close()
+            self.mpd.disconnect()
+        except ConnectionError:
+            logging.info('MPD connection timed out')
+            pass
 
     def playRadio(self, station):
         config = configparser.ConfigParser()
@@ -112,7 +116,8 @@ class Music(object):
                 aiy.audio.say('Recent podcasts are')
                 for title,url in podcasts.items():
                     podcastInfo = self.getPodcastItem(podcast, url, offset)
-                    aiy.audio.say(title + ' uploaded an episode ' + str(int(podcastInfo['age']/24)) + ' days ago')
+                    if not podcastInfo == None:
+                        aiy.audio.say(title + ' uploaded an episode ' + str(int(podcastInfo['age']/24)) + ' days ago')
                 return
 
             elif podcast == 'today':
@@ -120,6 +125,15 @@ class Music(object):
                 for title,url in podcasts.items():
                     podcastInfo = self.getPodcastItem(podcast, url, offset)
                     if podcastInfo['age'] < 36:
+                        aiy.audio.say(title + ' uploaded an episode ' + str(int(podcastInfo['age'])) + ' hours ago')
+                self._cancelAction = True
+                return
+
+            elif podcast == 'yesterday':
+                aiy.audio.say('Yesterday\'s podcasts are')
+                for title,url in podcasts.items():
+                    podcastInfo = self.getPodcastItem(podcast, url, offset)
+                    if podcastInfo['age'] < 60 and podcastInfo['age'] > 36:
                         aiy.audio.say(title + ' uploaded an episode ' + str(int(podcastInfo['age'])) + ' hours ago')
                 return
 
@@ -176,20 +190,20 @@ class Music(object):
         logging.info('feed contains ' + str(resCount) + ' items')
 
         # exit out if empty
-        if resCount < offset or resCount == 0:
+        if not resCount > offset:
             logging.info(podcast + ' podcast feed is empty')
             aiy.audio.say('There are no episodes available of ' + podcast)
             return None
 
         if 'title' in rss.feed:
-            result['title'] = rss.feed.title
+            result['title'] = rss.feed.title.replace(" & ", " and ")
 
         rssItem = rss.entries[offset]
 
         # Extract infromation about requested item
 
         if 'title' in rssItem:
-            result['ep_title'] = rssItem.title
+            result['ep_title'] = rssItem.title.replace(" & ", " and ")
 
         if 'published_parsed' in rssItem:
             result['age'] = int((time.time() - time.mktime(rssItem['published_parsed'])) / 3600)
