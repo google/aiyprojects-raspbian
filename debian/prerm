@@ -2,7 +2,5 @@
 
 set -e
 
-pip3 uninstall -y aiy-projects-python
-
-# May be __pycache__ and egg-infos here.
-rm -rf /opt/aiy/projects-python/src
+pip3 uninstall -y aiy-projects-python || true
+rm -rf /opt/aiy/projects-python/
