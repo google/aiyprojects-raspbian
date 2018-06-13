@@ -103,8 +103,7 @@ class CloudIot(object):
         mqtt_topic = '/devices/%s/%s' % (self._device_id, sub_topic)
 
         # Publish payload using JSON dumps to create bytes representation.
-        payload = '%s/%s-payload-%s' % (
-            self._registry_id, self._device_id, json.dumps(message))
+        payload = json.dumps(message)
 
         # Publish payload to the MQTT topic. qos=1 means at least once
         # delivery. Cloud IoT Core also supports qos=0 for at most once
