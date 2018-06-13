@@ -15,34 +15,19 @@
 
 from aiy.vision.inference import ModelDescriptor
 from aiy.vision.models import utils
+from collections import namedtuple
 
 _COMPUTE_GRAPH_NAME = 'face_detection.binaryproto'
 
-
-class Face(object):
-    """Face detection result."""
-
-    def __init__(self, bounding_box, face_score, joy_score):
-        """Creates a new Face instance.
-
-        Args:
-          bounding_box: (x, y, width, height).
-          face_score: float, face confidence score.
-          joy_score: float, face joy score.
-        """
-        self.bounding_box = bounding_box
-        self.face_score = face_score
-        self.joy_score = joy_score
-
-    def __str__(self):
-        return 'face_score=%f, joy_score=%f, bbox=%s' % (self.face_score,
-                                                         self.joy_score,
-                                                         str(self.bounding_box))
+# face_score: float, face confidence score from 0.0 to 1.0.
+# joy_score: float, face joy score from 0.0 to 1.0.
+# bounding_box: (x, y, width, height) tuple.
+Face = namedtuple('Face', ('face_score', 'joy_score', 'bounding_box'))
 
 
 def model():
     # Face detection model has special implementation in VisionBonnet firmware.
-    # input_shape, input_normalizer, and compute_graph params have on effect.
+    # input_shape, input_normalizer, and compute_graph params have no effect.
     return ModelDescriptor(
         name='FaceDetection',
         input_shape=(1, 0, 0, 3),
@@ -60,6 +45,6 @@ def get_faces(result):
     assert len(bboxes) == len(joy_scores)
     assert len(bboxes) == len(face_scores)
     return [
-        Face(tuple(bbox), face_score, joy_score)
-        for bbox, face_score, joy_score in zip(bboxes, face_scores, joy_scores)
+        Face(face_score, joy_score, tuple(bbox))
+        for face_score, joy_score, bbox in zip(face_scores, joy_scores, bboxes)
     ]

@@ -40,8 +40,7 @@ def model(model_type=MOBILENET):
         name=model_type,
         input_shape=(1, 160, 160, 3),
         input_normalizer=(128.0, 128.0),
-        compute_graph=utils.load_compute_graph(
-            _COMPUTE_GRAPH_NAME_MAP[model_type]))
+        compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME_MAP[model_type]))
 
 
 def _get_probs(result):

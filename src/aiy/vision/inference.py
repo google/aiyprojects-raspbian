@@ -27,10 +27,26 @@ import logging
 import time
 
 from aiy._drivers._transport import make_transport
+from collections import namedtuple
 
 logger = logging.getLogger(__name__)
 
-_SUPPORTED_FIRMWARE_VERSION = (1, 1)  # major, minor
+# name: string, a unique identifier to refer a model.
+# input_shape: (batch, height, width, depth). Only batch=1 and depth=3 are supported now.
+# input_normalizer: (mean, stddev) to convert input image  to the same range as model was
+#     trained with. For example, if the model is trained with [-1, 1] input. To analyze an RGB image
+#     (input range 0-255), one needs to specify the input normalizer as (128.0, 128.0).
+# compute_graph: bytes, serialized model protobuf.
+ModelDescriptor = namedtuple('ModelDescriptor',
+    ('name', 'input_shape', 'input_normalizer', 'compute_graph'))
+
+# major: int, major firmware version
+# minor: int, minor firmware version
+FirmwareVersion = namedtuple('FirmwareVersion', ('major', 'minor'))
+FirmwareVersion.__str__ = lambda self: '%d.%d' % (self.major, self.minor)
+
+
+_SUPPORTED_FIRMWARE_VERSION = FirmwareVersion(1, 1)
 
 
 class FirmwareVersionException(Exception):
@@ -39,29 +55,27 @@ class FirmwareVersionException(Exception):
         Exception.__init__(self, *args, **kwargs)
 
 
-def _check_firmware_info(info):
-    firmware_version = '%d.%d' % info
-    supported_version = '%d.%d' % _SUPPORTED_FIRMWARE_VERSION
-    if info[0] > _SUPPORTED_FIRMWARE_VERSION[0]:
+def _check_firmware_info(version):
+    if version[0] > _SUPPORTED_FIRMWARE_VERSION[0]:
         raise FirmwareVersionException(
             'AIY library supports firmware version %s, current firmware '
             'version is %s. You should upgrade AIY library.' %
-            (supported_version, firmware_version))
-    if info[0] < _SUPPORTED_FIRMWARE_VERSION[0]:
+            (_SUPPORTED_FIRMWARE_VERSION, version))
+    if version[0] < _SUPPORTED_FIRMWARE_VERSION[0]:
         raise FirmwareVersionException(
             'AIY library supports firmware version %s, current firmware '
             'version is %s. You should upgrade firmware.' %
-            (supported_version, firmware_version))
-    if info[1] > _SUPPORTED_FIRMWARE_VERSION[1]:
+            (_SUPPORTED_FIRMWARE_VERSION, version))
+    if version[1] > _SUPPORTED_FIRMWARE_VERSION[1]:
         logger.warning(
             'AIY library supports firmware version %s, current firmware '
             'version is %s. Consider upgrading AIY library.',
-            supported_version, firmware_version)
-    if info[1] < _SUPPORTED_FIRMWARE_VERSION[1]:
+            _SUPPORTED_FIRMWARE_VERSION, version)
+    if version[1] < _SUPPORTED_FIRMWARE_VERSION[1]:
         logger.warning(
             'AIY library supports firmware version %s, current firmware '
             'version is %s. Consider upgrading firmware.',
-            supported_version, firmware_version)
+            _SUPPORTED_FIRMWARE_VERSION, version)
 
 
 class CameraInference(object):
@@ -126,30 +140,6 @@ class ImageInference(object):
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.close()
-
-
-class ModelDescriptor(object):
-    """Info used by VisionBonnet to load model."""
-
-    def __init__(self, name, input_shape, input_normalizer, compute_graph):
-        """Initialzes ModelDescriptor.
-
-        Args:
-          name: string, a name used to refer the model, should not conflict
-            with existing model names.
-          input_shape: (batch, height, width, depth). For now, only batch=1 and
-            depth=3 are supported.
-          input_normalizer: (mean, stddev) to convert input image (for analysis) to
-            the same range model is
-            trained. For example, if the model is trained with [-1, 1] input. To
-            analyze an RGB image (input range [0, 255]), one needs to specify the
-            input normalizer as (128.0, 128.0).
-          compute_graph: string, converted model proto
-        """
-        self.name = name
-        self.input_shape = input_shape
-        self.input_normalizer = input_normalizer
-        self.compute_graph = compute_graph
 
 
 class InferenceException(Exception):
@@ -313,7 +303,7 @@ class InferenceEngine(object):
         """Returns firmware version as (major, minor) tuple."""
         try:
             info = self._communicate_bytes(_REQ_GET_FIRMWARE_INFO).firmware_info
-            return (info.major_version, info.minor_version)
+            return FirmwareVersion(info.major_version, info.minor_version)
         except InferenceException:
             return (1, 0)  # Request is not supported by firmware, default to 1.0
 
