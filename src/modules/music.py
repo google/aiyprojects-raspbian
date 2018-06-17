@@ -3,11 +3,122 @@ import logging
 import time
 import feedparser
 import threading
+import sqlite3
 
-from mpd import MPDClient, MPDError, CommandError
+from mpd import MPDClient, MPDError, CommandError, ConnectionError
 
 import aiy.audio
 import aiy.voicehat
+
+class PodCatcher(threading.Thread):
+    def __init__(self, configpath):
+        """ Define variables used by object
+        """
+        threading.Thread.__init__(self)
+        self.configPath = configpath
+
+    def _connectDB(self):
+        try:
+            conn = sqlite3.connect('/tmp/podcasts.sqlite')
+            conn.cursor().execute('''
+                CREATE TABLE IF NOT EXISTS podcasts (
+                    podcast TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    ep_title TEXT NOT NULL,
+                    url TEXT UNIQUE NOT NULL,
+                    timestamp INT NOT NULL);''')
+            return conn
+
+        except Error as e:
+            print(e)
+
+        return None
+
+    def syncPodcasts(self, filter=None):
+        config = configparser.ConfigParser()
+        config.read(self.configPath)
+        podcasts = config['podcasts']
+
+        conn = self._connectDB()
+        cursor = conn.cursor()
+
+        logging.info('Start updating podcast data')
+        for podcast,url in podcasts.items():
+            if filter is not None and not podcast == filter:
+                continue
+
+            logging.info('loading ' + podcast + ' podcast feed')
+
+            rss = feedparser.parse(url)
+
+            # get the total number of entries returned
+            resCount = len(rss.entries)
+            logging.info('feed contains ' + str(resCount) + ' items')
+
+            # exit out if empty
+            if not resCount > 0:
+                logging.warning(podcast + ' podcast feed is empty')
+                continue
+
+            for rssItem in rss.entries:
+                result = {
+                    'podcast':podcast,
+                    'url':None,
+                    'title':None,
+                    'ep_title':None,
+                    'timestamp':0
+                }
+
+                if 'title' in rss.feed:
+                    result['title'] = rss.feed.title
+
+                # Abstract information about requested item
+
+                if 'title' in rssItem:
+                    result['ep_title'] = rssItem.title
+
+                if 'published_parsed' in rssItem:
+                    result['timestamp'] = time.mktime(rssItem['published_parsed'])
+
+                if 'enclosures' in rssItem and len(rssItem.enclosures) > 0:
+                    result['url'] = rssItem.enclosures[0]['href']
+
+                elif 'media_content' in rssItem and len(rssItem.media_content) > 0:
+                    result['url'] = rssItem.media_content[0]['url']
+
+                else:
+                    logging.warning('The feed for "' + podcast + '" is in an unknown format')
+                    continue
+
+                cursor.execute('''REPLACE INTO podcasts(podcast, title, ep_title, url, timestamp)
+                    VALUES(?, ?, ?, ?, ?)''', (result['podcast'], result['title'], result['ep_title'], result['url'], result['timestamp']))
+
+        conn.commit()
+        logging.info('Finished updating podcast data')
+
+    def getPodcastInfo(self, podcast=None, offset=0):
+        if podcast is None:
+            return None
+
+        logging.info('Searching for information about "' + str(podcast) + '" podcast')
+        conn = self._connectDB()
+        cursor = conn.cursor()
+        cursor.execute("SELECT url, title, ep_title, (strftime('%s','now') - strftime('%s', datetime(timestamp, 'unixepoch', 'localtime')))/3600  as age FROM podcasts WHERE podcast LIKE ? ORDER BY timestamp DESC LIMIT ?,1", (podcast,offset,))
+        result = cursor.fetchone()
+        if (result):
+            return {
+                'url':result[0],
+                'title':result[1],
+                'ep_title':result[2],
+                'age':result[3]
+            }
+
+        return None
+
+    def run(self):
+        while True:
+            self.syncPodcasts()
+            time.sleep(1680)
 
 class Music(object):
 
@@ -20,7 +131,7 @@ class Music(object):
         self._podcastURL = None
         self.mpd = MPDClient(use_unicode=True)
 
-    def run(self, module, voice_command):
+    def command(self, module, voice_command, podcatcher=None):
         self.resetVariables()
         self.mpd.connect("localhost", 6600)
 
@@ -39,7 +150,7 @@ class Music(object):
             self.playRadio(voice_command)
 
         elif module == 'podcast':
-            self.playPodcast(voice_command)
+            self.playPodcast(voice_command, podcatcher)
 
         if self._cancelAction == False:
             time.sleep(1)
@@ -63,7 +174,7 @@ class Music(object):
             self.mpd.close()
             self.mpd.disconnect()
         except ConnectionError:
-            logging.info('MPD connection timed out')
+            logging.warning('MPD connection timed out')
             pass
 
     def playRadio(self, station):
@@ -93,13 +204,16 @@ class Music(object):
         self.mpd.add(stations[station])
         self.mpd.play()
 
-    def playPodcast(self, podcast):
-
+    def playPodcast(self, podcast, podcatcher=None):
         config = configparser.ConfigParser()
         config.read(self.configPath)
         podcasts = config['podcasts']
+        logging.info('playPodcast "' + podcast + "'")
 
         offset = 0
+        if podcatcher is None:
+            logging.warning('playPodcast missing podcatcher object')
+            return
 
         if self._confirmPlayback == True:
             self._confirmPlayback = False
@@ -109,32 +223,36 @@ class Music(object):
                 logging.info('Enumerating Podcasts')
                 aiy.audio.say('Available podcasts are')
                 for key in podcasts:
-                    aiy.audio.say(key)
+                    aiy.audio.say('' + key)
                 return
 
             elif podcast == 'recent':
                 aiy.audio.say('Recent podcasts are')
                 for title,url in podcasts.items():
-                    podcastInfo = self.getPodcastItem(podcast, url, offset)
-                    if not podcastInfo == None:
-                        aiy.audio.say(title + ' uploaded an episode ' + str(int(podcastInfo['age']/24)) + ' days ago')
+                    podcastInfo = podcatcher.getPodcastInfo(title, offset)
+                    if podcastInfo is None:
+                        continue
+                    elif podcastInfo['age'] < 24:
+                        aiy.audio.say('' + podcastInfo['title'] + ' uploaded an episode ' + str(int(podcastInfo['age'])) + ' hours ago')
+                    else:
+                        aiy.audio.say('' + podcastInfo['title'] + ' uploaded an episode ' + str(int(podcastInfo['age']/24)) + ' days ago')
                 return
 
             elif podcast == 'today':
                 aiy.audio.say('Today\'s podcasts are')
                 for title,url in podcasts.items():
-                    podcastInfo = self.getPodcastItem(podcast, url, offset)
-                    if podcastInfo['age'] < 36:
-                        aiy.audio.say(title + ' uploaded an episode ' + str(int(podcastInfo['age'])) + ' hours ago')
+                    podcastInfo = podcatcher.getPodcastInfo(title, offset)
+                    if podcastInfo is not None and podcastInfo['age'] < 24:
+                        aiy.audio.say('' + title + ' uploaded an episode ' + str(int(podcastInfo['age'])) + ' hours ago')
                 self._cancelAction = True
                 return
 
             elif podcast == 'yesterday':
                 aiy.audio.say('Yesterday\'s podcasts are')
                 for title,url in podcasts.items():
-                    podcastInfo = self.getPodcastItem(podcast, url, offset)
-                    if podcastInfo['age'] < 60 and podcastInfo['age'] > 36:
-                        aiy.audio.say(title + ' uploaded an episode ' + str(int(podcastInfo['age'])) + ' hours ago')
+                    podcastInfo = podcatcher.getPodcastInfo(title, offset)
+                    if podcastInfo is not None and podcastInfo['age'] < 48 and podcastInfo['age'] > 24:
+                        aiy.audio.say('' + title + ' uploaded an episode ' + str(int(podcastInfo['age'])) + ' hours ago')
                 return
 
             elif podcast.startswith('previous '):
@@ -146,15 +264,14 @@ class Music(object):
                 aiy.audio.say('Podcast ' + podcast + ' not found')
                 return
 
-            podcastInfo = self.getPodcastItem(podcast, podcasts[podcast], offset)
+            podcastInfo = podcatcher.getPodcastInfo(podcast, offset)
             if podcastInfo == None:
-                logging.info('Podcast failed to load')
+                logging.warning('Podcast data for "' + podcast + '" failed to load')
                 return
             logging.info('Podcast Title: ' + podcastInfo['title'])
             logging.info('Episode Title: ' + podcastInfo['ep_title'])
             logging.info('Episode URL: ' + podcastInfo['url'])
-            logging.info('Episode Date: ' + podcastInfo['published'])
-            logging.info('Podcast Age: ' + str(podcastInfo['age']) + ' hours')
+            logging.info('Episode Age: ' + str(podcastInfo['age']) + ' hours')
 
             aiy.audio.say('Playing episode of ' + podcastInfo['title'] + ' titled ' + podcastInfo['ep_title'])
 
@@ -166,65 +283,17 @@ class Music(object):
                 return None
 
         self._cancelAction = False
+        if self._podcastURL is None:
+            return None
 
-        self.mpd.clear()
-        self.mpd.add(self._podcastURL)
-        self.mpd.play()
+        try:
+            self.mpd.clear()
+            self.mpd.add(self._podcastURL)
+            self.mpd.play()
+        except ConnectionError as e:
+            aiy.audio.say('Error connecting to MPD service')
 
         self._podcastURL = None
-
-    def getPodcastItem(self, podcast, src, offset):
-        result = {
-            'url':None,
-            'title':None,
-            'ep_title':None,
-            'age':0,
-            'published':None
-        }
-
-        logging.info('loading ' + src + ' podcast feed')
-        rss = feedparser.parse(src)
-
-        # get the total number of entries returned
-        resCount = len(rss.entries)
-        logging.info('feed contains ' + str(resCount) + ' items')
-
-        # exit out if empty
-        if not resCount > offset:
-            logging.info(podcast + ' podcast feed is empty')
-            aiy.audio.say('There are no episodes available of ' + podcast)
-            return None
-
-        if 'title' in rss.feed:
-            result['title'] = rss.feed.title.replace(" & ", " and ")
-
-        rssItem = rss.entries[offset]
-
-        # Extract infromation about requested item
-
-        if 'title' in rssItem:
-            result['ep_title'] = rssItem.title.replace(" & ", " and ")
-
-        if 'published_parsed' in rssItem:
-            result['age'] = int((time.time() - time.mktime(rssItem['published_parsed'])) / 3600)
-
-        if 'published' in rssItem:
-            result['published'] = rssItem.published
-
-        if 'enclosures' in rssItem and len(rssItem.enclosures) > 0:
-            logging.info(str(len(rssItem.enclosures)) + ' enclosures found')
-            result['url'] = rssItem.enclosures[0]['href']
-
-        elif 'media_content' in rssItem and len(rssItem.media_content) > 0:
-            logging.info(str(len(rssItem.media_content)) + ' media found')
-            result['url'] = rssItem.media_content[0]['url']
-
-        else:
-            logging.info(podcast + ' feed format is unknown')
-            aiy.audio.say('The feed for ' + podcast + ' is unknown format')
-            return None
-
-        return result
 
     def _buttonPressCancel(self):
         self._cancelAction = True
