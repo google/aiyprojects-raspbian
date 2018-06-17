@@ -108,5 +108,5 @@ class KodiRemote(object):
 
         else:
             aiy.audio.say('Unrecognised Kodi command')
-            logging.info('Unrecognised Kodi request: ' + voice_command)
+            logging.warning('Unrecognised Kodi request: ' + voice_command)
             return

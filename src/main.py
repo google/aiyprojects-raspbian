@@ -41,15 +41,10 @@ import os.path
 import configargparse
 
 from modules.kodi import KodiRemote
-from modules.music import Music
+from modules.music import Music, PodCatcher
 from modules.readrssfeed import ReadRssFeed
 from modules.powerswitch import PowerSwitch
 from modules.powercommand import PowerCommand
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-)
 
 _configPath = os.path.expanduser('~/.config/voice-assistant.ini')
 _settingsPath = os.path.expanduser('~/.config/settings.ini')
@@ -57,6 +52,7 @@ _remotePath = os.path.expanduser('~/.config/remotes.ini')
 
 _kodiRemote = KodiRemote(_settingsPath)
 _music = Music(_settingsPath)
+_podCatcher = PodCatcher(_settingsPath)
 _readRssFeed = ReadRssFeed(_settingsPath)
 _powerSwitch = PowerSwitch(_remotePath)
 
@@ -124,30 +120,30 @@ def process_event(assistant, event):
         elif _music.getConfirmPlayback() == True:
             assistant.stop_conversation()
             if text == 'yes':
-                _music.run('podcast', 'CONFIRM')
+                _music.command('podcast', 'CONFIRM')
             else:
                 _music.setConfirmPlayback(False)
                 _music.setPodcastURL(None)
 
         elif text.startswith('music '):
             assistant.stop_conversation()
-            _music.run('music', text[6:])
+            _music.command('music', text[6:])
 
         elif text.startswith('podcast '):
             assistant.stop_conversation()
-            _music.run('podcast', text[8:])
+            _music.command('podcast', text[8:], _podCatcher)
             if _music.getConfirmPlayback() == True:
                 assistant.start_conversation()
 
         elif text.startswith('play ') and text.endswith(' podcast'):
             assistant.stop_conversation()
-            _music.run('podcast', text[5:][:-8])
+            _music.command('podcast', text[5:][:-8], _podCatcher)
             if _music.getConfirmPlayback() == True:
                 assistant.start_conversation()
 
         elif text.startswith('radio '):
             assistant.stop_conversation()
-            _music.run('radio', text[6:])
+            _music.command('radio', text[6:])
 
         elif text.startswith('headlines '):
             assistant.stop_conversation()
@@ -269,17 +265,26 @@ def main():
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
     model_id, device_id = aiy.assistant.device_helpers.get_ids_for_service(credentials)
 
+    _podCatcher.start()
+
     with Assistant(credentials, model_id) as assistant:
         for event in assistant.start():
             process_event(assistant, event)
 
-
 if __name__ == '__main__':
-#    try:
+    try:
+        if sys.stdout.isatty():
+            logging.basicConfig(
+                level=logging.INFO,
+                format="%(levelname)s:%(name)s:%(message)s"
+            )
+        else:
+            logging.basicConfig(
+                level=logging.WARNING,
+                format="%(levelname)s:%(name)s:%(message)s"
+            )
+
         main()
-#    except KeyboardInterrupt:
-#        pass
-#    finally:
-#        if sys.stdout.isatty():
-#            print('You pressed Ctrl+C')
-#        sys.exit(1)
+    except Error as e:
+        pass
+
