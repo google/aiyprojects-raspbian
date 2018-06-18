@@ -93,6 +93,11 @@ class PodCatcher(threading.Thread):
                 cursor.execute('''REPLACE INTO podcasts(podcast, title, ep_title, url, timestamp)
                     VALUES(?, ?, ?, ?, ?)''', (result['podcast'], result['title'], result['ep_title'], result['url'], result['timestamp']))
 
+                """ Detect existance of episode and skip remaining content
+                """
+                if cursor.rowcount == 0:
+                    break
+
         conn.commit()
         logging.info('Finished updating podcast data')
 
