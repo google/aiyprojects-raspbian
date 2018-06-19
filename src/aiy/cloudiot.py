@@ -26,6 +26,7 @@ import logging
 import time
 import jwt
 import paho.mqtt.client as mqtt
+import threading
 
 from aiy._drivers._ecc608 import *
 
@@ -52,6 +53,8 @@ class CloudIot(object):
         self._mqtt_bridge_hostname = config['MQTTBridgeHostName']
         self._mqtt_bridge_port = config.getint('MQTTBridgePort')
 
+        self._mutex = threading.Lock()
+
         if ecc608_is_valid():
             # For the HW Crypto chip, use ES256. No key is needed.
             self._algorithm = 'ES256'
@@ -74,9 +77,13 @@ class CloudIot(object):
 
         # With Google Cloud IoT Core, the username field is ignored, and the
         # password field is used to transmit a JWT to authorize the device.
-        self._client.username_pw_set(
-            username='unused',
-            password=self._create_jwt())
+        self._client.username_pw_set(username='unused', password=self._create_jwt())
+
+        # Start thread to create new token before timeout.
+        self._term_event = threading.Event()
+        self._token_thread = threading.Thread(
+            target=self._token_update_loop, args=(self._term_event,))
+        self._token_thread.start()
 
         # Enable SSL/TLS support.
         self._client.tls_set(ca_certs=self._ca_certs)
@@ -87,6 +94,14 @@ class CloudIot(object):
         logger.info('Successfully connected to Cloud IoT')
         self._enabled = True
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        # Terminate token thread.
+        self._term_event.set()
+        self._token_thread.join()
+
     def enabled(self):
         return self._enabled
 
@@ -94,24 +109,25 @@ class CloudIot(object):
         if not self._enabled:
             return
 
-        # Start the network loop.
-        self._client.loop_start()
+        with self._mutex:
+            # Start the network loop.
+            self._client.loop_start()
 
-        # Publish to the events or state topic based on the flag.
-        sub_topic = 'events' if self._message_type == 'event' else 'state'
+            # Publish to the events or state topic based on the flag.
+            sub_topic = 'events' if self._message_type == 'event' else 'state'
 
-        mqtt_topic = '/devices/%s/%s' % (self._device_id, sub_topic)
+            mqtt_topic = '/devices/%s/%s' % (self._device_id, sub_topic)
 
-        # Publish payload using JSON dumps to create bytes representation.
-        payload = json.dumps(message)
+            # Publish payload using JSON dumps to create bytes representation.
+            payload = json.dumps(message)
 
-        # Publish payload to the MQTT topic. qos=1 means at least once
-        # delivery. Cloud IoT Core also supports qos=0 for at most once
-        # delivery.
-        self._client.publish(mqtt_topic, payload, qos=1)
+            # Publish payload to the MQTT topic. qos=1 means at least once
+            # delivery. Cloud IoT Core also supports qos=0 for at most once
+            # delivery.
+            self._client.publish(mqtt_topic, payload, qos=1)
 
-        # End the network loop and finish.
-        self._client.loop_stop()
+            # End the network loop and finish.
+            self._client.loop_stop()
 
     def register_message_callbacks(self, callbacks):
         if 'on_connect' in callbacks:
@@ -126,6 +142,20 @@ class CloudIot(object):
             self._client.on_unsubscribe = callbacks['on_unsubscribe']
         if 'on_log' in callbacks:
             self._client.on_log = callbacks['on_log']
+
+    def _token_update_loop(self, term_event):
+        while not term_event.isSet():
+            term_event.wait(50 * 60)  # Update token every 50 minutes (of allowed 60).
+            with self._mutex:
+                self._client.disconnect()
+
+                # Set new token.
+                self._client.username_pw_set(username='unused', password=self._create_jwt())
+
+                # Connect to the Google MQTT bridge.
+                self._client.connect(self._mqtt_bridge_hostname, self._mqtt_bridge_port)
+
+                logger.info('Successfully re-estabished connection with new token')
 
     def _create_jwt(self):
         """Creates a JWT (https://jwt.io) to establish an MQTT connection.
