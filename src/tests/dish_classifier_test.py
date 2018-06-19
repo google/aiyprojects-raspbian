@@ -15,7 +15,7 @@ import unittest
 
 from aiy.vision.inference import ImageInference
 from aiy.vision.models import dish_classifier
-from test_util import TestImage
+from .test_util import TestImage
 
 
 class DishClassifierTest(unittest.TestCase):

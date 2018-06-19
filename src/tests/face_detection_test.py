@@ -15,7 +15,7 @@ import unittest
 
 from aiy.vision.inference import ImageInference
 from aiy.vision.models import face_detection
-from test_util import TestImage
+from .test_util import TestImage
 
 
 class FaceDetectionTest(unittest.TestCase):

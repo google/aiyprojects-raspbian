@@ -15,7 +15,7 @@ import unittest
 
 from aiy.vision.inference import ImageInference
 from aiy.vision.models import object_detection
-from test_util import TestImage
+from .test_util import TestImage
 
 def _crop_center(image):
     width, height = image.size
