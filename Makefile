@@ -9,9 +9,9 @@ all:
 	@echo "male deb - Generate Debian package"
 
 test-download:
-	$(CURDIR)/src/tests/images/download.sh
+	$(MAKE) -C src/tests/images
 
-test:
+test: test-download
 	$(PYTHON) -m unittest \
 		src/tests/dish_classifier_test.py \
 		src/tests/face_detection_test.py \

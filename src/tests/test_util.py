@@ -22,8 +22,10 @@ def TestImage(name):
     try:
         path = os.path.join(os.path.dirname(__file__), 'images', name)
         file = open(path, 'rb')
-        image = Image.open(file)
-        yield image
+        try:
+            image = Image.open(file)
+            yield image
+        finally:
+            image.close()
     finally:
-        image.close()
         file.close()
