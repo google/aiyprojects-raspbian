@@ -21,7 +21,8 @@ class AtcaIfaceCfgLong(ctypes.Structure):
 
 def main():
     try:
-        cryptolib = ctypes.cdll.LoadLibrary('libcryptoauth.so')
+        name = os.path.join(os.path.dirname(__file__), 'libcryptoauth.so')
+        cryptolib = ctypes.cdll.LoadLibrary(name)
     except Exception:
         print('Unable to load crypto library, SW authentication required')
         sys.exit()

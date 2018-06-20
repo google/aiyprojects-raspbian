@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from ctypes import *
 import base64
+import ctypes
 import json
 import datetime
 import logging
@@ -32,22 +32,14 @@ CRYPTO_ADDRESS_DICT = {
 }
 
 
-class AtcaIfaceCfgLong(Structure):
+class AtcaIfaceCfgLong(ctypes.Structure):
     _fields_ = (
-        ('iface_type', c_ulong),
-        ('devtype', c_ulong),
-        ('slave_address', c_ubyte),
-        ('bus', c_ubyte),
-        ('baud', c_ulong)
+        ('iface_type', ctypes.c_ulong),
+        ('devtype', ctypes.c_ulong),
+        ('slave_address', ctypes.c_ubyte),
+        ('bus', ctypes.c_ubyte),
+        ('baud', ctypes.c_ulong)
     )
-
-
-# Global cryptolib instance.
-_cryptolib = None
-
-
-def ecc608_is_valid():
-    return _cryptolib is not None
 
 
 def _ecc608_check_address(address):
@@ -154,19 +146,13 @@ class HwEcAlgorithm(jwt.algorithms.Algorithm):
         except InvalidSignature:
             return False
 
-
-def ecc608_jwt_with_hw_alg():
-    inst = jwt.PyJWT(algorithms=[])
-    inst.register_algorithm('ES256', HwEcAlgorithm())
-    return inst
-
-
 # On module import, load libary.
 try:
-    _cryptolib = cdll.LoadLibrary('libcryptoauth.so')
+    ecc608_jwt_with_hw_alg = None
+    name = os.path.join(os.path.dirname(__file__), 'libcryptoauth.so')
+    _cryptolib = ctypes.cdll.LoadLibrary(name)
+    if ecc608_init_and_update_address():
+        ecc608_jwt_with_hw_alg = jwt.PyJWT(algorithms=[])
+        ecc608_jwt_with_hw_alg.register_algorithm('ES256', HwEcAlgorithm())
 except:
     logger.warn('Unable to load HW crypto library, using SW.')
-
-if _cryptolib is not None and not ecc608_init_and_update_address():
-    # If unable to initialize a crypto chip, clear instance.
-    _cryptolib = None

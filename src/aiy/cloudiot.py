@@ -28,7 +28,7 @@ import jwt
 import paho.mqtt.client as mqtt
 import threading
 
-from aiy._drivers._ecc608 import *
+from aiy._drivers._ecc608 import ecc608_jwt_with_hw_alg
 
 logger = logging.getLogger(__name__)
 
@@ -55,16 +55,18 @@ class CloudIot(object):
 
         self._mutex = threading.Lock()
 
-        if ecc608_is_valid():
+        if ecc608_jwt_with_hw_alg:
             # For the HW Crypto chip, use ES256. No key is needed.
             self._algorithm = 'ES256'
             self._private_key = None
+            self._jwt_inst = ecc608_jwt_with_hw_alg()
         else:
             # For SW, use RS256 on a key file provided in the configuration.
             self._algorithm = 'RS256'
             rsa_cert = config['RSACertFile']
             with open(rsa_cert, 'r') as f:
                 self._private_key = f.read()
+            self._jwt_inst = jwt.PyJWT()
 
         # Create our MQTT client. The client_id is a unique string that identifies
         # this device. For Google Cloud IoT Core, it must be in the format below.
@@ -155,7 +157,7 @@ class CloudIot(object):
                 # Connect to the Google MQTT bridge.
                 self._client.connect(self._mqtt_bridge_hostname, self._mqtt_bridge_port)
 
-                logger.info('Successfully re-estabished connection with new token')
+                logger.info('Successfully re-established connection with new token')
 
     def _create_jwt(self):
         """Creates a JWT (https://jwt.io) to establish an MQTT connection.
@@ -177,11 +179,4 @@ class CloudIot(object):
             'aud': self._project_id
         }
 
-        if self._algorithm is 'ES256':
-            # For HW crypto, use custom ES256 Algorithm.
-            jwt_inst = ecc608_jwt_with_hw_alg()
-        else:
-            # For SW crypto, use default RS256 Algorithm.
-            jwt_inst = jwt.PyJWT()
-
-        return jwt_inst.encode(token, self._private_key, algorithm=self._algorithm)
+        return self._jwt_inst.encode(token, self._private_key, algorithm=self._algorithm)
