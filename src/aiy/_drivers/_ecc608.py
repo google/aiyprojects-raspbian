@@ -16,6 +16,7 @@ import ctypes
 import json
 import datetime
 import logging
+import os
 import sys
 import jwt
 from cryptography.hazmat.primitives import hashes
@@ -92,12 +93,12 @@ def ecc608_init_and_update_address():
 
 
 def ecc608_hw_sign(msg):
-    digest = create_string_buffer(32)
-    status = _cryptolib.atcab_sha(len(msg), c_char_p(msg), byref(digest))
+    digest = ctypes.create_string_buffer(32)
+    status = _cryptolib.atcab_sha(len(msg), ctypes.c_char_p(msg), ctypes.byref(digest))
     assert status == 0
 
-    signature = create_string_buffer(64)
-    status = _cryptolib.atcab_sign(0, byref(digest), byref(signature))
+    signature = ctypes.create_string_buffer(64)
+    status = _cryptolib.atcab_sign(0, ctypes.byref(digest), ctypes.byref(signature))
     assert status == 0
     return signature.raw
 

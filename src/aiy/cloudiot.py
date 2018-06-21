@@ -21,12 +21,13 @@ configuration file.
 import argparse
 import configparser
 import datetime
-import os
-import logging
-import time
+import json
 import jwt
+import logging
+import os
 import paho.mqtt.client as mqtt
 import threading
+import time
 
 from aiy._drivers._ecc608 import ecc608_jwt_with_hw_alg
 
@@ -59,7 +60,7 @@ class CloudIot(object):
             # For the HW Crypto chip, use ES256. No key is needed.
             self._algorithm = 'ES256'
             self._private_key = None
-            self._jwt_inst = ecc608_jwt_with_hw_alg()
+            self._jwt_inst = ecc608_jwt_with_hw_alg
         else:
             # For SW, use RS256 on a key file provided in the configuration.
             self._algorithm = 'RS256'

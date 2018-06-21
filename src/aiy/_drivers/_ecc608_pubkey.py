@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import base64
 import ctypes
+import os
 import sys
 
 CRYPTO_ADDRESS_DICT = {
