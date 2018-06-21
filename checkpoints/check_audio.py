@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#
 # Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,164 +14,138 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Check that the voiceHAT audio input and output are both working."""
+"""Checks that the AIY sound card is working."""
 
-
-import fileinput
 import os
-import re
-import subprocess
-import sys
 import tempfile
-import textwrap
 import traceback
 
-import aiy.audio  # noqa
-from aiy._drivers._hat import get_aiy_device_name
+import aiy.audio
 
-AIY_PROJECTS_DIR = os.path.dirname(os.path.dirname(__file__))
-
-CARDS_PATH = '/proc/asound/cards'
-CARDS_ID = {
-    "Voice Hat": "googlevoicehat",
-    "Voice Bonnet": "aiy-voicebonnet",
+AIY_CARDS = {
+    'sndrpigooglevoi': 'Voice HAT (v1)',
+    'aiyvoicebonnet': 'Voice Bonnet (v2)'
 }
-
-STOP_DELAY = 1.0
 
 TEST_SOUND_PATH = '/usr/share/sounds/alsa/Front_Center.wav'
 
 RECORD_DURATION_SECONDS = 3
 
+ERROR_NO_SOUND_CARDS = '''
+You do not have any sound cards installed. Please check that AIY sound card is
+properly connected.
 
-def get_sound_cards():
-    """Read a dictionary of ALSA cards from /proc, indexed by number."""
-    cards = {}
+For some Voice HATs (not Voice Bonnets!) you need to add the following line
+to /boot/config.txt:
 
-    with open(CARDS_PATH) as f:  # pylint: disable=invalid-name
-        for line in f.read().splitlines():
-            try:
-                index = int(line.strip().split()[0])
-            except (IndexError, ValueError):
-                continue
+dtoverlay=googlevoicehat-soundcard
 
-            cards[index] = line
+To do that simply run from a separate terminal:
 
+echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
+
+'''
+
+ERROR_NO_AIY_SOUND_CARDS = '''
+You have sound cards installed but you do not have any AIY ones. Please check
+that AIY sound card is properly connected.
+'''
+
+ERROR_NOT_A_FIRST_SOUND_CARD = '''
+Your AIY sound card is not a first sound device. The voice recognizer may be
+unable to find it. Please try removing other sound drivers.
+'''
+
+ERROR_NO_SPEAKER_SOUND = '''
+There may be a problem with your speaker. Check that it is connected properly.
+'''
+
+ERROR_NO_RECORDED_SOUND = '''
+There may be a problem with your microphone. Check that it is connected
+properly.
+'''
+
+def ask(prompt):
+    answer = input('%s (y/n) ' % prompt).lower()
+    while answer not in ('y', 'n'):
+        answer = input('Please enter y or n: ')
+    return answer == 'y'
+
+def error(message):
+    print(message.strip())
+
+def find_sound_cards(max_count=16):
+    cards = []
+    for i in range(max_count):
+        path = '/proc/asound/card%d/id' % i
+        if not os.path.exists(path):
+            break
+        with open(path) as f:
+            cards.append(f.read().strip())
     return cards
 
 
-def ask(prompt):
-    """Get a yes or no answer from the user."""
-    ans = input(prompt + ' (y/n) ')
+def check_sound_card_present():
+    cards = find_sound_cards()
+    if not cards:
+        error(ERROR_NO_SOUND_CARDS)
+        return False
 
-    while not ans or ans[0].lower() not in 'yn':
-        ans = input('Please enter y or n: ')
+    aiy_cards = set.intersection(set(cards), AIY_CARDS.keys())
+    if len(aiy_cards) != 1:
+        error(ERROR_NO_AIY_SOUND_CARDS)
+        return False
 
-    return ans[0].lower() == 'y'
+    for card in aiy_cards:
+        index = cards.index(card)
+        print('You have %s installed at index %d!' % (AIY_CARDS[card], index))
+        if index != 0:
+            error(ERROR_NOT_A_FIRST_SOUND_CARD)
+            return False
 
-
-def check_voicehat_present():
-    """Check that the voiceHAT audio driver is present."""
-    card_id = CARDS_ID[get_aiy_device_name()]
-    return any(card_id in card for card in get_sound_cards().values())
-
-
-def check_voicehat_is_first_card():
-    """Check that the voiceHAT is the first card on the system."""
-    cards = get_sound_cards()
-    card_id = CARDS_ID[get_aiy_device_name()]
-    return 0 in cards and card_id in cards[0]
-
-
-def check_asoundrc_is_not_bad():
-    """Check that ~/.asoundrc is absent or has the AIY config."""
-    asoundrc = os.path.expanduser('~/.asoundrc')
-    if not os.path.exists(asoundrc):
-        return True
-
-    with open(os.path.join(AIY_PROJECTS_DIR, 'scripts', 'asound.conf')) as f:
-        wanted_contents = f.read()
-    with open(asoundrc) as f:
-        contents = f.read()
-
-    return contents == wanted_contents
-
+    return True
 
 def check_speaker_works():
-    """Check the speaker makes a sound."""
     print('Playing a test sound...')
     aiy.audio.play_wave(TEST_SOUND_PATH)
 
-    return ask('Did you hear the test sound?')
+    if not ask('Did you hear the test sound?'):
+        error(ERROR_NO_SPEAKER_SOUND)
+        return False
 
+    return True
 
-def check_mic_works():
-    """Check the microphone records correctly."""
-    temp_file, temp_path = tempfile.mkstemp(suffix='.wav')
-    os.close(temp_file)
-
-    try:
-        input("When you're ready, press enter and say 'Testing, 1 2 3'...")
-        print('Recording...')
-        aiy.audio.record_to_wave(temp_path, RECORD_DURATION_SECONDS)
+def check_microphone_works():
+    with tempfile.NamedTemporaryFile() as f:
+        f.close()
+        input('When you are ready, press Enter and say "Testing, 1 2 3"...')
+        print('Recording for %d seconds...' % RECORD_DURATION_SECONDS)
+        aiy.audio.record_to_wave(f.name, RECORD_DURATION_SECONDS)
         print('Playing back recorded audio...')
-        aiy.audio.play_wave(temp_path)
-    finally:
-        try:
-            os.unlink(temp_path)
-        except FileNotFoundError:
-            pass
+        aiy.audio.play_wave(f.name)
 
-    return ask('Did you hear your own voice?')
+    if not ask('Did you hear your own voice?'):
+        error(ERROR_NO_RECORDED_SOUND)
+        return False
 
-
-def do_checks():
-    """Run all audio checks and print status."""
-    if not check_voicehat_present():
-        print(textwrap.fill(
-            """Failed to find the voiceHAT soundcard. Refer to HACKING.md for
-how to setup the voiceHAT driver: https://git.io/v99yK"""))
-        return
-
-    if not check_voicehat_is_first_card():
-        print(textwrap.fill(
-            """The voiceHAT not the first sound device, so the voice recognizer
-may be unable to find it. Please try removing other sound drivers."""))
-        return
-
-    try:
-        if not check_speaker_works():
-            print(textwrap.fill(
-                """There may be a problem with your speaker. Check that it's
-connected properly."""))
-            return
-    except BrokenPipeError:
-        # aplay crashed - check if ~/.asoundrc is the culprit
-        if not check_asoundrc_is_not_bad():
-            print(textwrap.fill(
-                """~/.asoundrc exists, and it doesn't have the expected
-contents. Try deleting it with `rm ~/.asoundrc`."""))
-        else:
-            print("aplay crashed - try checking your ALSA config.")
-        return
-
-    if not check_mic_works():
-        print(textwrap.fill(
-            """There may be a problem with your microphone. Check that it's
-connected properly."""))
-        return
-
-    print('The audio seems to be working.')
-
+    return True
 
 def main():
-    do_checks()
+    if not check_sound_card_present():
+        return
 
+    if not check_speaker_works():
+        return
+
+    if not check_microphone_works():
+        return
+
+    print('AIY sound card seems to be working!')
 
 if __name__ == '__main__':
     try:
         main()
-        input('Press Enter to close...')
-    except Exception:  # pylint: disable=W0703
+    except:
         traceback.print_exc()
+    finally:
         input('Press Enter to close...')
