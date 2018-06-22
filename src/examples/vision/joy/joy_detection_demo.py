@@ -22,10 +22,10 @@ import math
 import os
 import queue
 import signal
+import sys
 import threading
 import time
 
-from aiy._drivers._hat import get_aiy_device_name
 from aiy.leds import Leds
 from aiy.leds import Pattern
 from aiy.leds import PrivacyLed
@@ -343,10 +343,9 @@ def main():
     if args.preview_alpha < 0 or args.preview_alpha > 255:
         parser.error('Invalid preview_alpha value: %d' % args.preview_alpha)
 
-    device = get_aiy_device_name()
-    if not device or 'Vision' not in device:
-        logger.error('AIY VisionBonnet is not detected.')
-        return
+    if not os.path.exists('/dev/vision_spicomm'):
+        logger.error('AIY Vision Bonnet is not attached or not configured properly.')
+        return 1
 
     detector = JoyDetector()
     try:
@@ -359,7 +358,7 @@ def main():
             leds = Leds()
             leds.pattern = Pattern.blink(500)
             leds.update(Leds.rgb_pattern(RED_COLOR))
-
+    return 0
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
