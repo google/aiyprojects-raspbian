@@ -23,9 +23,13 @@ face_detection_camera.py --num_frames 10
 import argparse
 
 from aiy.vision.inference import CameraInference
+from aiy.vision.leds import Leds
+from aiy.vision.leds import PrivacyLed
 from aiy.vision.models import face_detection
 from aiy.vision.annotator import Annotator
 from picamera import PiCamera
+
+WHITE = (0xFF, 0xFF, 0xFF)
 
 def avg_joy_score(faces):
     if faces:
@@ -44,6 +48,7 @@ def main():
     # This is the resolution inference run on.
     with PiCamera(sensor_mode=4, resolution=(1640, 1232), framerate=30) as camera:
         camera.start_preview()
+        leds = Leds()
 
         # Annotator renders in software so use a smaller size and scale results
         # for increased performace.
@@ -58,7 +63,7 @@ def main():
             return (scale_x * x, scale_y * y, scale_x * (x + width),
                     scale_y * (y + height))
 
-        with CameraInference(face_detection.model()) as inference:
+        with CameraInference(face_detection.model()) as inference, PrivacyLed(leds):
             for result in inference.run(args.num_frames):
                 faces = face_detection.get_faces(result)
                 annotator.clear()
@@ -68,6 +73,11 @@ def main():
 
                 print('#%05d (%5.2f fps): num_faces=%d, avg_joy_score=%.2f' %
                     (inference.count, inference.rate, len(faces), avg_joy_score(faces)))
+
+                if len(faces) > 0:
+                    leds.update(Leds.rgb_on(WHITE))
+                else:
+                    leds.update(Leds.rgb_off())
 
         camera.stop_preview()
 
