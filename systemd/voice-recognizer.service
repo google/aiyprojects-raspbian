@@ -1,16 +1,19 @@
+s service can be used to run your code automatically on startup. Look in
+# HACKING.md for instructions on creating main.py and enabling it.
+
 [Unit]
-Description=Google AIY Voice
+Description=voice recognizer
 After=network.target ntpdate.service
 
 [Service]
-Environment=VIRTUAL_ENV=/mnt/dietpi_userdata/voice-recognizer-raspi/env
-Environment=PATH=/mnt/dietpi_userdata/voice-recognizer-raspi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=/mnt/dietpi_userdata/voice-recognizer-raspi/env/bin/python3 -u src/main.py
-WorkingDirectory=/mnt/dietpi_userdata/voice-recognizer-raspi
+Environment=VIRTUAL_ENV=/home/pi/AIY-projects-python/env
+Environment=PATH=/home/pi/AIY-projects-python/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/home/pi/AIY-projects-python/env/bin/python3 -u src/main.py
+WorkingDirectory=/home/pi/AIY-projects-python
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
-User=dietpi
+User=pi
 
 [Install]
 WantedBy=multi-user.target

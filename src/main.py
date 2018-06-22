@@ -56,16 +56,16 @@ _podCatcher = PodCatcher(_settingsPath)
 _readRssFeed = ReadRssFeed(_settingsPath)
 _powerSwitch = PowerSwitch(_remotePath)
 
-def _createPID(file_name):
+def _createPID(pid_file='voice-recognizer.pid'):
 
-    if not file_name:
-        # Try the default locations of the pid file, preferring /run/user as
-        # it uses tmpfs.
-        pid_dir = '/run/user/%d' % os.getuid()
-        if not os.path.isdir(pid_dir):
-            pid_dir = '/tmp'
-        file_name = os.path.join(pid_dir, 'voice-recognizer.pid')
+    pid_dir = '/run/user/%d' % os.getuid()
 
+    if not os.path.isdir(pid_dir):
+        pid_dir = '/tmp'
+
+    logging.info('PID stored in ' + pid_dir)
+
+    file_name = os.path.join(pid_dir, pid_file)
     with open(file_name, 'w') as pid_file:
         pid_file.write("%d" % os.getpid())
 
@@ -246,7 +246,7 @@ def main():
         description="Act on voice commands using Google's speech recognition")
     parser.add_argument('-L', '--language', default='en-GB',
                         help='Language code to use for speech (default: en-GB)')
-    parser.add_argument('-p', '--pid-file', default='/tmp/voice-recognizer.pid',
+    parser.add_argument('-p', '--pid-file', default='voice-recognizer.pid',
                         help='File containing our process id for monitoring')
     parser.add_argument('--trigger-sound', default=None,
                         help='Sound when trigger is activated (WAV format)')
@@ -254,6 +254,8 @@ def main():
                         help='Maximum LED brightness')
     parser.add_argument('--brightness-min', default=1,
                         help='Minimum LED brightness')
+    parser.add_argument('-d', '--daemon', action='store_false',
+                        help='Daemon Mode')
 
     args = parser.parse_args()
 
@@ -265,7 +267,10 @@ def main():
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
     model_id, device_id = aiy.assistant.device_helpers.get_ids_for_service(credentials)
 
-    _podCatcher.start()
+    if args.daemon is True:
+        _podCatcher.start()
+    else:
+        logging.info("Starting in non-daemon mode")
 
     with Assistant(credentials, model_id) as assistant:
         for event in assistant.start():

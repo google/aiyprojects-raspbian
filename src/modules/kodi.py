@@ -43,7 +43,7 @@ class KodiRemote(object):
         try:
             self.kodi.JSONRPC.Ping()
         except:
-            aiy.audio.say(_('Unable to connect to client'))
+            aiy.audio.say('Unable to connect to client')
             return
 
         if voice_command.startswith('tv '):
