@@ -19,9 +19,10 @@ import struct
 import time
 import wave
 
+from aiy.voice import tts
 import aiy._drivers._player
 import aiy._drivers._recorder
-import aiy._drivers._tts
+import aiy.i18n
 
 AUDIO_SAMPLE_SIZE = 2  # bytes per sample
 AUDIO_SAMPLE_RATE_HZ = 16000
@@ -127,10 +128,9 @@ def say(words, lang=None, volume=60, pitch=130):
     Example: aiy.audio.say('This is an example', lang="en-US", volume=75, pitch=135)
     Any of the optional variables can be left out.
     """
-
     if not lang:
         lang = aiy.i18n.get_language_code()
-    aiy._drivers._tts.say(aiy.audio.get_player(), words, lang=lang, volume=volume, pitch=pitch)
+    tts.say(words, lang=lang, volume=volume, pitch=pitch)
 
 
 def get_status_ui():
