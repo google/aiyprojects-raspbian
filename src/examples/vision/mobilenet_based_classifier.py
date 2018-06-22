@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#
 # Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,20 +28,18 @@ def read_labels(label_path):
         return [label.strip() for label in label_file.readlines()]
 
 
-def get_message(processed_result, threshold, top_k):
-    if processed_result:
-        message = 'Detecting:\n %s' % ('\n'.join(processed_result))
+def get_message(result, threshold, top_k):
+    if result:
+        return 'Detecting:\n %s' % '\n'.join(result)
     else:
-        message = 'Nothing detected when threshold=%.2f, top_k=%d' % (
-                  threshold, top_k)
-    return message
+        return 'Nothing detected when threshold=%.2f, top_k=%d' % (threshold, top_k)
 
 
-def process(result, labels, out_tensor_name, threshold, top_k):
+def process(result, labels, tensor_name, threshold, top_k):
     """Processes inference result and returns labels sorted by confidence."""
     # MobileNet based classification model returns one result vector.
     assert len(result.tensors) == 1
-    tensor = result.tensors[out_tensor_name]
+    tensor = result.tensors[tensor_name]
     probs, shape = tensor.data, tensor.shape
     assert shape.depth == len(labels)
     pairs = [pair for pair in enumerate(probs) if pair[1] > threshold]
@@ -51,47 +50,25 @@ def process(result, labels, out_tensor_name, threshold, top_k):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--model_path',
-        required=True,
+    parser.add_argument('--model_path', required=True,
         help='Path to converted model file that can run on VisionKit.')
-    parser.add_argument(
-        '--label_path',
-        required=True,
+    parser.add_argument('--label_path', required=True,
         help='Path to label file that corresponds to the model.')
-    parser.add_argument(
-        '--input_height', type=int, required=True, help='Input height.')
-    parser.add_argument(
-        '--input_width', type=int, required=True, help='Input width.')
-    parser.add_argument(
-        '--input_layer', required=True, help='Name of input layer.')
-    parser.add_argument(
-        '--output_layer', required=True, help='Name of output layer.')
-    parser.add_argument(
-        '--num_frames',
-        type=int,
-        default=-1,
+    parser.add_argument('--input_height', type=int, required=True, help='Input height.')
+    parser.add_argument('--input_width', type=int, required=True, help='Input width.')
+    parser.add_argument('--input_layer', required=True, help='Name of input layer.')
+    parser.add_argument('--output_layer', required=True, help='Name of output layer.')
+    parser.add_argument('--num_frames', type=int, default=None,
         help='Sets the number of frames to run for, otherwise runs forever.')
-    parser.add_argument(
-        '--input_mean', type=float, default=128.0, help='Input mean.')
-    parser.add_argument(
-        '--input_std', type=float, default=128.0, help='Input std.')
-    parser.add_argument(
-        '--input_depth', type=int, default=3, help='Input depth.')
-    parser.add_argument(
-        '--threshold', type=float, default=0.1,
+    parser.add_argument('--input_mean', type=float, default=128.0, help='Input mean.')
+    parser.add_argument('--input_std', type=float, default=128.0, help='Input std.')
+    parser.add_argument('--input_depth', type=int, default=3, help='Input depth.')
+    parser.add_argument('--threshold', type=float, default=0.1,
         help='Threshold for classification score (from output tensor).')
-    parser.add_argument(
-        '--top_k', type=int, default=3, help='Keep at most top_k labels.')
-    parser.add_argument(
-        '--preview',
-        action='store_true',
-        default=False,
+    parser.add_argument('--top_k', type=int, default=3, help='Keep at most top_k labels.')
+    parser.add_argument('--preview', action='store_true', default=False,
         help='Enables camera preview in addition to printing result to terminal.')
-    parser.add_argument(
-        '--show_fps',
-        action='store_true',
-        default=False,
+    parser.add_argument('--show_fps', action='store_true', default=False,
         help='Shows end to end FPS.')
     args = parser.parse_args()
 
@@ -105,10 +82,9 @@ def main():
     with PiCamera(sensor_mode=4, resolution=(1640, 1232), framerate=30) as camera:
         if args.preview:
             camera.start_preview()
+
         with inference.CameraInference(model) as camera_inference:
-            for i, result in enumerate(camera_inference.run()):
-                if i == args.num_frames:
-                    break
+            for result in camera_inference.run(args.num_frames):
                 processed_result = process(result, labels, args.output_layer,
                                            args.threshold, args.top_k)
                 message = get_message(processed_result, args.threshold, args.top_k)
