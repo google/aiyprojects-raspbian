@@ -35,7 +35,7 @@ class LED:
     BLINK = 2
     BLINK_3 = 3
     BEACON = 4
-    BEACON_DARK = 5
+    BEACON_DARK = 0
     DECAY = 6
     PULSE_SLOW = 7
     PULSE_QUICK = 8
