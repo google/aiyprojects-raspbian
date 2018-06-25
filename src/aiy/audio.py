@@ -131,15 +131,3 @@ def say(words, lang=None, volume=60, pitch=130):
     if not lang:
         lang = aiy.i18n.get_language_code()
     tts.say(words, lang=lang, volume=volume, pitch=pitch)
-
-
-def get_status_ui():
-    """Returns a driver to access the StatusUI daemon.
-
-    The StatusUI daemon controls the LEDs in the background. It supports a list
-    of statuses it is able to communicate with the LED on the Voicehat.
-    """
-    global _status_ui
-    if not _status_ui:
-        _status_ui = aiy._drivers._StatusUi()
-    return _status_ui
