@@ -19,7 +19,6 @@ import os
 import subprocess
 import threading
 
-import aiy._drivers._alsa
 
 logger = logging.getLogger('recorder')
 
@@ -64,8 +63,7 @@ class Recorder(threading.Thread):
             '-t', 'raw',
             '-D', input_device,
             '-c', str(channels),
-            # pylint: disable=W0212
-            '-f', aiy._drivers._alsa.sample_width_to_string(bytes_per_sample),
+            '-f', 's%d' % (8 * bytes_per_sample),
             '-r', str(sample_rate_hz),
         ]
         self._arecord = None

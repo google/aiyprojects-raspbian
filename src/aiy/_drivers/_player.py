@@ -18,7 +18,6 @@ import logging
 import subprocess
 import wave
 
-import aiy._drivers._alsa
 
 logger = logging.getLogger('audio')
 
@@ -43,8 +42,7 @@ class Player(object):
             '-t', 'raw',
             '-D', self._output_device,
             '-c', '1',
-            # pylint: disable=W0212
-            '-f', aiy._drivers._alsa.sample_width_to_string(sample_width),
+            '-f', 's%d' % (8 * sample_width),
             '-r', str(sample_rate),
         ]
 
