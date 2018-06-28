@@ -54,7 +54,7 @@ _kodiRemote = KodiRemote(_settingsPath)
 _music = Music(_settingsPath)
 _podCatcher = PodCatcher(_settingsPath)
 _readRssFeed = ReadRssFeed(_settingsPath)
-_powerSwitch = PowerSwitch(_remotePath)
+_powerSwitch = PowerSwitch(_settingsPath, _remotePath)
 
 def _createPID(pid_file='voice-recognizer.pid'):
 
