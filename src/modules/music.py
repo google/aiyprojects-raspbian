@@ -237,11 +237,20 @@ class Music(object):
 
             elif podcastID in ['recent','today','yesterday']:
                 aiy.audio.say('Available podcasts are')
+                button = aiy.voicehat.get_button()
+                button.on_press(self._buttonPressCancel)
+                self._cancelAction = False
+
                 for podcast in podcatcher.getPodcastInfo(podcastID, offset):
-                    if podcast['age'] < 49:
+                    if self._cancelAction:
+                        break
+                    elif podcast['age'] < 49:
                         aiy.audio.say('' + podcast['podcast'] + ' uploaded an episode ' + str(int(podcast['age'])) + ' hours ago')
                     else:
                         aiy.audio.say('' + podcast['podcast'] + ' uploaded an episode ' + str(int(podcast['age']/24)) + ' days ago')
+
+                button.on_press(None)
+                self._cancelAction = False
                 return
 
             elif podcastID.startswith('previous '):
