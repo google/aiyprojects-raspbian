@@ -32,9 +32,6 @@ def _detect_gpio_offset(module_path):
             pass
     return None
 
-
-_FsNodeSpec = namedtuple('_FsNodeSpec', ['pin', 'name'])
-
 VISIONBONNET_PRODUCT = r"AIY VisionBonnet"
 VOICEBONNET_PROUDCT = r"AIY VoiceBonnet"
 
@@ -61,31 +58,28 @@ def _get_i2c_address():
     return mcu_i2c_address
 
 
-class GpioSpec(_FsNodeSpec):
-    _MODULE_PATH = '/sys/bus/i2c/drivers/aiy-io-i2c/1-00%2X/gpio-aiy-io/gpio' % _get_i2c_address()
-    _PIN_OFFSET = _detect_gpio_offset(_MODULE_PATH)
+_MODULE_PATH = '/sys/bus/i2c/drivers/aiy-io-i2c/1-00%2X/gpio-aiy-io/gpio' % _get_i2c_address()
+_PIN_OFFSET = _detect_gpio_offset(_MODULE_PATH)
 
-    def __new__(cls, pin, name):
-        return super(GpioSpec, cls).__new__(cls, GpioSpec._PIN_OFFSET + pin, name)
-
-    def __str__(self):
-        return 'gpio %s (%d)' % (self.name, self.pin - self._PIN_OFFSET)
-
-
-class PwmSpec(_FsNodeSpec):
+class GpioSpec(namedtuple('GpioSpec', ['base', 'offset', 'name', 'active_low'])):
+    @property
+    def pin(self):
+        return self.base + self.offset
 
     def __str__(self):
-        return 'pwm %d' % self.pin
+        return 'gpio %s (%d)' % (self.name, self.pin)
 
+PwmSpec = namedtuple('PwmSpec', ['pin', 'name'])
+PwmSpec.__str__ = lambda self: 'pwm %d' % self.pin
 
 AIYPinSpec = namedtuple('AIYPinSpec', ['gpio_spec', 'pwm_spec'])
 
-PIN_A = AIYPinSpec(GpioSpec(2, 'AIY_USER0'), PwmSpec(0, 'pwm0'))
-PIN_B = AIYPinSpec(GpioSpec(3, 'AIY_USER1'), PwmSpec(1, 'pwm1'))
-PIN_C = AIYPinSpec(GpioSpec(8, 'AIY_USER2'), PwmSpec(2, 'pwm2'))
-PIN_D = AIYPinSpec(GpioSpec(9, 'AIY_USER3'), PwmSpec(3, 'pwm3'))
-LED_1 = AIYPinSpec(GpioSpec(13, 'AIY_LED0'), None)
-LED_2 = AIYPinSpec(GpioSpec(14, 'AIY_LED1'), None)
+PIN_A = AIYPinSpec(GpioSpec(_PIN_OFFSET, 2, 'AIY_USER0', active_low=False), PwmSpec(0, 'pwm0'))
+PIN_B = AIYPinSpec(GpioSpec(_PIN_OFFSET, 3, 'AIY_USER1', active_low=False), PwmSpec(1, 'pwm1'))
+PIN_C = AIYPinSpec(GpioSpec(_PIN_OFFSET, 8, 'AIY_USER2', active_low=False), PwmSpec(2, 'pwm2'))
+PIN_D = AIYPinSpec(GpioSpec(_PIN_OFFSET, 9, 'AIY_USER3', active_low=False), PwmSpec(3, 'pwm3'))
+LED_1 = AIYPinSpec(GpioSpec(_PIN_OFFSET, 13, 'AIY_LED0', active_low=True), None)
+LED_2 = AIYPinSpec(GpioSpec(_PIN_OFFSET, 14, 'AIY_LED1', active_low=True), None)
 
 BUZZER_GPIO_PIN = 22
 BUTTON_GPIO_PIN = 23
@@ -232,8 +226,7 @@ class SysFsGpioPin(SysFsPin):
         super(SysFsGpioPin, self).open()
         self.wait_for_permissions('active_low')
         self.wait_for_permissions('direction')
-        # GPIO pins on the hat seem to be inverted by default.
-        self._set_active_low(True)
+        self._set_active_low(self._spec.active_low)
 
     def close(self):
         # Restore the default direction (turns off LED) before closing.
