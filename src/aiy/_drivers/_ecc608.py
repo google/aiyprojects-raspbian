@@ -21,7 +21,7 @@ import sys
 import jwt
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
-from aiy._drivers._hat import *
+from aiy._drivers._hat import get_aiy_device_name
 
 logger = logging.getLogger(__name__)
 
@@ -48,11 +48,11 @@ def _ecc608_check_address(address):
     cfg.slave_address = address << 1  # Cryptolib uses 8-bit address.
     cfg.bus = 1  # ARM I2C
     cfg.devtype = 3  # ECC608
-
-    if _cryptolib.atcab_init(_cryptolib.cfg_ateccx08a_i2c_default) == 0:
+    status = _cryptolib.atcab_init(_cryptolib.cfg_ateccx08a_i2c_default)
+    if status == 0:
         return True
-    else:
-        return False
+    _cryptolib.atcab_release()
+    return False
 
 
 def ecc608_init_and_update_address():
@@ -73,23 +73,23 @@ def ecc608_init_and_update_address():
             # Found a valid crypto chip, validate it is the correct address.
             if name in board_name:
                 logger.info('Crypto found at correct address: 0x%x', addr)
-                return True
+                return addr
             else:
                 # The chip was found, but it was mismatched for the board.
-                logger.warn('Crypto found, but at the wrong address: 0x%x', addr)
+                logger.info('Crypto found, but at the wrong address: 0x%x', addr)
                 if board_name in CRYPTO_ADDRESS_DICT:
                     logger.warn('Updating crypto i2c address.')
                     # TODO(michaelbrooks): Update I2C Address.
                     # set_i2c_address(CRYPTO_ADDRESS_DICT.get(board_name))
-                    return True
+                    return addr
                 else:
                     logger.warn('This board doesn\'t support crypto.')
-                    return False
+                    return None
 
     # If execution reaches here, there is no crypto chip. SW authentication
     # will need to be used.
     logger.warn('No crypto detected, using SW.')
-    return False
+    return None
 
 
 def ecc608_hw_sign(msg):
@@ -125,6 +125,20 @@ def ecc608_man_jwt(claims):
     return token
 
 
+def ecc608_serial():
+    serial = ctypes.create_string_buffer(9)
+    status = _cryptolib.atcab_read_serial_number(ctypes.byref(serial))
+    assert status == 0
+    return ''.join('%02X' % x for x in serial.raw)
+
+
+def ecc608_public_key():
+    pubkey = ctypes.create_string_buffer(64)
+    status = _cryptolib.atcab_genkey_base(0, 0, None, ctypes.byref(pubkey))
+    assert status == 0
+    return bytes(pubkey.raw)
+
+
 class HwEcAlgorithm(jwt.algorithms.Algorithm):
     def __init__(self):
         self.hash_alg = hashes.SHA256
@@ -150,9 +164,11 @@ class HwEcAlgorithm(jwt.algorithms.Algorithm):
 # On module import, load libary.
 try:
     ecc608_jwt_with_hw_alg = None
-    name = os.path.join(os.path.dirname(__file__), 'libcryptoauth.so')
-    _cryptolib = ctypes.cdll.LoadLibrary(name)
-    if ecc608_init_and_update_address():
+    _name = os.path.join(os.path.dirname(__file__), 'libcryptoauth.so')
+    _cryptolib = ctypes.cdll.LoadLibrary(_name)
+
+    ecc608_i2c_address = ecc608_init_and_update_address()
+    if ecc608_i2c_address is not None:
         ecc608_jwt_with_hw_alg = jwt.PyJWT(algorithms=[])
         ecc608_jwt_with_hw_alg.register_algorithm('ES256', HwEcAlgorithm())
 except:
