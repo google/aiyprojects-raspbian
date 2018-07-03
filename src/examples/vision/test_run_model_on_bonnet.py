@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#
 # Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,26 +37,26 @@ def tensors_info(tensors):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_path', required=True,
-        help='Path to converted model file that can run on VisionKit.')
+    parser.add_argument('--model_name', default='test_model', help='Model identifier.')
+    parser.add_argument('--model_path', required=True, help='Path to model file.')
     parser.add_argument('--input_height', type=int, required=True, help='Input height.')
     parser.add_argument('--input_width', type=int, required=True, help='Input width.')
+    parser.add_argument('--input_depth', type=int, default=3, help='Input depth.')
     parser.add_argument('--input_mean', type=float, default=128.0, help='Input mean.')
     parser.add_argument('--input_std', type=float, default=128.0, help='Input std.')
-    parser.add_argument('--input_depth', type=int, default=3, help='Input depth.')
     args = parser.parse_args()
 
     model = ModelDescriptor(
-        name='test_run_model',
+        name=args.model_name,
         input_shape=(1, args.input_height, args.input_width, args.input_depth),
         input_normalizer=(args.input_mean, args.input_std),
         compute_graph=utils.load_compute_graph(args.model_path))
 
-    with PiCamera(sensor_mode=4, framerate=30) as camera:
+    with PiCamera(sensor_mode=4, framerate=30):
         with CameraInference(model) as inference:
-            for i, result in enumerate(inference.run()):
-                print('Iteration #%05d (%5.2f fps): %s' %
-                    (i, inference.rate, tensors_info(result.tensors)))
+            for result in inference.run():
+                print('#%05d (%5.2f fps): %s' %
+                    (inference.count, inference.rate, tensors_info(result.tensors)))
 
 
 if __name__ == '__main__':
