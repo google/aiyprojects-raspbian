@@ -34,8 +34,8 @@ def _trise_tfall_reg(duration_ms):
 
 
 def _write(path, data):
-    with open(path, 'w') as file:
-        file.write(str(data))
+    with open(path, 'w') as f:
+        f.write(str(data))
 
 
 def _device_file(prop):
@@ -83,6 +83,9 @@ class Leds(object):
 
             self.state = state
             self.brightness = brightness
+
+    def __init__(self):
+        self._pattern = None
 
     @staticmethod
     def rgb(state, rgb):
