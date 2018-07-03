@@ -21,6 +21,9 @@ test: test-download
 deb:
 	dpkg-buildpackage -b -rfakeroot -us -uc -tc
 
+lint:
+	find src -iname "*.py" | grep -v protocol_pb2 | xargs pylint --rcfile .pylintrc
+
 # enable, disable, start, stop, restart, status
 joy-demo-%:
 	sudo systemctl $* joy_detection_demo.service
