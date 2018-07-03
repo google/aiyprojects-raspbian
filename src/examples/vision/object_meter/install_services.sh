@@ -1,4 +1,5 @@
- #!/bin/bash
+#!/bin/bash
+#
 # Copyright 2018 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
-cd "${scripts_dir}"
-sudo cp object_meter_demo.service /lib/systemd/system
+
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cp ${SCRIPT_DIR}/object_meter_demo.service /lib/systemd/system
+systemctl daemon-reload
 systemctl enable object_meter_demo.service

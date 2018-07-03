@@ -1,4 +1,5 @@
 #!/bin/bash
+#
 # Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
-cd "${scripts_dir}"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-sudo cp joy_detection_demo.service /lib/systemd/system
+cp ${SCRIPT_DIR}/joy_detection_demo.service /lib/systemd/system
+systemctl daemon-reload
 systemctl enable joy_detection_demo.service
