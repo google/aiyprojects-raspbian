@@ -1,0 +1,9 @@
+catamaran
+container ship/containership/container vessel
+lifeboat
+speedboat
+paddle/boat paddle
+pirate/pirate ship
+paddlewheel/paddle wheel
+submarine/pigboat/sub/U-boat
+fireboat
