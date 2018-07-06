@@ -21,11 +21,11 @@ from contextlib import contextmanager
 def TestImage(name):
     try:
         path = os.path.join(os.path.dirname(__file__), 'images', name)
-        file = open(path, 'rb')
+        f = open(path, 'rb')
         try:
-            image = Image.open(file)
+            image = Image.open(f)
             yield image
         finally:
             image.close()
     finally:
-        file.close()
+        f.close()
