@@ -15,6 +15,7 @@
 
 import array
 import fcntl
+import mmap
 import multiprocessing as mp
 import os
 import signal
@@ -23,9 +24,8 @@ import sys
 
 SPICOMM_DEV = '/dev/vision_spicomm'
 
-SPICOMM_IOCTL_BASE = 0x8900
-# TODO: 0xc0100000 should be calculated properly base on structure size.
-SPICOMM_IOCTL_TRANSACT = 0xc0100000 + SPICOMM_IOCTL_BASE + 3
+SPICOMM_IOCTL_TRANSACT = 0xc0108903
+SPICOMM_IOCTL_TRANSACT_MMAP = 0xc0108904
 
 HEADER_SIZE = 16
 DEFAULT_PAYLOAD_SIZE = 12 * 1024 * 1024  # 12 M
@@ -246,8 +246,67 @@ class SyncSpicomm(object):
             raise _get_exception(buf)
 
 
+def _transact_mmap(dev, mm, offset, request, timeout):
+    payload_size = len(request)
+    if timeout is None:
+        timeout = _get_timeout(payload_size)
+
+    mm[0:payload_size] = request
+
+    buf = bytearray(HEADER_SIZE)
+    buf[0:4]   = struct.pack('I', 0)                    # flags (used in response)
+    buf[4:8]   = struct.pack('I', int(timeout * 1000))  # timeout (ms)
+    buf[8:12]  = struct.pack('I', offset)               # page offset
+    buf[12:16] = struct.pack('I', payload_size)         # payload size
+
+    try:
+        # Buffer size is small (< 1024 bytes), so ioctl call doesn't block other threads.
+        fcntl.ioctl(dev, SPICOMM_IOCTL_TRANSACT_MMAP, buf)
+        _, _, _, payload_size = _read_header(buf)
+        return bytearray(mm[0:payload_size])
+    except (IOError, OSError):
+        raise _get_exception(buf)
+
+
+class SyncSpicommMmap(object):
+    """Class for communication with VisionBonnet via kernel driver.
+
+    Driver ioctl() calls are made in the same process. All threads in the current
+    process are *not* blocked while icotl() is running.
+    """
+
+    def __init__(self):
+        try:
+            self._dev = os.open(SPICOMM_DEV, os.O_RDWR)
+        except (IOError, OSError):
+            raise SpicommDevNotFoundError
+
+        self._mm = mmap.mmap(self._dev, length=DEFAULT_PAYLOAD_SIZE, offset=0)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.close()
+
+    def close(self):
+        self._mm.close()
+        os.close(self._dev)
+
+    def transact(self, request, timeout=None):
+        if len(request) < len(self._mm):
+            return _transact_mmap(self._dev, self._mm, 0, request, timeout)
+        else:
+            offset = (len(self._mm) + (mmap.PAGESIZE - 1)) // mmap.PAGESIZE
+            with mmap.mmap(self._dev, length=len(request),
+                offset=mmap.PAGESIZE * offset) as mm:
+                return _transact_mmap(self._dev, mm, offset, request, timeout)
+
+
 _spicomm_type = os.environ.get('VISION_BONNET_SPICOMM', None)
-_spicomm_types = {'sync': SyncSpicomm, 'async': AsyncSpicomm}
+_spicomm_types = {'sync': SyncSpicomm,
+                  'sync_mmap': SyncSpicommMmap,
+                  'async': AsyncSpicomm}
 
 # Scicomm class provides the ability to send and receive data as a transaction.
 # This means that every call to transact consists of a combined
