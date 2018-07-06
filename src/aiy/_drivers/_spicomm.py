@@ -102,11 +102,8 @@ def _get_exception(header):
 
 
 def _async_loop(dev, pipe):
-    def terminate(signum, frame):
-        sys.exit(0)
-
     signal.signal(signal.SIGINT, signal.SIG_IGN)
-    signal.signal(signal.SIGTERM, terminate)
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
 
     allocated_buf = bytearray(HEADER_SIZE + DEFAULT_PAYLOAD_SIZE)
     while True:
@@ -150,7 +147,7 @@ class AsyncSpicomm(object):
         self.close()
 
     def close(self):
-        self._process.terminate()
+        os.kill(self._process.pid, signal.SIGKILL)
         self._process.join()
         self._dev.close()
 
