@@ -22,6 +22,7 @@ how to use this API.
 """
 
 import aiy.vision.proto.protocol_pb2 as pb2
+import contextlib
 import itertools
 import logging
 import time
@@ -77,16 +78,30 @@ def _check_firmware_info(version):
             'version is %s. Consider upgrading firmware.',
             _SUPPORTED_FIRMWARE_VERSION, version)
 
+def _close_stack_silently(stack):
+    try:
+        stack.close()
+    except Exception:
+        pass
 
 class CameraInference(object):
     """Helper class to run camera inference."""
 
     def __init__(self, descriptor, params=None):
-        self._engine = InferenceEngine()
-        self._key = self._engine.load_model(descriptor)
-        self._engine.start_camera_inference(self._key, params)
         self._rate = 0.0
         self._count = 0
+        self._stack = contextlib.ExitStack()
+        self._engine = self._stack.enter_context(InferenceEngine())
+
+        try:
+            key = self._engine.load_model(descriptor)
+            self._stack.callback(lambda: self._engine.unload_model(key))
+
+            self._engine.start_camera_inference(key, params)
+            self._stack.callback(lambda: self._engine.stop_camera_inference())
+        except Exception:
+            _close_stack_silently(self._stack)
+            raise
 
     def camera_state(self):
         return self._engine.get_camera_state()
@@ -110,9 +125,7 @@ class CameraInference(object):
         return self._count
 
     def close(self):
-        self._engine.stop_camera_inference()
-        self._engine.unload_model(self._key)
-        self._engine.close()
+        self._stack.close()
 
     def __enter__(self):
         return self
@@ -125,15 +138,21 @@ class ImageInference(object):
     """Helper class to run image inference."""
 
     def __init__(self, descriptor):
-        self._engine = InferenceEngine()
-        self._key = self._engine.load_model(descriptor)
+        self._stack = contextlib.ExitStack()
+        self._engine = self._stack.enter_context(InferenceEngine())
+
+        try:
+            self._key = self._engine.load_model(descriptor)
+            self._stack.callback(lambda: self._engine.unload_model(self._key))
+        except Exception:
+            _close_stack_silently(self._stack)
+            raise
 
     def run(self, image, params=None):
         return self._engine.image_inference(self._key, image, params)
 
     def close(self):
-        self._engine.unload_model(self._key)
-        self._engine.close()
+        self._stack.close()
 
     def __enter__(self):
         return self
