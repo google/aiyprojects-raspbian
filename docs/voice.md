@@ -1,8 +1,48 @@
 # Voice HAT and Voice Bonnet
 
+## Hardware
+
+**Voice HAT**
+
+* Audio Amplifier: MAX98357A
+* Microphone: ICS-43432 x 2
+
+**Voice Bonnet**
+
+* Audio Codec: ALC5645
+* MCU: ATSAMD09D14
+* LED Driver: KTD2027B
+* Crypto: ATECC608A (optional)
+* Microphone: SPH1642HT5H-1 x 2
+
+## Drivers
+
+**Voice HAT**
+
+* [googlevoicehat-codec.c](https://github.com/raspberrypi/linux/blob/rpi-4.14.y/sound/soc/bcm/googlevoicehat-codec.c)
+* [googlevoicehat-soundcard.c](https://github.com/raspberrypi/linux/blob/rpi-4.14.y/sound/soc/bcm/googlevoicehat-soundcard.c)
+* [googlevoicehat-soundcard-overlay.dts](https://github.com/raspberrypi/linux/blob/rpi-4.14.y/arch/arm/boot/dts/overlays/googlevoicehat-soundcard-overlay.dts)
+
+Manual overlay load:
+```
+sudo dtoverlay googlevoicehat-soundcard
+```
+
+Load overlay on each boot:
+```
+echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
+```
+
+**Voice Bonnet**
+
+Manual overlay load (EEPROM overlay must be disabled):
+```
+sudo dtoverlay aiy-voicebonnet
+```
+
 ## Pinout (40-pin header)
 
-Voice HAT
+**Voice HAT**
 ```
        3.3V --> 1    2 <-- 5V
                 3    4 <-- 5V
@@ -26,7 +66,7 @@ Voice HAT
         GND --> 39  40 <-- I2S_DOUT
 ```
 
-Voice Bonnet
+**Voice Bonnet**
 ```
        3.3V --> 1    2 <-- 5V
     I2C_SDA --> 3    4 <-- 5V

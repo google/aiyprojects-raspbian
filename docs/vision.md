@@ -1,5 +1,13 @@
 # Vision Bonnet
 
+## Hardware
+
+* SOC: Myriad 2450
+* MCU: ATSAMD09D14
+* LED Driver: KTD2027A
+* Crypto: ATECC608A (optional)
+* IMU: BMI160
+
 ## Pinout (40-pin header)
 
 ```
@@ -24,3 +32,13 @@
              MRD_UNUSED --> 37  38
                     GND --> 39  40
 ```
+
+## Troubleshooting
+
+Sometimes Pi Zero doesn't work stable and fails with different kernel errors:
+[Issue #346](https://github.com/google/aiyprojects-raspbian/issues/346).
+
+```
+echo "over_voltage=4" | sudo tee -a /boot/config.txt
+```
+and then reboot.
