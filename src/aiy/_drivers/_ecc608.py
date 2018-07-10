@@ -19,6 +19,7 @@ import logging
 import os
 import sys
 import jwt
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from aiy._drivers._hat import get_aiy_device_name
@@ -161,9 +162,11 @@ class HwEcAlgorithm(jwt.algorithms.Algorithm):
         except InvalidSignature:
             return False
 
-# On module import, load libary.
+# On module import, load library.
 try:
+    ecc608_i2c_address = None
     ecc608_jwt_with_hw_alg = None
+
     _name = os.path.join(os.path.dirname(__file__), 'libcryptoauth.so')
     _cryptolib = ctypes.cdll.LoadLibrary(_name)
 
@@ -171,5 +174,5 @@ try:
     if ecc608_i2c_address is not None:
         ecc608_jwt_with_hw_alg = jwt.PyJWT(algorithms=[])
         ecc608_jwt_with_hw_alg.register_algorithm('ES256', HwEcAlgorithm())
-except:
+except Exception:
     logger.warn('Unable to load HW crypto library, using SW.')
