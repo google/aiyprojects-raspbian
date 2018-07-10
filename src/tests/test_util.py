@@ -16,12 +16,14 @@ import os
 from PIL import Image
 from contextlib import contextmanager
 
+def test_image_path(name):
+    p = os.path.join(os.path.dirname(__file__), 'images', name)
+    return os.path.abspath(p)
 
 @contextmanager
 def TestImage(name):
     try:
-        path = os.path.join(os.path.dirname(__file__), 'images', name)
-        f = open(path, 'rb')
+        f = open(test_image_path(name), 'rb')
         try:
             image = Image.open(f)
             yield image
