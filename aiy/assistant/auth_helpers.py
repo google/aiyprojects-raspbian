@@ -45,6 +45,8 @@ _ASSISTANT_CREDENTIALS = (
 # Expected location of the Assistant credentials file:
 _ASSISTANT_CREDENTIALS_FILE = os.path.expanduser('~/assistant.json')
 
+# Let other modules know where the credentials file is
+assistant_credentials_file_used = None
 
 def _load_credentials(credentials_path):
     migrate = False
@@ -129,4 +131,7 @@ User's Guide for more info.""")
 def get_assistant_credentials(credentials_file=None):
     if not credentials_file:
         credentials_file = _ASSISTANT_CREDENTIALS_FILE
+
+    global assistant_credentials_file_used
+    assistant_credentials_file_used = credentials_file
     return _try_to_get_credentials(credentials_file)

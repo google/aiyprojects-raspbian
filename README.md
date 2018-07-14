@@ -2,12 +2,12 @@
 
 [Google AIY Voice Kit](https://aiyprojects.withgoogle.com/voice) is a cool
 project.  The unfortunate thing is it locks you into its custom hardware. I have
-separated its software to work on Raspberry Pi 3 B independently (B+ coming),
+separated its software to work on Raspberry Pi (3B and 3B+) independently,
 just using a normal speaker and microphone.
 
 The following instructions aim at:
 
-**Raspberry Pi 3 B**  
+**Raspberry Pi (3B, 3B+)**  
 **Raspbian Stretch**  
 **Python 3**
 
@@ -169,13 +169,12 @@ $ arecord --format=S16_LE --duration=5 --rate=16000 --file-type=wav out.wav
 $ aplay out.wav
 ```
 
-## Obtain Google service credential files
+## Register for Google Assistant or Google Cloud Speech
 
 Although we are not using Google's hardware, there is no escaping from its
 software. We still rely on Google Assistant or Google Cloud Speech API to
 perform voice recognition. To use these cloud services, you have to go through a
-series of registration steps, which are outside the scope of this page. I can
-only point you to them:
+series of registration steps:
 
 - [Configure Google Assistant API](https://developers.google.com/assistant/sdk/guides/library/python/embed/config-dev-project-and-account)
 - [Configure Google Cloud Speech API](https://aiyprojects.withgoogle.com/voice#makers-guide-3-1--change-to-the-cloud-speech-api)
@@ -185,26 +184,40 @@ speech *and* talk back intelligently, but supports fewer languages. **Google
 Cloud Speech** only recognizes speech (no talk-back), but supports far more
 languages.
 
-In the end, you will get a credential file in JSON format. Download it to your
-Pi. Put it in the correct directory and name it appropriately:
+Usage of these APIs changes constantly. Here is a summary of the steps for using
+**Google Assistant**, as of 2018-07-13:
 
-- For Google Assistant, the credential file should be named `assistant.json` and
-  be in the home directory (`/home/pi`)
+1. Create a Project, Enable API, Enable activity controls
 
-- For Google Cloud Speech, the credential file should be named
-  `cloud_speech.json` and be in the home directory (`/home/pi`)
+2. Register device model, Download credentials file
 
-Now, you are ready to install software to access those services and give your Pi
-some much-needed language abilities ...
+3. Install Python packages:
+   - `google-assistant-library`
+   - `google-assistant-sdk[samples]`
+   - `google-auth-oauthlib[tool]`
+   - `google-cloud-speech`
 
-## Install library
+4. Use `google-oauthlib-tool` to authenticate once
 
-```
-$ sudo apt-get update
-$ sudo apt-get upgrade
-$ sudo apt-get install python3-dev libttspico-utils portaudio19-dev libffi-dev libssl-dev
-$ sudo pip3 install aiy-voice-only
-```
+5. Use `googlesamples-assistant-devicetool` to register your Raspberry Pi
+
+## How to use this library
+
+I used to have it uploaded to PYPI for easy installation. But Google Assistant
+is changing too rapidly. I find it more educating to download and try to
+integrate it manually:
+
+1. Download the `aiy` directory
+
+2. Set environment variable `PYTHONPATH` so Python can find the `aiy` package
+
+3. You may have to install the Pico text-to-speech engine, `libttspico-utils`,
+   to allow it to generate speech dynamically
+
+The best way to experience the software is to try it.
+**[Let's go to the examples.](https://github.com/nickoala/aiy-voice-only/tree/aiyprojects/examples/voice)**
+
+## Changes to original library
 
 Here is an outline of the changes I have made to the original [AIY Voice
 Kit](https://github.com/google/aiyprojects-raspbian) source code:
@@ -218,5 +231,4 @@ are of no concern to this project. I have removed those.
 3. Expose LED and Button: There are, nonetheless, some useful underlying utility
 classes. I have exposed them in the `aiy.util` module.
 
-The best way to experience the software is to try it.
-**[Let's go to the examples.](https://github.com/nickoala/aiy-voice-only/tree/aiyprojects/examples/voice)**
+4. Allow using custom credentials file path.

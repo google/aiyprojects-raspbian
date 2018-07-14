@@ -54,7 +54,7 @@ class _AssistantRecognizer(object):
         self._recorder.remove_processor(self._request)
 
 
-def get_assistant():
+def get_assistant(credentials_file=None):
     """Returns a recognizer that uses Google Assistant APIs.
 
     Sample usage:
@@ -73,6 +73,6 @@ def get_assistant():
     """
     global _assistant_recognizer
     if not _assistant_recognizer:
-        credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
+        credentials = aiy.assistant.auth_helpers.get_assistant_credentials(credentials_file)
         _assistant_recognizer = _AssistantRecognizer(credentials)
     return _assistant_recognizer
