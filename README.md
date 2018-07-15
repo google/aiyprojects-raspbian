@@ -204,7 +204,7 @@ Usage of these APIs changes constantly. Here is a summary of the steps for using
 ## How to use this library
 
 I used to have it uploaded to PYPI for easy installation. But Google Assistant
-is changing too rapidly. I find it more educating to download and try to
+is changing too rapidly. I find it more informing to download and try to
 integrate it manually:
 
 1. Download the `aiy` directory
