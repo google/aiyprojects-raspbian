@@ -19,15 +19,18 @@ class Mosquitto(object):
         self.mqtt_password = config['mqtt'].get('password')
 
     def command(self, topic=None, message=None):
-
         config = configparser.ConfigParser()
         config.read(self.configPath)
 
-        publish.single(topic, payload=message,
-                       hostname=self.mqtt_host,
-                       port=self.mqtt_port,
-                       auth={'username':self.mqtt_username,
-                       'password':self.mqtt_password})
+        try: 
+            publish.single(topic, payload=message,
+                           hostname=self.mqtt_host,
+                           port=self.mqtt_port,
+                           auth={'username':self.mqtt_username,
+                           'password':self.mqtt_password})
+        except:
+            logging.error("Error sending MQTT message")
+            pass
 
     def resetVariables(self):
         self._cancelAction = False

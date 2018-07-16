@@ -290,6 +290,6 @@ if __name__ == '__main__':
             )
 
         main()
-    except Error as e:
+    except:
         pass
 

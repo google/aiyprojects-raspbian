@@ -1,3 +1,9 @@
+import logging
+import time
+
+import aiy.audio
+import aiy.voicehat
+
 class PowerCommand(object):
 
     def __init__(self):
