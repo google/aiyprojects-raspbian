@@ -43,7 +43,7 @@ class PowerSwitch(object):
 
         else:
             aiy.audio.say('Unrecognised command')
-            logging.info('Unrecognised command: ' + device)
+            logging.warning('Unrecognised command: ' + device)
             return
 
         if action is not None:
@@ -69,5 +69,5 @@ class PowerSwitch(object):
 
         else:
             aiy.audio.say('Unrecognised switch')
-            logging.info('Unrecognised device: ' + device)
+            logging.warning('Unrecognised device: ' + device)
 
