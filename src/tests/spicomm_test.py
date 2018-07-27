@@ -3,9 +3,16 @@ import os
 import unittest
 import contextlib
 
+import aiy.vision.proto.protocol_pb2 as pb2
+
 from aiy._drivers._spicomm import SPICOMM_DEV
 from aiy._drivers._spicomm import SPICOMM_IOCTL_TRANSACT
 from aiy._drivers._spicomm import SPICOMM_IOCTL_TRANSACT_MMAP
+
+from aiy._drivers._spicomm import AsyncSpicomm
+from aiy._drivers._spicomm import SyncSpicomm
+from aiy._drivers._spicomm import SyncSpicommMmap
+
 
 @contextlib.contextmanager
 def SpicommDev():
@@ -18,7 +25,72 @@ def SpicommDev():
 def num_pages(length):
    return (length + mmap.PAGESIZE - 1) // mmap.PAGESIZE
 
-class SpicommMmapTest(unittest.TestCase):
+
+def get_camera_state(spicomm, timeout=None):
+    request = pb2.Request(get_camera_state=pb2.Request.GetCameraState())
+    response = pb2.Response()
+    response.ParseFromString(spicomm.transact(request.SerializeToString(), timeout))
+    return response
+
+def get_invalid(spicomm, size, timeout=None):
+    response = pb2.Response()
+    response.ParseFromString(spicomm.transact(b'A' * size, timeout))
+    return response
+
+class SpicommTestBase(object):
+
+    def test_empty_request(self):
+        with self.Spicomm() as spicomm:
+            with self.assertRaises(OSError):
+                spicomm.transact(b'')
+
+    def test_valid_request(self):
+        with self.Spicomm() as spicomm:
+            response = get_camera_state(spicomm)
+            self.assertEqual(pb2.Response.Status.OK, response.status.code)
+
+    def test_valid_request_force_allocate(self):
+        with self.Spicomm(default_payload_size=8) as spicomm:
+            response = get_camera_state(spicomm)
+            self.assertEqual(pb2.Response.Status.OK, response.status.code)
+
+    def test_invalid_request(self):
+        with self.Spicomm() as spicomm:
+            response = get_invalid(spicomm, 32)
+            self.assertEqual(pb2.Response.Status.ERROR, response.status.code)
+
+    def test_invalid_request_timeout(self):
+        with self.Spicomm() as spicomm:
+            with self.assertRaises(OSError):
+                response = get_invalid(spicomm, size=1024 * 1024, timeout=0.001)
+                self.assertEqual(pb2.Response.Status.OK, response.status.code)
+
+    def test_invalid_request_force_allocate(self):
+        with self.Spicomm(default_payload_size=8) as spicomm:
+            response = get_invalid(spicomm, 1024 * 1024)
+            self.assertEqual(pb2.Response.Status.ERROR, response.status.code)
+
+    def test_huge_invalid_request(self):
+        with self.Spicomm(default_payload_size=8) as spicomm:
+            response = get_invalid(spicomm, 10 * 1024 * 1024)
+            self.assertEqual(pb2.Response.Status.ERROR, response.status.code)
+
+class AsyncSpicommTest(SpicommTestBase, unittest.TestCase):
+    Spicomm = AsyncSpicomm
+
+class SyncSpicommTest(SpicommTestBase, unittest.TestCase):
+    Spicomm = SyncSpicomm
+
+class SyncSpicommMmapTest(SpicommTestBase, unittest.TestCase):
+    Spicomm = SyncSpicommMmap
+
+    def test_multiple_dev(self):
+        with SpicommDev() as dev1, SpicommDev() as dev2:
+            with mmap.mmap(dev1, length=63, offset = 5 * mmap.PAGESIZE) as mm1, \
+                 mmap.mmap(dev2, length=63, offset = 5 * mmap.PAGESIZE) as mm2:
+                self.assertEqual(len(mm1), 63)
+                self.assertEqual(len(mm1), 63)
+
     def test_mappings(self):
         with SpicommDev() as dev:
             with mmap.mmap(dev, length=47, offset=0 * mmap.PAGESIZE) as mm1, \
