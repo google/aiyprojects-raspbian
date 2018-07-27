@@ -256,9 +256,6 @@ class InferenceEngine(object):
           Model identifier.
         """
         _check_firmware_info(self.get_firmware_info())
-
-        logger.info('Loading model "%s"...', descriptor.name)
-
         mean, stddev = descriptor.input_normalizer
         batch, height, width, depth = descriptor.input_shape
         if batch != 1:
@@ -268,6 +265,7 @@ class InferenceEngine(object):
             raise ValueError('Unsupported depth value: %d. Must be 3.')
 
         try:
+            logger.info('Load model "%s".', descriptor.name)
             self._communicate(pb2.Request(
                 load_model=pb2.Request.LoadModel(
                     model_name=descriptor.name,
@@ -293,7 +291,7 @@ class InferenceEngine(object):
         """
         _check_model_name(model_name)
 
-        logger.info('Unloading model "%s"...', model_name)
+        logger.info('Unload model "%s".', model_name)
         self._communicate(pb2.Request(
             unload_model=pb2.Request.UnloadModel(model_name=model_name)))
 
@@ -301,6 +299,7 @@ class InferenceEngine(object):
         """Starts inference running on VisionBonnet."""
         _check_model_name(model_name)
 
+        logger.info('Start camera inference on "%s".', model_name)
         self._communicate(pb2.Request(
             start_camera_inference=pb2.Request.StartCameraInference(
                 model_name=model_name,
@@ -312,6 +311,7 @@ class InferenceEngine(object):
 
     def stop_camera_inference(self):
         """Stops inference running on VisionBonnet."""
+        logger.info('Stop camera inference.')
         self._communicate_bytes(_REQ_STOP_CAMERA_INFERENCE)
 
     def get_camera_state(self):
@@ -324,7 +324,7 @@ class InferenceEngine(object):
             info = self._communicate_bytes(_REQ_GET_FIRMWARE_INFO).firmware_info
             return FirmwareVersion(info.major_version, info.minor_version)
         except InferenceException:
-            return (1, 0)  # Request is not supported by firmware, default to 1.0
+            return FirmwareVersion(1, 0)  # Request is not supported by firmware, default to 1.0
 
     def image_inference(self, model_name, image, params=None):
         """Runs inference on image using model identified by model_name.
@@ -339,7 +339,7 @@ class InferenceEngine(object):
         """
         _check_model_name(model_name)
 
-        logger.info('Image inference with model "%s"...', model_name)
+        logger.info('Image inference on "%s".', model_name)
         return self._communicate(pb2.Request(
             image_inference=pb2.Request.ImageInference(
                 model_name=model_name,
