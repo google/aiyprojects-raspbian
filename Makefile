@@ -8,12 +8,13 @@ all:
 	@echo "make clean - Get rid of all generated files"
 	@echo "male deb - Generate Debian package"
 
-test-download:
+test-vision-download:
 	$(MAKE) -C src/tests/images
 
-test: test-download
+test-vision: test-vision-download
 	$(PYTHON) -m unittest \
 		src/tests/dish_classifier_test.py \
+		src/tests/dish_detection_test.py \
 		src/tests/face_detection_test.py \
 		src/tests/image_classification_test.py \
 		src/tests/object_detection_test.py

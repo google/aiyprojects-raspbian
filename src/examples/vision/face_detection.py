@@ -27,6 +27,9 @@ from PIL import ImageDraw
 from aiy.vision.inference import ImageInference
 from aiy.vision.models import face_detection
 
+def read_stdin():
+    return io.BytesIO(sys.stdin.buffer.read())
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -35,12 +38,11 @@ def main():
     args = parser.parse_args()
 
     with ImageInference(face_detection.model()) as inference:
-        image = Image.open(
-            io.BytesIO(sys.stdin.buffer.read())
-            if args.input == '-' else args.input)
+        image = Image.open(read_stdin() if args.input == '-' else args.input)
         draw = ImageDraw.Draw(image)
-        for i, face in enumerate(face_detection.get_faces(inference.run(image))):
-            print('Face #%d: %s' % (i, str(face)))
+        faces = face_detection.get_faces(inference.run(image))
+        for i, face in enumerate(faces):
+            print('Face #%d: %s' % (i, face))
             x, y, width, height = face.bounding_box
             draw.rectangle((x, y, x + width, y + height), outline='red')
         if args.output:

@@ -16,37 +16,27 @@
 from aiy.vision.inference import ModelDescriptor
 from aiy.vision.models.dish_classifier_classes import CLASSES
 from aiy.vision.models import utils
+from collections import namedtuple
 
 _COMPUTE_GRAPH_NAME = 'dish_detection.binaryproto'
 
-
-def _get_sorted_score_map(score_vector, top_k, threshold):
-    pairs = [pair for pair in enumerate(score_vector) if pair[1] > threshold]
-    pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
-    return pairs[0:top_k]
-
-
-class Dish(object):
-    """Dish detection result."""
-
-    def __init__(self, bbox, sorted_score_map):
-        self.bbox = bbox
-        self.sorted_score_map = sorted_score_map
-
-    def __str__(self):
-        dish = '\t'.join(['%s (%.2f)' % ('/'.join(CLASSES[i]), prob) for
-                          (i, prob) in self.sorted_score_map])
-        return 'Bounding Box: %s\n Possible dish: %s' % (str(self.bbox), dish)
+# sorted_scores: sorted list of (label, score) tuples.
+# bounding_box: (x, y, width, height) tuple.
+Dish = namedtuple('Dish', ('sorted_scores', 'bounding_box'))
 
 
 def model():
-    # Dish detection model has special implementation in VisionBonnet firmware.
-    # input_shape, input_normalizer, and compute_graph params have on effect.
     return ModelDescriptor(
         name='DishDetection',
         input_shape=(1, 0, 0, 3),
         input_normalizer=(0, 0),
         compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME))
+
+
+def _get_sorted_scores(scores, top_k, threshold):
+    pairs = [('/'.join(CLASSES[i]), prob) for i, prob in enumerate(scores) if prob > threshold]
+    pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
+    return pairs[0:top_k]
 
 
 def get_dishes(result, top_k=3, threshold=0.1):
@@ -55,9 +45,6 @@ def get_dishes(result, top_k=3, threshold=0.1):
     bboxes = utils.reshape(result.tensors['bounding_boxes'].data, 4)
     dish_scores = utils.reshape(result.tensors['dish_scores'].data, len(CLASSES))
     assert len(bboxes) == len(dish_scores)
-    sorted_dish_scores = [_get_sorted_score_map(score_vector, top_k, threshold)
-                          for score_vector in dish_scores]
-    return [
-        Dish(tuple(bbox), sorted_score_map)
-        for bbox, sorted_score_map in zip(bboxes, sorted_dish_scores)
-    ]
+
+    return [Dish(_get_sorted_scores(scores, top_k, threshold), tuple(bbox))
+        for scores, bbox in zip(dish_scores, bboxes)]

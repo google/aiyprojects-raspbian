@@ -27,6 +27,9 @@ from PIL import ImageDraw
 from aiy.vision.inference import ImageInference
 from aiy.vision.models import dish_detection
 
+def read_stdin():
+    return io.BytesIO(sys.stdin.buffer.read())
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -35,13 +38,12 @@ def main():
     args = parser.parse_args()
 
     with ImageInference(dish_detection.model()) as inference:
-        image = Image.open(
-            io.BytesIO(sys.stdin.buffer.read())
-            if args.input == '-' else args.input)
+        image = Image.open(read_stdin() if args.input == '-' else args.input)
         draw = ImageDraw.Draw(image)
-        for i, dish in enumerate(dish_detection.get_dishes(inference.run(image))):
-            print('Detected dish #%d:\n %s' % (i, str(dish)))
-            x, y, width, height = dish.bbox
+        dishes = dish_detection.get_dishes(inference.run(image))
+        for i, dish in enumerate(dishes):
+            print('Dish #%d: %s' % (i, dish))
+            x, y, width, height = dish.bounding_box
             draw.rectangle((x, y, x + width, y + height), outline='red')
         if args.output:
             image.save(args.output)
