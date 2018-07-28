@@ -14,16 +14,16 @@
 import unittest
 
 from aiy.vision.inference import ImageInference
-from aiy.vision.models import dish_classifier
+from aiy.vision.models import dish_classification
 from .test_util import TestImage
 
 
-class DishClassifierTest(unittest.TestCase):
+class DishClassificationTest(unittest.TestCase):
 
     def testHotdog(self):
         with TestImage('hotdog.jpg') as image:
-            with ImageInference(dish_classifier.model()) as inference:
-                classes = dish_classifier.get_classes(inference.run(image))
+            with ImageInference(dish_classification.model()) as inference:
+                classes = dish_classification.get_classes(inference.run(image))
                 label, score = classes[0]
                 self.assertEqual('Hot dog', label)
                 self.assertAlmostEqual(score, 0.744, delta=0.001)

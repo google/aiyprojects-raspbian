@@ -19,7 +19,7 @@ from picamera import PiCamera
 from time import time
 
 from aiy.vision.inference import CameraInference
-from aiy.vision.models import dish_classifier
+from aiy.vision.models import dish_classification
 from aiy.vision.models import face_detection
 from aiy.vision.models import image_classification
 from aiy.vision.models import object_detection
@@ -98,9 +98,9 @@ class LatencyTest(unittest.TestCase):
         self.assertLatency(avg_bonnet, 183.0)
         self.assertLatency(avg_end_to_end, 202.0)
 
-    def testDishClassifierLatency(self):
+    def testDishClassificationLatency(self):
         avg_end_to_end, avg_bonnet = self.benchmarkModel(
-            dish_classifier.model(), dish_classifier.get_classes)
+            dish_classification.model(), dish_classification.get_classes)
         self.assertLatency(avg_bonnet, 304.0)
         self.assertLatency(avg_end_to_end, 328.0)
 

@@ -11,18 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""API for Dish Classifier."""
+"""API for Dish Classification."""
 
 from aiy.vision.inference import ModelDescriptor
 from aiy.vision.models import utils
-from aiy.vision.models.dish_classifier_classes import CLASSES
+from aiy.vision.models.dish_classification_classes import CLASSES
 
 _COMPUTE_GRAPH_NAME = 'mobilenet_v1_192res_1.0_seefood.binaryproto'
 
 
 def model():
     return ModelDescriptor(
-        name='dish_classifier',
+        name='dish_classification',
         input_shape=(1, 192, 192, 3),
         input_normalizer=(128.0, 128.0),
         compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME))
@@ -36,10 +36,10 @@ def _get_probs(result):
 
 
 def get_classes(result, max_num_objects=None, object_prob_threshold=0.0):
-    """Converts dish classifier model output to list of detected objects.
+    """Converts dish classification model output to list of detected objects.
 
     Args:
-      result: output tensor from dish classifier model.
+      result: output tensor from dish classification model.
       max_num_objects: int; max number of objects to return.
       object_prob_threshold: float; min probability of each returned object.
 

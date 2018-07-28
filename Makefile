@@ -13,7 +13,7 @@ test-vision-download:
 
 test-vision: test-vision-download
 	$(PYTHON) -m unittest \
-		src/tests/dish_classifier_test.py \
+		src/tests/dish_classification_test.py \
 		src/tests/dish_detection_test.py \
 		src/tests/face_detection_test.py \
 		src/tests/image_classification_test.py \

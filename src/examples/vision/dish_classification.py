@@ -12,13 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Dish classifier library demo."""
+"""Dish classification library demo."""
 
 import argparse
 from PIL import Image
 
 from aiy.vision.inference import ImageInference
-from aiy.vision.models import dish_classifier
+from aiy.vision.models import dish_classification
+
+def read_stdin():
+    return io.BytesIO(sys.stdin.buffer.read())
 
 
 def main():
@@ -26,9 +29,9 @@ def main():
     parser.add_argument('--input', '-i', dest='input', required=True)
     args = parser.parse_args()
 
-    with ImageInference(dish_classifier.model()) as inference:
-        image = Image.open(args.input)
-        classes = dish_classifier.get_classes(
+    with ImageInference(dish_classification.model()) as inference:
+        image = Image.open(read_stdin() if args.input == '-' else args.input)
+        classes = dish_classification.get_classes(
             inference.run(image), max_num_objects=5, object_prob_threshold=0.1)
         for i, (label, score) in enumerate(classes):
             print('Result %d: %s (prob=%f)' % (i, label, score))

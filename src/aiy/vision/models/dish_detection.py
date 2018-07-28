@@ -14,7 +14,7 @@
 """API for Dish Detection."""
 
 from aiy.vision.inference import ModelDescriptor
-from aiy.vision.models.dish_classifier_classes import CLASSES
+from aiy.vision.models.dish_classification_classes import CLASSES
 from aiy.vision.models import utils
 from collections import namedtuple
 
