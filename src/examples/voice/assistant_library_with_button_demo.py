@@ -102,9 +102,6 @@ class MyAssistant(object):
 
 
 def main():
-    if platform.machine() == 'armv6l':
-        print('Cannot run hotword demo on Pi Zero!')
-        exit(-1)
     MyAssistant().start()
 
 
