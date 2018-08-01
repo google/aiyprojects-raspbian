@@ -22,6 +22,8 @@ from PIL import Image
 from aiy.vision.inference import ImageInference
 from aiy.vision.models import image_classification
 
+def read_stdin():
+    return io.BytesIO(sys.stdin.buffer.read())
 
 def main():
     parser = argparse.ArgumentParser()
@@ -38,11 +40,9 @@ def main():
     model_type = (image_classification.SQUEEZENET if args.use_squeezenet
                   else image_classification.MOBILENET)
     with ImageInference(image_classification.model(model_type)) as inference:
-        image = Image.open(
-            io.BytesIO(sys.stdin.buffer.read())
-            if args.input == '-' else args.input)
-        classes = image_classification.get_classes(
-            inference.run(image), max_num_objects=5, object_prob_threshold=0.1)
+        image = Image.open(read_stdin() if args.input == '-' else args.input)
+        classes = image_classification.get_classes(inference.run(image),
+            max_num_objects=5, object_prob_threshold=0.1)
         for i, (label, score) in enumerate(classes):
             print('Result %d: %s (prob=%f)' % (i, label, score))
 
