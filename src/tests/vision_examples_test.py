@@ -49,31 +49,38 @@ class VisionExamplesTest(unittest.TestCase):
         process.wait()
         self.fail('Process did not finish in time: %s' % timeout)
 
-    def test_face_detection_camera(self):
-       self.execute('face_detection_camera.py --num_frames 100', timeout=45.0)
+    def test_dish_classification(self):
+        image = test_image_path('hotdog.jpg')
+        self.execute('dish_classification.py --input %s' % image, timeout=60.0)
 
-    def test_face_detection_raspivid(self):
-        self.execute('face_detection_raspivid.py --num_frames 100', timeout=45.0)
-
-    def test_image_classification_camera(self):
-        self.execute('image_classification_camera.py --num_frames 100', timeout=45.0)
+    def test_dish_detection(self):
+        image = test_image_path('hotdog.jpg')
+        self.execute('dish_detection.py --input %s' % image, timeout=60.0)
 
     def test_face_detection(self):
         image = test_image_path('faces.jpg')
         self.execute('face_detection.py --input %s' % image, timeout=45.0)
 
-    def test_object_detection(self):
-        image = test_image_path('cat.jpg')
-        self.execute('object_detection.py --input %s' % image, timeout=45.0)
+    def test_face_detection_camera(self):
+        self.execute('face_detection_camera.py --num_frames 100', timeout=45.0)
+
+    def test_face_detection_raspivid(self):
+        self.execute('face_detection_raspivid.py --num_frames 100', timeout=45.0)
 
     def test_image_classification_mobilenet(self):
         image = test_image_path('dog.jpg')
         self.execute('image_classification.py --input %s' % image, timeout=45.0)
 
-    def test_image_classification_mobilenet_squeezenet(self):
+    def test_image_classification_squeezenet(self):
         image = test_image_path('dog.jpg')
         self.execute('image_classification.py --use_squeezenet --input %s' % image, timeout=45.0)
 
+    def test_image_classification_camera(self):
+        self.execute('image_classification_camera.py --num_frames 100', timeout=45.0)
+
+    def test_object_detection(self):
+        image = test_image_path('cat.jpg')
+        self.execute('object_detection.py --input %s' % image, timeout=45.0)
 
 if __name__ == '__main__':
     unittest.main()

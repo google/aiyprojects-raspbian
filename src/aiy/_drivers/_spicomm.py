@@ -320,4 +320,4 @@ _spicomm_type = os.environ.get('VISION_BONNET_SPICOMM', None)
 _spicomm_types = {'sync': SyncSpicomm,
                   'sync_mmap': SyncSpicommMmap,
                   'async': AsyncSpicomm}
-Spicomm = _spicomm_types.get(_spicomm_type, AsyncSpicomm)
+Spicomm = _spicomm_types.get(_spicomm_type, SyncSpicommMmap)
