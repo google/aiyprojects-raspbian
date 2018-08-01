@@ -3,10 +3,30 @@
 ## Hardware
 
 * SOC: Myriad 2450
-* MCU: ATSAMD09D14
-* LED Driver: KTD2027A
-* Crypto: ATECC608A (optional)
+* MCU: ATSAMD09D14 [I2C address: 0x51]
+* LED Driver: KTD2027A [I2C address: 0x30]
+* Crypto (optional): ATECC608A [I2C address: 0x60]
 * IMU: BMI160
+
+## Drivers
+
+* MCU driver: `modinfo aiy-io-i2c`
+* MCU PWM driver: `modinfo pwm-aiy-io`
+* MCU GPIO driver: `modinfo gpio-aiy-io`
+* MCU ADC driver: `modinfo aiy-adc`
+* LED driver: `modinfo leds-ktd202x`
+* Software PWM driver for buzzer: `modinfo pwm-soft`
+* Myriad driver: `modinfo aiy-vision`
+
+To reset MCU:
+```
+echo 1 | sudo tee /sys/bus/i2c/devices/1-0051/reset
+```
+
+To get MCU status message (including firmware version) and last error code:
+```
+cat /sys/bus/i2c/devices/1-0051/{status_message,error_code}
+```
 
 ## Pinout (40-pin header)
 
@@ -35,10 +55,11 @@
 
 ## Troubleshooting
 
-Sometimes Pi Zero doesn't work stable and fails with different kernel errors:
-[Issue #346](https://github.com/google/aiyprojects-raspbian/issues/346).
-
+Sometimes Pi Zero doesn't work stable and fails with different kernel errors,
+e.g. [Issue #346]. Run
 ```
 echo "over_voltage=4" | sudo tee -a /boot/config.txt
 ```
 and then reboot.
+
+[Issue #346]: https://github.com/google/aiyprojects-raspbian/issues/346

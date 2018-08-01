@@ -9,10 +9,10 @@
 
 **Voice Bonnet**
 
-* Audio Codec: ALC5645
-* MCU: ATSAMD09D14
-* LED Driver: KTD2027B
-* Crypto: ATECC608A (optional)
+* Audio Codec: ALC5645 [I2C address: 0x1A]
+* MCU: ATSAMD09D14 [I2C address: 0x52]
+* LED Driver: KTD2027B [I2C address: 0x31]
+* Crypto (optional): ATECC608A [I2C address: 0x62]
 * Microphone: SPH1642HT5H-1 x 2
 
 ## Drivers
@@ -35,10 +35,13 @@ echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
 
 **Voice Bonnet**
 
-Manual overlay load (EEPROM overlay must be disabled):
-```
-sudo dtoverlay aiy-voicebonnet
-```
+* MCU driver: `modinfo aiy-io-i2c`
+* MCU PWM driver: `modinfo pwm-aiy-io`
+* MCU GPIO driver: `modinfo gpio-aiy-io`
+* MCU ADC driver: `modinfo aiy-adc`
+* LED driver: `modinfo leds-ktd202x`
+* Software PWM driver for buzzer: `modinfo pwm-soft`
+* Sound drivers: `modinfo rl6231 rt5645 snd_aiy_voicebonnet`
 
 ## Pinout (40-pin header)
 
