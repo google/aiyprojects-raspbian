@@ -27,7 +27,7 @@ from aiy.vision.inference import CameraInference
 from aiy.vision.models import image_classification
 from picamera import PiCamera
 
-def format(classes, count):
+def classes_info(classes, count):
     return ', '.join('%s (%.2f)' % pair for pair in classes[0:count])
 
 
@@ -48,7 +48,7 @@ def main():
         with CameraInference(image_classification.model()) as inference:
             for result in inference.run(args.num_frames):
                 classes = image_classification.get_classes(result)
-                print(format(classes, args.num_objects))
+                print(classes_info(classes, args.num_objects))
 
         camera.stop_preview()
 
