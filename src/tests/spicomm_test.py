@@ -89,7 +89,7 @@ class SyncSpicommMmapTest(SpicommTestBase, unittest.TestCase):
             with mmap.mmap(dev1, length=63, offset = 5 * mmap.PAGESIZE) as mm1, \
                  mmap.mmap(dev2, length=63, offset = 5 * mmap.PAGESIZE) as mm2:
                 self.assertEqual(len(mm1), 63)
-                self.assertEqual(len(mm1), 63)
+                self.assertEqual(len(mm2), 63)
 
     def test_mappings(self):
         with SpicommDev() as dev:
