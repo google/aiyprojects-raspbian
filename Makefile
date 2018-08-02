@@ -23,6 +23,10 @@ test-vision-driver:
 	$(PYTHON) -m unittest \
 		src/tests/spicomm_test.py
 
+test-vision-latency:
+	$(PYTHON) -m unittest \
+		src/tests/camera_inference_latency_test.py
+
 test-vision-models: test-vision-images
 	$(PYTHON) -m unittest \
 		src/tests/dish_classification_test.py \
@@ -35,7 +39,11 @@ test-vision-examples: test-vision-images
 	$(PYTHON) -m unittest \
 		src/tests/vision_examples_test.py
 
-test-vision: test-vision-driver test-vision-models test-vision-examples
+test-vision: \
+	test-vision-driver \
+	test-vision-latency \
+	test-vision-models \
+	test-vision-examples
 
 deb:
 	dpkg-buildpackage -b -rfakeroot -us -uc -tc
