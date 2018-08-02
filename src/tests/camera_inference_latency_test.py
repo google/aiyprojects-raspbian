@@ -74,7 +74,7 @@ class LatencyTest(unittest.TestCase):
             image_classification.model(image_classification.MOBILENET),
             image_classification.get_classes)
         self.assertLatency(avg_bonnet, 42.0)
-        self.assertLatency(avg_end_to_end, 70.0, 0.3)
+        self.assertLatency(avg_end_to_end, 80.0, 0.3)
 
     def testImageClassificationSqueezenetLatency(self):
         avg_end_to_end, avg_bonnet = self.benchmarkModel(
