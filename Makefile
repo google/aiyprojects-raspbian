@@ -47,5 +47,8 @@ lint:
 joy-demo-%:
 	sudo systemctl $* joy_detection_demo.service
 
+joy-demo-log:
+	journalctl -u joy_detection_demo.service -b -f
+
 clean:
 	rm -f $(CURDIR)/src/tests/images/*.jpg
