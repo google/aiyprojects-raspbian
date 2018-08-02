@@ -19,7 +19,7 @@ The primary purpose of this script is to make sure a compiled model can run on
 Vision Bonnet. It does not try to interpret the output tensor.
 
 Example:
-~/AIY-projects-python/src/examples/vision/test_run_model_on_bonnet.py \
+~/AIY-projects-python/src/examples/vision/any_model_camera.py \
   --model_path ~/models/mobilenet_ssd_256res_0.125_person_cat_dog.binaryproto \
   --input_height 256 \
   --input_width 256
