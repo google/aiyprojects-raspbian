@@ -13,10 +13,10 @@
 # limitations under the License.
 """Tests to make sure end-to-end camera inference latency is reasonable."""
 
+import time
 import unittest
 
 from picamera import PiCamera
-from time import time
 
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import dish_classification
@@ -27,51 +27,36 @@ from aiy.vision.models import object_detection
 
 class LatencyTest(unittest.TestCase):
 
-    def setUp(self):
-        self.camera = PiCamera(sensor_mode=4, framerate=30)
-        self.camera.start_preview()
-
-        # Number of frames to run inference on.
-        self.num_frames = 30
-
-    def tearDown(self):
-        self.camera.stop_preview()
-        self.camera.close()
-
-    def benchmarkModel(self, model, interpret):
+    def benchmarkModel(self, model, interpret, num_frames=30):
         """Benchmarks model and reports end-to-end + on bonnet latency.
 
         Args:
           model: ModelDescriptor.
           interpret: function object on how to interpret inference result.
+          num_frames: number of frames to run inference on.
 
         Returns:
           (avg_end_to_end, avg_bonnet) latency tuple in ms.
         """
-        sum_bonnet = 0
-        sum_overall = 0
-        with CameraInference(model) as inference:
-            overall_start = time()
-            for i, result in enumerate(inference.run()):
-                if i == self.num_frames:
-                    break
+        with PiCamera(sensor_mode=4, framerate=30), CameraInference(model) as inference:
+            sum_bonnet_ms = 0
+            start = time.monotonic()
+            for result in inference.run(num_frames):
                 interpret(result)
-                sum_bonnet += result.duration_ms
-            overall_end = time()
-        sum_overall = (overall_end - overall_start) * 1000
-        return (sum_overall / self.num_frames, sum_bonnet / self.num_frames)
+                sum_bonnet_ms += result.duration_ms
+            sum_overall_ms = (time.monotonic() - start) * 1000
+            return (sum_overall_ms / num_frames, sum_bonnet_ms / num_frames)
 
     def assertLatency(self, measured, expected, variation=0.2):
         lower = (1 - variation) * expected
         upper = (1 + variation) * expected
         if measured > upper or measured < lower:
             raise AssertionError(
-                'Measured %f latency is outside of [%f, %f] interval' %
-                (measured, lower, upper))
+                'Measured %f latency is outside of [%f, %f] interval' % (measured, lower, upper))
 
     def testFaceDetectionLatency(self):
-        avg_end_to_end, avg_bonnet = self.benchmarkModel(face_detection.model(),
-                                                         face_detection.get_faces)
+        avg_end_to_end, avg_bonnet = self.benchmarkModel(
+            face_detection.model(), face_detection.get_faces)
         # Latency depends on number of faces in the scene, which is
         # unpredictable when the test runs. Setting a larger variation value
         # here to accommodate this.
