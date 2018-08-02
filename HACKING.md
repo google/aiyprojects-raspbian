@@ -2,10 +2,15 @@
 
 ## Overview
 
-We recommend using [the latest image][github-releases] we provide. Those images
-are based on [Raspbian][raspbian], with a few customizations and are tested on
-the different Raspberry Pi models. If you prefer to setup Raspbian yourself,
-there are some manual steps you need to take.
+We periodically update the SD card image that supports both the Vision Kit and
+Voice Kit. Each release is based on [Raspbian][raspbian], with a few
+customizations, and they are tested on various Raspberry Pi models.
+
+To update your system image, download the latest `.img.xz` file
+[from our releases page][github-releases]. Once downloaded,
+[write the image to your SD card][image-flash], and you're good to go!
+
+If you prefer to setup Raspbian yourself, follow the steps below.
 
 ## AIY Package Repo
 
@@ -62,6 +67,9 @@ Package `aiy-voicebonnet-routes` contains ALSA UCM files for Voice Bonnet.
 
 Package `aiy-models` contains [models][aiy-models] for Vision Bonnet.
 
+Package `aiy-python-wheels` contains optimized `protobuf` and `grpcio` python
+wheels along with `google_assistant_library` optimized for Pi Zero.
+
 ### Vision Bonnet Minimal Setup
 
 ```
@@ -72,9 +80,12 @@ sudo reboot
 Run `dmesg` and check it contains `Myriad ready` message.
 
 In additional you can install package with [models][aiy-models]:
-
 ```
 sudo apt-get install aiy-models
+```
+and `aiy-python-wheels` for better performance:
+```
+sudo apt-get install aiy-python-wheels
 ```
 
 ### Voice Bonnet Minimal Setup
@@ -88,6 +99,11 @@ echo "default-sample-rate = 48000" > ~/.config/pulse/daemon.conf
 ```
 sudo apt-get install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
 sudo reboot
+```
+
+In addition you can install package `aiy-python-wheels` for better performance:
+```
+sudo apt-get install aiy-python-wheels
 ```
 
 You should be able to record
@@ -137,9 +153,10 @@ sudo pip3 install -e AIY-projects-python/src
 
 To access the cloud services you need to register a project and generate
 credentials for cloud APIs. This is documented in the
-[setup instructions](https://aiyprojects.withgoogle.com/voice#google-assistant--get-credentials) on the
-webpage.
+[setup instructions][aiy-voice-setup] on the webpage.
 
 [raspbian]: https://www.raspberrypi.org/downloads/raspbian/
+[image-flash]: https://www.raspberrypi.org/documentation/installation/installing-images/
 [aiy-models]: https://aiyprojects.withgoogle.com/models/
 [github-releases]: https://github.com/google/aiyprojects-raspbian/releases
+[aiy-voice-setup]: https://aiyprojects.withgoogle.com/voice#google-assistant--get-credentials
