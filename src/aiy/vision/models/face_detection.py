@@ -13,9 +13,11 @@
 # limitations under the License.
 """API for Face Detection."""
 
+from collections import namedtuple
+
 from aiy.vision.inference import ModelDescriptor
 from aiy.vision.models import utils
-from collections import namedtuple
+
 
 _COMPUTE_GRAPH_NAME = 'face_detection.binaryproto'
 

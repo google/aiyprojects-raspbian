@@ -21,14 +21,14 @@ deleted. See image_classification.py and object_recognition.py as examples on
 how to use this API.
 """
 
-import aiy.vision.proto.protocol_pb2 as pb2
 import contextlib
 import itertools
 import logging
 import time
-
-from aiy._drivers._transport import make_transport
 from collections import namedtuple
+
+import aiy.vision.proto.protocol_pb2 as pb2
+from aiy._drivers._transport import make_transport
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +84,7 @@ def _close_stack_silently(stack):
     except Exception:
         pass
 
-class CameraInference(object):
+class CameraInference:
     """Helper class to run camera inference."""
 
     def __init__(self, descriptor, params=None):

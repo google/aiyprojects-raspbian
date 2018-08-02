@@ -1,7 +1,7 @@
+import contextlib
 import mmap
 import os
 import unittest
-import contextlib
 
 import aiy.vision.proto.protocol_pb2 as pb2
 
@@ -37,7 +37,7 @@ def get_invalid(spicomm, size, timeout=None):
     response.ParseFromString(spicomm.transact(b'A' * size, timeout))
     return response
 
-class SpicommTestBase(object):
+class SpicommTestMixin:
 
     def test_empty_request(self):
         with self.Spicomm() as spicomm:
@@ -75,13 +75,13 @@ class SpicommTestBase(object):
             response = get_invalid(spicomm, 10 * 1024 * 1024)
             self.assertEqual(pb2.Response.Status.ERROR, response.status.code)
 
-class AsyncSpicommTest(SpicommTestBase, unittest.TestCase):
+class AsyncSpicommTest(SpicommTestMixin, unittest.TestCase):
     Spicomm = AsyncSpicomm
 
-class SyncSpicommTest(SpicommTestBase, unittest.TestCase):
+class SyncSpicommTest(SpicommTestMixin, unittest.TestCase):
     Spicomm = SyncSpicomm
 
-class SyncSpicommMmapTest(SpicommTestBase, unittest.TestCase):
+class SyncSpicommMmapTest(SpicommTestMixin, unittest.TestCase):
     Spicomm = SyncSpicommMmap
 
     def test_multiple_dev(self):

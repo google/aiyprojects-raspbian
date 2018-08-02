@@ -42,7 +42,7 @@ def _device_file(prop):
     return '/sys/class/leds/ktd202x:led1/device/%s' % prop
 
 
-class Pattern(object):
+class Pattern:
     """Class to define blinking pattern."""
 
     def __init__(self, period_ms, on_percent=0.5, rise_ms=0, fall_ms=0):
@@ -66,9 +66,9 @@ class Pattern(object):
         return Pattern(period_ms, 0.3, period_ms * 0.3, period_ms * 0.3)
 
 
-class Leds(object):
+class Leds:
     """Class to control KTD LED driver chip."""
-    class Channel(object):
+    class Channel:
         """Configuration of each channel on KTD LED driver."""
         OFF = 0
         ON = 1
@@ -156,7 +156,7 @@ class Leds(object):
             _write(_device_file('registers'), command)
 
 
-class PrivacyLed(object):
+class PrivacyLed:
     """Helper class to turn Privacy LED off automatically."""
 
     def __init__(self, leds, brightness=32):
@@ -170,7 +170,7 @@ class PrivacyLed(object):
         self._leds.update(Leds.privacy_off())
 
 
-class RgbLeds(object):
+class RgbLeds:
     """Helper class to turn RGB LEDs off automatically."""
 
     def __init__(self, leds, channels):

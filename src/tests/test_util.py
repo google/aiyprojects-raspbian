@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+from contextlib import contextmanager
 
 from PIL import Image
-from contextlib import contextmanager
+
 
 def test_image_path(name):
     p = os.path.join(os.path.dirname(__file__), 'images', name)

@@ -47,6 +47,7 @@ class SpicommOverflowError(SpicommError):
     """
 
     def __init__(self, size):
+        super().__init__()
         self.size = size
 
 
@@ -54,6 +55,7 @@ class SpicommTimeoutError(SpicommError):
     """Transaction timed out."""
 
     def __init__(self, timeout):
+        super().__init__()
         self.timeout = timeout
 
 
@@ -132,7 +134,7 @@ def _async_loop(dev, pipe, default_payload_size):
         except Exception as e:
             pipe.send(e)
 
-class AsyncSpicomm(object):
+class AsyncSpicomm:
     """Class for communication with VisionBonnet via kernel driver.
 
     Driver ioctl() calls are made inside separate process to allow other threads
@@ -199,7 +201,7 @@ class AsyncSpicomm(object):
             return response
 
 
-class SyncSpicomm(object):
+class SyncSpicomm:
     """Class for communication with VisionBonnet via kernel driver.
 
     Driver ioctl() calls are made in the same process. All threads in the current
@@ -276,7 +278,7 @@ def _transact_mmap(dev, mm, offset, request, timeout):
     return bytearray(mm[0:payload_size])
 
 
-class SyncSpicommMmap(object):
+class SyncSpicommMmap:
     """Class for communication with VisionBonnet via kernel driver.
 
     Driver ioctl() calls are made in the same process. All threads in the current

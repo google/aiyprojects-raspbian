@@ -34,7 +34,6 @@ from aiy.vision.inference import CameraInference
 from aiy.vision.models import face_detection
 from aiy.vision.streaming.server import StreamingServer, InferenceData
 
-from contextlib import contextmanager
 from gpiozero import Button
 from picamera import PiCamera
 
@@ -63,7 +62,7 @@ FONT_FILE = '/usr/share/fonts/truetype/freefont/FreeSans.ttf'
 BUZZER_GPIO = 22
 BUTTON_GPIO = 23
 
-@contextmanager
+@contextlib.contextmanager
 def stopwatch(message):
     try:
         logger.info('%s...', message)
@@ -107,7 +106,7 @@ def server_inference_data(width, height, faces, joy_score):
     return data
 
 
-class AtomicValue(object):
+class AtomicValue:
 
     def __init__(self, value):
         self._lock = threading.Lock()
@@ -124,7 +123,7 @@ class AtomicValue(object):
             self._value = value
 
 
-class MovingAverage(object):
+class MovingAverage:
 
     def __init__(self, size):
         self._window = collections.deque(maxlen=size)
@@ -134,7 +133,7 @@ class MovingAverage(object):
         return sum(self._window) / len(self._window)
 
 
-class Service(object):
+class Service:
 
     def __init__(self):
         self._requests = queue.Queue()
@@ -256,7 +255,7 @@ class Animator(Service):
         self.submit(joy_score)
 
 
-class JoyDetector(object):
+class JoyDetector:
 
     def __init__(self):
         self._done = threading.Event()
@@ -353,7 +352,7 @@ def main():
                      args.image_folder, args.enable_streaming)
     except KeyboardInterrupt:
         pass
-    except:
+    except Exception:
         if args.blink_on_error:
             leds = Leds()
             leds.pattern = Pattern.blink(500)
