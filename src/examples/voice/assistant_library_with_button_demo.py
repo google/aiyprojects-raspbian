@@ -66,6 +66,7 @@ class MyAssistant(object):
                 self._process_event(event)
 
     def _process_event(self, event):
+        print(event)
         status_ui = aiy.voicehat.get_status_ui()
         if event.type == EventType.ON_START_FINISHED:
             status_ui.status('ready')

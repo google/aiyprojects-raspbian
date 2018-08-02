@@ -54,6 +54,7 @@ def say_ip():
 
 
 def process_event(assistant, event):
+    print(event)
     status_ui = aiy.voicehat.get_status_ui()
     if event.type == EventType.ON_START_FINISHED:
         status_ui.status('ready')
