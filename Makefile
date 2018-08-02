@@ -41,7 +41,7 @@ deb:
 	dpkg-buildpackage -b -rfakeroot -us -uc -tc
 
 lint:
-	find src -iname "*.py" | grep -v protocol_pb2 | xargs pylint --rcfile .pylintrc
+	find src -iname "*.py" | grep -v pb2 | xargs $(PYTHON) -m pylint --rcfile .pylintrc
 
 # enable, disable, start, stop, restart, status
 joy-demo-%:
