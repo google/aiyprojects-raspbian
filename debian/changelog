@@ -1,3 +1,19 @@
+aiy-projects-python (1.1-0) stable; urgency=medium
+
+  * Fix gpiozero LED on/off bug
+  * Fix check_audio.py
+  * Add Makefile for common shortcuts
+  * Add vision unit tests for all models and examples
+  * Add video streaming support (experimental)
+  * Add Google Cloud IoT support (experimental)
+  * Add more documentation (pinouts, drivers, troubleshooting, etc.)
+  * Add new code examples and update existing ones
+  * Add CHANGES.md to track release changes
+  * Remove unnecessary files (e.g. ALSA configs)
+  * Update HACKING.md
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Fri, 03 Aug 2018 14:01:27 -0700
+
 aiy-projects-python (1.0-0) stable; urgency=medium
 
   [ Dmitry Kovalev ]

@@ -20,7 +20,7 @@ Compatible with Voice HAT, Voice Bonnet, and Vision Bonnet.
 * Add vision unit tests for all models and examples
 * Add video streaming support (experimental)
 * Add Google Cloud IoT support (experimental)
-* Add more documentation (pinouts, drivers, trobuleshooting, etc.)
+* Add more documentation (pinouts, drivers, troubleshooting, etc.)
 * Add new code examples and update existing ones
 * Add CHANGES.md to track release changes
 * Remove unnecessary files (e.g. ALSA configs)
