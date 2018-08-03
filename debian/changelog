@@ -50,10 +50,10 @@ aiy-projects-python (1.0-0) stable; urgency=medium
   [ Weiran Zhao ]
   * Add option to enable camera preview and show FPS.
 
- -- Alex Van Damme <atv@balefire.mtv.corp.google.com>  Fri, 13 Apr 2018 10:58:29 -0700
+ -- Alex Van Damme <atv@google.com>  Fri, 13 Apr 2018 10:58:29 -0700
 
 aiy-projects-python (0.1-0) stable; urgency=medium
 
-  * Initial release. 
+  * Initial release.
 
  -- Alex Van Damme <atv@google.com>  Fri, 01 Dec 2017 14:48:39 -0800
