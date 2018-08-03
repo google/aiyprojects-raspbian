@@ -60,7 +60,7 @@ class PowerSwitch(object):
 
             code = self.config[device].getint('code')
 
-            if action == 'off' and self.config[device].get('toggle', fallback=False) is not True:
+            if action == 'off' and self.config[device].getboolean('toggle', fallback=False) is not True:
                code = code - 8;
 
             logging.info('Code to send: ' + str(code))
