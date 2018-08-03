@@ -63,8 +63,8 @@ echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
      ID_SDA --> 27  28 <-- ID_SCL
                 29  30 <-- GND
                 31  32
-  I2S_LRCLK --> 33  34 <-- GND
-                35  36 <-- AMP_ENABLE
+                33  34 <-- GND
+  I2S_LRCLK --> 35  36 <-- AMP_ENABLE
                 37  38 <-- I2S_DIN
         GND --> 39  40 <-- I2S_DOUT
 ```
@@ -87,8 +87,8 @@ echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
      ID_SDA --> 27  28 <-- ID_SCL
                 29  30 <-- GND
                 31  32
-  I2S_LRCLK --> 33  34 <-- GND
-                35  36
+                33  34 <-- GND
+  I2S_LRCLK --> 35  36
                 37  38 <-- I2S_DIN
         GND --> 39  40 <-- I2S_DOUT
 ```
