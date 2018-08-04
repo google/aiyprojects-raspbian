@@ -39,11 +39,11 @@ def _detect_gpio_offset(module_path):
 _FsNodeSpec = namedtuple('_FsNodeSpec', ['pin', 'name'])
 
 VISIONBONNET_PRODUCT = r"AIY VisionBonnet"
-VOICEBONNET_PROUDCT = r"AIY VoiceBonnet"
+VOICEBONNET_PRODUCT = r"AIY VoiceBonnet"
 
 MCU_I2C_ADDRESS_DICT = {
     VISIONBONNET_PRODUCT: 0x51,
-    VOICEBONNET_PROUDCT: 0x52
+    VOICEBONNET_PRODUCT: 0x52
 }
 
 HAT_PRODUCT_NAME_PATH = "/sys/firmware/devicetree/base/hat/product"
