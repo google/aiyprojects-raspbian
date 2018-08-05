@@ -104,6 +104,13 @@ def process_event(assistant, event):
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         status_ui.status('listening')
 
+    elif event.type == EventType.ON_ALERT_STARTED and event.args:
+        logging.warning('An alert just started, type = ' + str(event.args['alert_type']))
+        assistant.stop_conversation()
+
+    elif event.type == EventType.ON_ALERT_FINISHED and event.args:
+        logging.warning('An alert just finished, type = ' + str(event.args['alert_type']))
+
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
 
         _cancelAction = False
@@ -254,7 +261,7 @@ def main():
                         help='Maximum LED brightness')
     parser.add_argument('--brightness-min', default=1,
                         help='Minimum LED brightness')
-    parser.add_argument('-d', '--daemon', action='store_false',
+    parser.add_argument('-d', '--daemon', action='store_true',
                         help='Daemon Mode')
 
     args = parser.parse_args()
@@ -267,7 +274,7 @@ def main():
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
     model_id, device_id = aiy.assistant.device_helpers.get_ids_for_service(credentials)
 
-    if args.daemon is True:
+    if args.daemon is True or sys.stdout.isatty() is not True:
         _podCatcher.start()
     else:
         logging.info("Starting in non-daemon mode")
