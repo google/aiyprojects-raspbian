@@ -35,7 +35,7 @@ class LED:
     BLINK = 2
     BLINK_3 = 3
     BEACON = 4
-    BEACON_DARK = 5
+    BEACON_DARK = 0
     DECAY = 6
     PULSE_SLOW = 7
     PULSE_QUICK = 8
@@ -47,6 +47,7 @@ class LED:
         self.running = False
         self.state = None
         self.sleep = 0
+        self.brightness = 1
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(channel, GPIO.OUT)
         self.pwm = GPIO.PWM(channel, 100)
@@ -78,6 +79,12 @@ class LED:
 
         self.pwm.stop()
 
+    def set_brightness(self, brightness):
+        try:
+            self.brightness = int(brightness)
+        except ValueError:
+            raise ValueError('unsupported brightness: %s' % brightness)
+
     def set_state(self, state):
         """Set the LED driver's new state.
 
@@ -100,7 +107,7 @@ class LED:
                 if not self._parse_state(state):
                     raise ValueError('unsupported state: %d' % state)
             if self.iterator:
-                self.pwm.ChangeDutyCycle(next(self.iterator))
+                self.pwm.ChangeDutyCycle(next(self.iterator) * self.brightness)
                 time.sleep(self.sleep)
             else:
                 # We can also wait for a state change here with a Condition.
@@ -112,10 +119,10 @@ class LED:
         handled = False
 
         if state == self.OFF:
-            self.pwm.ChangeDutyCycle(0)
+            self.pwm.ChangeDutyCycle(0 * self.brightness)
             handled = True
         elif state == self.ON:
-            self.pwm.ChangeDutyCycle(100)
+            self.pwm.ChangeDutyCycle(100 * self.brightness)
             handled = True
         elif state == self.BLINK:
             self.iterator = itertools.cycle([0, 100])

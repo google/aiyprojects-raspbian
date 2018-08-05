@@ -1,4 +1,4 @@
-# This service can be used to run your code automatically on startup. Look in
+s service can be used to run your code automatically on startup. Look in
 # HACKING.md for instructions on creating main.py and enabling it.
 
 [Unit]
