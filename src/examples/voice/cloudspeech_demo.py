@@ -17,7 +17,22 @@
 
 import aiy.audio
 import aiy.cloudspeech
-import aiy.voicehat
+
+from aiy.leds import Leds
+from aiy.leds import Pattern
+from aiy.leds import RgbLeds
+
+leds = Leds()
+
+"Choose Led colors here."
+
+RED = (0xFF, 0x00, 0x00)
+GREEN = (0x00, 0xFF, 0x00)
+YELLOW = (0xFF, 0xFF, 0x00)
+BLUE = (0x00, 0x00, 0xFF)
+PURPLE = (0xFF, 0x00, 0xFF)
+CYAN = (0x00, 0xFF, 0xFF)
+WHITE = (0xFF, 0xFF, 0xFF)
 
 
 def main():
@@ -27,7 +42,6 @@ def main():
     recognizer.expect_phrase('blink')
 
     button = aiy.voicehat.get_button()
-    led = aiy.voicehat.get_led()
     aiy.audio.get_recorder().start()
 
     while True:
@@ -40,11 +54,12 @@ def main():
         else:
             print('You said "', text, '"')
             if 'turn on the light' in text:
-                led.set_state(aiy.voicehat.LED.ON)
+                leds.update(Leds.rgb_on(WHITE))
             elif 'turn off the light' in text:
-                led.set_state(aiy.voicehat.LED.OFF)
+                leds.update(Leds.rgb_off())
             elif 'blink' in text:
-                led.set_state(aiy.voicehat.LED.BLINK)
+                leds.pattern = Pattern.blink(500)
+                leds.update(Leds.rgb_pattern(WHITE))
             elif 'goodbye' in text:
                 break
 
