@@ -228,11 +228,15 @@ def process_event(assistant, event):
             assistant.stop_conversation()
             _volumeCommand(30)
 
-        elif text == 'brightness low':
+        elif text in ['brightness low', 'set brightness low']:
             assistant.stop_conversation()
-            aiy.voicehat.get_led().set_brightness(10)
+            aiy.voicehat.get_led().set_brightness(40)
 
-        elif text == 'brightness high':
+        elif text in ['brightness medium', 'set brightness medium']:
+            assistant.stop_conversation()
+            aiy.voicehat.get_led().set_brightness(70)
+
+        elif text in ['brightness high', 'set brightness high', 'brightness full', 'set brightness full']:
             assistant.stop_conversation()
             aiy.voicehat.get_led().set_brightness(100)
 
@@ -257,9 +261,9 @@ def main():
                         help='File containing our process id for monitoring')
     parser.add_argument('--trigger-sound', default=None,
                         help='Sound when trigger is activated (WAV format)')
-    parser.add_argument('--brightness-max', default=1,
+    parser.add_argument('--brightness-max', type=int, default=1,
                         help='Maximum LED brightness')
-    parser.add_argument('--brightness-min', default=1,
+    parser.add_argument('--brightness-min', type=int, default=1,
                         help='Minimum LED brightness')
     parser.add_argument('-d', '--daemon', action='store_true',
                         help='Daemon Mode')
@@ -269,6 +273,7 @@ def main():
     aiy.i18n.set_language_code(args.language)
     _createPID(args.pid_file)
 
+    logging.info('Setting brightness to %d %%' % args.brightness_max)
     aiy.voicehat.get_led().set_brightness(args.brightness_max)
 
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()

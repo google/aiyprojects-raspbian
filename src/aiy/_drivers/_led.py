@@ -17,6 +17,7 @@
 import itertools
 import threading
 import time
+import math
 import RPi.GPIO as GPIO
 
 
@@ -81,7 +82,7 @@ class LED:
 
     def set_brightness(self, brightness):
         try:
-            self.brightness = int(brightness)
+            self.brightness = int(brightness)/100
         except ValueError:
             raise ValueError('unsupported brightness: %s' % brightness)
 
@@ -107,7 +108,7 @@ class LED:
                 if not self._parse_state(state):
                     raise ValueError('unsupported state: %d' % state)
             if self.iterator:
-                self.pwm.ChangeDutyCycle(next(self.iterator) * self.brightness)
+                self.pwm.ChangeDutyCycle(next(self.iterator))
                 time.sleep(self.sleep)
             else:
                 # We can also wait for a state change here with a Condition.
@@ -119,41 +120,41 @@ class LED:
         handled = False
 
         if state == self.OFF:
-            self.pwm.ChangeDutyCycle(0 * self.brightness)
+            self.pwm.ChangeDutyCycle(0)
             handled = True
         elif state == self.ON:
-            self.pwm.ChangeDutyCycle(100 * self.brightness)
+            self.pwm.ChangeDutyCycle(100)
             handled = True
         elif state == self.BLINK:
-            self.iterator = itertools.cycle([0, 100])
+            self.iterator = itertools.cycle([0, int(100 * self.brightness)])
             self.sleep = 0.5
             handled = True
         elif state == self.BLINK_3:
-            self.iterator = itertools.cycle([0, 100] * 3 + [0, 0])
+            self.iterator = itertools.cycle([0, int(100 * self.brightness)] * 3 + [0, 0])
             self.sleep = 0.25
             handled = True
         elif state == self.BEACON:
             self.iterator = itertools.cycle(
-                itertools.chain([30] * 100, [100] * 8, range(100, 30, -5)))
+                itertools.chain([int(30 * self.brightness)] * 100, [int(100 * self.brightness)] * 8, range(int(100 * self.brightness), int(30 * self.brightness), 0 - math.ceil(4 * self.brightness))))
             self.sleep = 0.05
             handled = True
         elif state == self.BEACON_DARK:
             self.iterator = itertools.cycle(
-                itertools.chain([0] * 100, range(0, 30, 3), range(30, 0, -3)))
+                itertools.chain([0] * 100, range(0, int(30 * self.brightness), math.ceil(2 * self.brightness), range(int(30 * self.brightness), 0, 0 - math.ceil(2 * self.brightness)))))
             self.sleep = 0.05
             handled = True
         elif state == self.DECAY:
-            self.iterator = itertools.cycle(range(100, 0, -2))
+            self.iterator = self.iterator = itertools.cycle(range(int(100 * self.brightness), 0, int(math.ceil(-2 * self.brightness))))
             self.sleep = 0.05
             handled = True
         elif state == self.PULSE_SLOW:
             self.iterator = itertools.cycle(
-                itertools.chain(range(0, 100, 2), range(100, 0, -2)))
+                itertools.chain(range(0, int(100 * self.brightness), math.ceil(2 * self.brightness)), range(int(100 * self.brightness), 0, 0 - math.ceil(2 * self.brightness))))
             self.sleep = 0.1
             handled = True
         elif state == self.PULSE_QUICK:
             self.iterator = itertools.cycle(
-                itertools.chain(range(0, 100, 5), range(100, 0, -5)))
+                itertools.chain(range(0, int(100 * self.brightness), math.ceil(4 * self.brightness)), range(int(100 * self.brightness), 0, 0 - math.ceil(4 * self.brightness))))
             self.sleep = 0.05
             handled = True
 
