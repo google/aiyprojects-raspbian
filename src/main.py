@@ -148,6 +148,12 @@ def process_event(assistant, event):
             if _music.getConfirmPlayback() == True:
                 assistant.start_conversation()
 
+        elif text.startswith('play ') and text.endswith(' podcasts'):
+            assistant.stop_conversation()
+            _music.command('podcast', text[5:][:-9], _podCatcher)
+            if _music.getConfirmPlayback() == True:
+                assistant.start_conversation()
+
         elif text.startswith('radio '):
             assistant.stop_conversation()
             _music.command('radio', text[6:])

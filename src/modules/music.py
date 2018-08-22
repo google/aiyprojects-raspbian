@@ -109,7 +109,7 @@ class PodCatcher(threading.Thread):
         logging.info('Searching for information about "' + str(podcastID) + '" podcast')
 
         cursor = self._connectDB().cursor()
-        if podcastID == 'today':
+        if podcastID in ['today', 'today\'s']:
             logging.info("SELECT podcast, url, title, ep_title, (strftime('%s','now') - strftime('%s', datetime(timestamp, 'unixepoch', 'localtime')))/3600 as age FROM podcasts WHERE age < 25 ORDER BY timestamp DESC")
             cursor.execute("SELECT podcast, url, title, ep_title, (strftime('%s','now') - strftime('%s', datetime(timestamp, 'unixepoch', 'localtime')))/3600 as age FROM podcasts WHERE age < 25 ORDER BY timestamp DESC")
         elif podcastID == 'yesterday':
@@ -235,7 +235,7 @@ class Music(object):
                     aiy.audio.say('' + key)
                 return
 
-            elif podcastID in ['recent','today','yesterday']:
+            elif podcastID in ['recent','today','today\'s','yesterday']:
                 aiy.audio.say('Available podcasts are')
                 button = aiy.voicehat.get_button()
                 button.on_press(self._buttonPressCancel)
