@@ -16,6 +16,7 @@ setup(
     install_requires=[
         'google-assistant-grpc==0.1.0',
         'google-assistant-library==0.1.0',
+        'google-auth-oauthlib==0.2.0',
         'google-cloud-speech==0.30.0',
         'gpiozero',
         'paho-mqtt',
