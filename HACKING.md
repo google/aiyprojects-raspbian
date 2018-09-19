@@ -106,6 +106,18 @@ In addition you can install package `aiy-python-wheels` for better performance:
 sudo apt-get install aiy-python-wheels
 ```
 
+Load overlay of the Voice HAT on each boot:
+```
+echo "dtoverlay=dtoverlay=i2s-mmap
+dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
+```
+
+Disable the built-in soundcard:
+```
+echo "blacklist snd_bcm2835" | sudo tee -a /etc/modprobe.d/alsa-blacklist.conf
+sudo reboot
+```
+
 You should be able to record
 ```
 arecord -f cd test.wav
