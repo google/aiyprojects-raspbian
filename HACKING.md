@@ -108,7 +108,7 @@ sudo apt-get install aiy-python-wheels
 
 Load overlay of the Voice HAT on each boot:
 ```
-echo "dtoverlay=dtoverlay=i2s-mmap
+echo "dtoverlay=i2s-mmap
 dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
 ```
 
