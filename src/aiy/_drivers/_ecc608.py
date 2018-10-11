@@ -22,16 +22,8 @@ import jwt
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
-from aiy._drivers._hat import get_aiy_device_name
 
 logger = logging.getLogger(__name__)
-
-# Not all AIY kits have a crypto chip, and those that do might not be programmed
-# to the correct i2c address. The correct address to board relation
-CRYPTO_ADDRESS_DICT = {
-    'Vision Bonnet': 0x60,
-    'Voice Bonnet': 0x62,
-}
 
 
 class AtcaIfaceCfgLong(ctypes.Structure):
@@ -56,42 +48,15 @@ def _ecc608_check_address(address):
     return False
 
 
-def ecc608_init_and_update_address():
-    """Detects the I2C address of the crypto chip and verifies it matches
-       the expected for the device. If not, updates I2C configuration.
-        Args:
-        Returns:
-        Raises:
-    """
+def ecc608_find_chip():
+    """Returns the I2C address of the crypto chip or None if chip is not installed."""
 
-    board_name = get_aiy_device_name()
-    # If the board name isn't valid, use the default address (Vision).
-    if board_name not in CRYPTO_ADDRESS_DICT:
-        board_name = 'Vision Bonnet'
-
-    for name, addr in CRYPTO_ADDRESS_DICT.items():
+    for addr in (0x60, 0x62):
         if _ecc608_check_address(addr):
-            # Found a valid crypto chip, validate it is the correct address.
-            if name in board_name:
-                logger.info('Crypto found at correct address: 0x%x', addr)
-                return addr
-            else:
-                # The chip was found, but it was mismatched for the board.
-                logger.info('Crypto found, but at the wrong address: 0x%x', addr)
-                if board_name in CRYPTO_ADDRESS_DICT:
-                    logger.warn('Updating crypto i2c address.')
-                    # TODO(michaelbrooks): Update I2C Address.
-                    # set_i2c_address(CRYPTO_ADDRESS_DICT.get(board_name))
-                    return addr
-                else:
-                    logger.warn('This board doesn\'t support crypto.')
-                    return None
-
-    # If execution reaches here, there is no crypto chip. SW authentication
-    # will need to be used.
+            logger.info('Found crypto chip at 0x%x.', addr)
+            return addr
     logger.warn('No crypto detected, using SW.')
     return None
-
 
 def ecc608_hw_sign(msg):
     digest = ctypes.create_string_buffer(32)
@@ -170,7 +135,7 @@ try:
     _name = os.path.join(os.path.dirname(__file__), 'libcryptoauth.so')
     _cryptolib = ctypes.cdll.LoadLibrary(_name)
 
-    ecc608_i2c_address = ecc608_init_and_update_address()
+    ecc608_i2c_address = ecc608_find_chip()
     if ecc608_i2c_address is not None:
         ecc608_jwt_with_hw_alg = jwt.PyJWT(algorithms=[])
         ecc608_jwt_with_hw_alg.register_algorithm('ES256', HwEcAlgorithm())
