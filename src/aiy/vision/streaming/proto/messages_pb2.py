@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x0emessages.proto\"?\n\x08\x41iyBound\x12(\n\x0estream_control\x18\x01 \x01(\x0b\x32\x0e.StreamControlH\x00\x42\t\n\x07message\"<\n\x0b\x43lientBound\x12\"\n\x0bstream_data\x18\x01 \x01(\x0b\x32\x0b.StreamDataH\x00\x42\t\n\x07message\" \n\rStreamControl\x12\x0f\n\x07\x65nabled\x18\x01 \x01(\x08\"\x82\x01\n\nStreamData\x12 \n\ncodec_data\x18\x01 \x01(\x0b\x32\n.CodecDataH\x00\x12 \n\nframe_data\x18\x02 \x01(\x0b\x32\n.FrameDataH\x00\x12(\n\x0einference_data\x18\x03 \x01(\x0b\x32\x0e.InferenceDataH\x00\x42\x06\n\x04type\"8\n\tCodecData\x12\r\n\x05width\x18\x01 \x01(\r\x12\x0e\n\x06height\x18\x02 \x01(\r\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\"\x85\x01\n\tFrameData\x12\x0b\n\x03seq\x18\x01 \x01(\x04\x12\x0b\n\x03pts\x18\x02 \x01(\x04\x12\"\n\x04type\x18\x03 \x01(\x0e\x32\x14.FrameData.FrameType\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\",\n\tFrameType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x07\n\x03KEY\x10\x01\x12\t\n\x05\x44\x45LTA\x10\x02\"4\n\rInferenceData\x12#\n\x08\x65lements\x18\x01 \x03(\x0b\x32\x11.InferenceElement\"W\n\x10InferenceElement\x12\x17\n\x05label\x18\x01 \x01(\x0b\x32\x06.LabelH\x00\x12\x1f\n\trectangle\x18\x02 \x01(\x0b\x32\n.RectangleH\x00\x42\t\n\x07\x65lement\"H\n\x05Label\x12\x0c\n\x04text\x18\x01 \x01(\t\x12\t\n\x01x\x18\x02 \x01(\x02\x12\t\n\x01y\x18\x03 \x01(\x02\x12\r\n\x05\x63olor\x18\x04 \x01(\r\x12\x0c\n\x04size\x18\x05 \x01(\r\"V\n\tRectangle\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\x12\t\n\x01w\x18\x03 \x01(\x02\x12\t\n\x01h\x18\x04 \x01(\x02\x12\r\n\x05\x63olor\x18\x05 \x01(\r\x12\x0e\n\x06weight\x18\x06 \x01(\rb\x06proto3')
+  serialized_pb=_b('\n\x0emessages.proto\"?\n\x08\x41iyBound\x12(\n\x0estream_control\x18\x01 \x01(\x0b\x32\x0e.StreamControlH\x00\x42\t\n\x07message\"<\n\x0b\x43lientBound\x12\"\n\x0bstream_data\x18\x01 \x01(\x0b\x32\x0b.StreamDataH\x00\x42\t\n\x07message\" \n\rStreamControl\x12\x0f\n\x07\x65nabled\x18\x01 \x01(\x08\"\x82\x01\n\nStreamData\x12 \n\ncodec_data\x18\x01 \x01(\x0b\x32\n.CodecDataH\x00\x12 \n\nframe_data\x18\x02 \x01(\x0b\x32\n.FrameDataH\x00\x12(\n\x0einference_data\x18\x03 \x01(\x0b\x32\x0e.InferenceDataH\x00\x42\x06\n\x04type\"8\n\tCodecData\x12\r\n\x05width\x18\x01 \x01(\r\x12\x0e\n\x06height\x18\x02 \x01(\r\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\"\x85\x01\n\tFrameData\x12\x0b\n\x03seq\x18\x01 \x01(\x04\x12\x0b\n\x03pts\x18\x02 \x01(\x04\x12\"\n\x04type\x18\x03 \x01(\x0e\x32\x14.FrameData.FrameType\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\",\n\tFrameType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x07\n\x03KEY\x10\x01\x12\t\n\x05\x44\x45LTA\x10\x02\"\x1c\n\rInferenceData\x12\x0b\n\x03svg\x18\x01 \x01(\tb\x06proto3')
 )
 
 
@@ -304,9 +304,9 @@ _INFERENCEDATA = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='elements', full_name='InferenceData.elements', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
+      name='svg', full_name='InferenceData.svg', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -323,173 +323,7 @@ _INFERENCEDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=506,
-  serialized_end=558,
-)
-
-
-_INFERENCEELEMENT = _descriptor.Descriptor(
-  name='InferenceElement',
-  full_name='InferenceElement',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='label', full_name='InferenceElement.label', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='rectangle', full_name='InferenceElement.rectangle', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-    _descriptor.OneofDescriptor(
-      name='element', full_name='InferenceElement.element',
-      index=0, containing_type=None, fields=[]),
-  ],
-  serialized_start=560,
-  serialized_end=647,
-)
-
-
-_LABEL = _descriptor.Descriptor(
-  name='Label',
-  full_name='Label',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='text', full_name='Label.text', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='x', full_name='Label.x', index=1,
-      number=2, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='y', full_name='Label.y', index=2,
-      number=3, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='color', full_name='Label.color', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='size', full_name='Label.size', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=649,
-  serialized_end=721,
-)
-
-
-_RECTANGLE = _descriptor.Descriptor(
-  name='Rectangle',
-  full_name='Rectangle',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='x', full_name='Rectangle.x', index=0,
-      number=1, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='y', full_name='Rectangle.y', index=1,
-      number=2, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='w', full_name='Rectangle.w', index=2,
-      number=3, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='h', full_name='Rectangle.h', index=3,
-      number=4, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='color', full_name='Rectangle.color', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='weight', full_name='Rectangle.weight', index=5,
-      number=6, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=723,
-  serialized_end=809,
+  serialized_end=534,
 )
 
 _AIYBOUND.fields_by_name['stream_control'].message_type = _STREAMCONTROL
@@ -514,15 +348,6 @@ _STREAMDATA.oneofs_by_name['type'].fields.append(
 _STREAMDATA.fields_by_name['inference_data'].containing_oneof = _STREAMDATA.oneofs_by_name['type']
 _FRAMEDATA.fields_by_name['type'].enum_type = _FRAMEDATA_FRAMETYPE
 _FRAMEDATA_FRAMETYPE.containing_type = _FRAMEDATA
-_INFERENCEDATA.fields_by_name['elements'].message_type = _INFERENCEELEMENT
-_INFERENCEELEMENT.fields_by_name['label'].message_type = _LABEL
-_INFERENCEELEMENT.fields_by_name['rectangle'].message_type = _RECTANGLE
-_INFERENCEELEMENT.oneofs_by_name['element'].fields.append(
-  _INFERENCEELEMENT.fields_by_name['label'])
-_INFERENCEELEMENT.fields_by_name['label'].containing_oneof = _INFERENCEELEMENT.oneofs_by_name['element']
-_INFERENCEELEMENT.oneofs_by_name['element'].fields.append(
-  _INFERENCEELEMENT.fields_by_name['rectangle'])
-_INFERENCEELEMENT.fields_by_name['rectangle'].containing_oneof = _INFERENCEELEMENT.oneofs_by_name['element']
 DESCRIPTOR.message_types_by_name['AiyBound'] = _AIYBOUND
 DESCRIPTOR.message_types_by_name['ClientBound'] = _CLIENTBOUND
 DESCRIPTOR.message_types_by_name['StreamControl'] = _STREAMCONTROL
@@ -530,9 +355,6 @@ DESCRIPTOR.message_types_by_name['StreamData'] = _STREAMDATA
 DESCRIPTOR.message_types_by_name['CodecData'] = _CODECDATA
 DESCRIPTOR.message_types_by_name['FrameData'] = _FRAMEDATA
 DESCRIPTOR.message_types_by_name['InferenceData'] = _INFERENCEDATA
-DESCRIPTOR.message_types_by_name['InferenceElement'] = _INFERENCEELEMENT
-DESCRIPTOR.message_types_by_name['Label'] = _LABEL
-DESCRIPTOR.message_types_by_name['Rectangle'] = _RECTANGLE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 AiyBound = _reflection.GeneratedProtocolMessageType('AiyBound', (_message.Message,), dict(
@@ -583,27 +405,6 @@ InferenceData = _reflection.GeneratedProtocolMessageType('InferenceData', (_mess
   # @@protoc_insertion_point(class_scope:InferenceData)
   ))
 _sym_db.RegisterMessage(InferenceData)
-
-InferenceElement = _reflection.GeneratedProtocolMessageType('InferenceElement', (_message.Message,), dict(
-  DESCRIPTOR = _INFERENCEELEMENT,
-  __module__ = 'messages_pb2'
-  # @@protoc_insertion_point(class_scope:InferenceElement)
-  ))
-_sym_db.RegisterMessage(InferenceElement)
-
-Label = _reflection.GeneratedProtocolMessageType('Label', (_message.Message,), dict(
-  DESCRIPTOR = _LABEL,
-  __module__ = 'messages_pb2'
-  # @@protoc_insertion_point(class_scope:Label)
-  ))
-_sym_db.RegisterMessage(Label)
-
-Rectangle = _reflection.GeneratedProtocolMessageType('Rectangle', (_message.Message,), dict(
-  DESCRIPTOR = _RECTANGLE,
-  __module__ = 'messages_pb2'
-  # @@protoc_insertion_point(class_scope:Rectangle)
-  ))
-_sym_db.RegisterMessage(Rectangle)
 
 
 # @@protoc_insertion_point(module_scope)

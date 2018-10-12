@@ -123,48 +123,11 @@ function handle_inference_data(data) {
     return;
   }
 
-  var ctx = g_canvas.getContext("2d");
-  var width = g_canvas.width;
-  var height = g_canvas.height;
-  ctx.clearRect(0, 0, width, height);
-
-  for (var i = 0; i < data.elements.length; ++i) {
-    element = data.elements[i];
-    switch (element.element) {
-      case 'label':
-        draw_label(ctx, width, height, element.label);
-        break;
-      case 'rectangle':
-        draw_rectangle(ctx, width, height, element.rectangle);
-        break;
-    }
+var ctx = g_canvas.getContext("2d");
+  var img = new Image();
+  img.onload = function() {
+    ctx.clearRect(0, 0, g_canvas.width, g_canvas.height);
+    ctx.drawImage(img, 0, 0, g_canvas.width, g_canvas.height);
   }
-}
-
-function color_to_style(color) {
-  var a = (color & 0xff000000) >>> 24;
-  var r = (color & 0x00ff0000) >>> 16;
-  var g = (color & 0x0000ff00) >>> 8;
-  var b = (color & 0x000000ff) >>> 0;
-  return "rgba(" + [r, g, b, a].join(",") + ")";
-}
-
-function draw_rectangle(ctx, frame_width, frame_height, rect) {
-  var weight = rect.weight
-  var x = rect.x * frame_width - weight / 2;
-  var y = rect.y * frame_height - weight / 2;
-  var w = rect.w * frame_width + weight / 2;
-  var h = rect.h * frame_height + weight / 2;
-  ctx.strokeStyle = color_to_style(rect.color);
-  ctx.lineWidth = weight;
-  ctx.strokeRect(x, y, w, h);
-}
-
-function draw_label(ctx, frame_width, frame_height, label) {
-  var x = label.x * frame_width;
-  var y = label.y * frame_height;
-  var size = 12 * label.size;
-  ctx.fillStyle = color_to_style(label.color);
-  ctx.font = size + "px arial";
-  ctx.fillText(label.text, x, y + size);
+  img.src = "data:image/svg+xml;charset=utf-8," + data.svg;
 }

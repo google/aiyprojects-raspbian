@@ -43,29 +43,5 @@ message FrameData {
 }
 
 message InferenceData {
-  repeated InferenceElement elements = 1;
-}
-
-message InferenceElement {
-  oneof element {
-    Label label = 1;
-    Rectangle rectangle = 2;
-  }
-}
-
-message Label {
-  string text = 1;
-  float x = 2;
-  float y = 3;
-  uint32 color = 4;
-  uint32 size = 5;
-}
-
-message Rectangle {
-  float x = 1;
-  float y = 2;
-  float w = 3;
-  float h = 4;
-  uint32 color = 5;
-  uint32 weight = 6;
+  string svg = 1;
 }

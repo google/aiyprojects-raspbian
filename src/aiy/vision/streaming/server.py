@@ -389,7 +389,7 @@ class _ProtoClient(_Client):
         return self._queue_message_locked(message)
 
     def _queue_inference_data_locked(self, data):
-        return self._queue_message_locked(data.GetMessage())
+        return self._queue_message_locked(data)
 
     def _handle_message(self, message):
         which = message.WhichOneof('message')
@@ -676,47 +676,32 @@ class _AnnexbClient(_Client):
         except:
             return None
 
+def xml_tag(name, attrs, value=''):
+     sattrs = ' '.join('%s="%s"' % (name, value) for name, value in attrs.items())
+     if value:
+        return '<%s %s>%s</%s>' % (name, sattrs, value, name)
+     else:
+        return '<%s %s/>' % (name, sattrs)
 
 class InferenceData(object):
     def __init__(self):
-        self._message = pb2.ClientBound()
-        self._message.stream_data.inference_data.SetInParent()
+        self._tags = []
 
-    def _get_color(value):
-        if isinstance(value, int):
-            return value
-        if isinstance(value, tuple):
-            if len(value) == 3:
-                color = 0xFF000000
-                color |= (value[0] & 0xff) << 16
-                color |= (value[1] & 0xff) << 8
-                color |= (value[2] & 0xff) << 0
-                return color
-            if len(value) == 4:
-                color = 0
-                color |= (value[0] & 0xff) << 24
-                color |= (value[1] & 0xff) << 16
-                color |= (value[2] & 0xff) << 8
-                color |= (value[3] & 0xff) << 0
-                return color
-        return 0xFFFFFFFF
-
-    def add_rectangle(self, x, y, w, h, color, weight):
-        element = self._message.stream_data.inference_data.elements.add()
-        element.rectangle.x = x
-        element.rectangle.y = y
-        element.rectangle.w = w
-        element.rectangle.h = h
-        element.rectangle.color = InferenceData._get_color(color)
-        element.rectangle.weight = weight
+    def add_rectangle(self, x, y, w, h, color, stroke_width):
+        self._tags.append(xml_tag('rect', {'x': x, 'y': y, 'width': w, 'height': h,
+                                           'stroke': 'rgb(%s, %s, %s)' % color,
+                                           'stroke-width': stroke_width,
+                                           'fill-opacity': '0.0'}))
 
     def add_label(self, text, x, y, color, size):
-        element = self._message.stream_data.inference_data.elements.add()
-        element.label.text = text
-        element.label.x = x
-        element.label.y = y
-        element.label.color = InferenceData._get_color(color)
-        element.label.size = size
+        self._tags.append(xml_tag('text', {'x': x, 'y': y,
+                                           'fill': 'rgb(%s, %s, %s)' % color,
+                                           'font-size': size}, text))
 
-    def GetMessage(self):
-        return self._message
+    def get_svg(self, width, height):
+        xml = xml_tag('svg', {'width': width, 'height': height, 'xmlns': 'http://www.w3.org/2000/svg'},
+                      '\n'.join(self._tags))
+        message = pb2.ClientBound()
+        message.stream_data.inference_data.SetInParent()
+        message.stream_data.inference_data.svg = xml
+        return message

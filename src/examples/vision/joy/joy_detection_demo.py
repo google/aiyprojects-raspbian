@@ -126,16 +126,16 @@ def scale_bounding_box(bounding_box, scale_x, scale_y):
 
 
 def server_inference_data(faces, frame_size, joy_score):
-    width, height = frame_size
     data = InferenceData()
     for face in faces:
-        x, y, w, h = scale_bounding_box(face.bounding_box, 1.0 / width, 1.0 / height)
-        color = blend(JOY_COLOR, SAD_COLOR, face.joy_score)
-        data.add_rectangle(x, y, w, h, color, round(face.joy_score * 10))
-        data.add_label("%.2f" % face.joy_score, x, y, color, 1)
-    data.add_label('Faces: %d Avg. score: %.2f' % (len(faces), joy_score),
-                   0, 0, blend(JOY_COLOR, SAD_COLOR, joy_score), 2)
-    return data
+        x, y, w, h = face.bounding_box
+        data.add_rectangle(x, y, w, h, RED_COLOR, int(face.joy_score * 5) + 2)
+        data.add_label("%.2f" % face.joy_score, x, y - 5, RED_COLOR, 40)
+
+    data.add_label('Faces: %d\n Avg. score: %.2f' % (len(faces), joy_score), 10, 70, RED_COLOR, 60)
+
+    width, height = frame_size
+    return data.get_svg(width, height)
 
 
 class Service:
