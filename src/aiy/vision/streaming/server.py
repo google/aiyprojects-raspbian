@@ -5,13 +5,14 @@ import logging
 import select
 import socket
 import struct
+import subprocess
 import sys
 import threading
 import time
 
-from aiy.vision.streaming.presence import PresenceServer
 import aiy.vision.streaming.proto.messages_pb2 as pb2
 
+from collections import namedtuple
 from http.server import BaseHTTPRequestHandler
 from io import BytesIO
 from itertools import cycle
@@ -31,6 +32,50 @@ def _close_socket(sock):
         sock.shutdown(socket.SHUT_RDWR)
     except OSError:
         pass
+
+
+def kit_info():
+    def simple_hash(data, length=4):
+        digest = hashlib.md5(data).digest()
+        return ''.join(str(digest[i] % 10) for i in range(length))
+
+    def device_tree_node(node):
+        with open(os.path.join('/proc/device-tree/', node), 'rb') as f:
+            return f.read().replace(b'\x00', b'')
+
+    def pi_info():
+        return 'Raspberry-Pi-%s' % simple_hash(device_tree_node('serial-number'))
+
+    HAT = namedtuple('HAT', ['product', 'product_id', 'product_ver', 'uuid', 'vendor'])
+
+    def hat_info():
+        return HAT(product=device_tree_node('hat/product').decode('utf-8'),
+                   product_id=int(device_tree_node('hat/product_id'), 16),
+                   product_ver=int(device_tree_node('hat/product_ver'), 16),
+                   uuid=device_tree_node('hat/uuid'),
+                   vendor=device_tree_node('hat/vendor').decode('utf-8'))
+
+    if os.path.exists('/proc/device-tree/hat/'):
+        hat = hat_info()
+        if hat.vendor == 'Google, LLC':
+            kit_id = hat.product_id
+            name = {1: 'Voice', 2: 'Vision', 3: 'Voice'}.get(kit_id, 'AIY-Kit')
+        else:
+            kit_id = 0
+            name = 'Kit'
+        return kit_id, '%s-%s' % (name, simple_hash(hat.uuid))
+    else:
+        return 0, pi_info()
+
+
+class PresenceServer:
+    def __init__(self, name, port):
+        cmd = ['avahi-publish-service', name, '_aiy_vision_video._tcp', str(port), 'AIY Streaming']
+        self._process = subprocess.Popen(cmd, shell=False)
+
+    def close(self):
+        self._process.terminate()
+        self._process.wait()
 
 
 class StreamingServer(object):
@@ -116,8 +161,8 @@ class StreamingServer(object):
         self._logger.info('Listening on ports tcp: %d web: %d annexb: %d',
                           tcp_port, web_port, annexb_port)
 
-        presence = PresenceServer(AVAHI_SERVICE, tcp_port)
-        presence.run()
+        _, device_name = kit_info()
+        presence = PresenceServer(device_name, tcp_port)
 
         while True:
             with self._lock:
