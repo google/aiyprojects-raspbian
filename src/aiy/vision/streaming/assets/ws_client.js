@@ -5,14 +5,23 @@ var g_player = null;
 var g_canvas = null;
 var g_frame_count = 0;
 
-function load() {
+var ClientBound = null;
+var AiyBound = null;
+
+protobuf.load("messages.proto", function(err, root) {
+  if (err)
+    throw err;
+
+  ClientBound = root.lookupType("ClientBound");
+  AiyBound = root.lookupType("AiyBound")
+
   g_container = document.getElementById("container");
   g_socket = new WebSocket("ws://" + window.location.host);
   g_socket.binaryType = "arraybuffer";
   g_socket.onopen = ws_opened;
   g_socket.onclose = ws_closed;
   g_socket.onmessage = ws_message;
-}
+})
 
 function ws_opened(event) {
   console.log("Socket connected");
@@ -24,43 +33,27 @@ function ws_closed(event) {
 };
 
 function ws_message(event) {
-  message = proto.ClientBound.deserializeBinary(event.data);
-  switch (message.getMessageCase()) {
-    case proto.ClientBound.MessageCase.STREAM_DATA:
-      handle_stream_data(message.getStreamData());
-      break;
-    default:
-      break;
+  var clientBound = ClientBound.decode(new Uint8Array(event.data))
+  if (clientBound.message == 'streamData') {
+    var streamData = clientBound.streamData
+    switch (streamData.type) {
+      case 'inferenceData':
+        handle_inference_data(streamData.inferenceData);
+        break;
+      case 'frameData':
+        handle_frame_data(streamData.frameData);
+        break;
+      case 'codecData':
+        handle_codec_data(streamData.codecData);
+        break;
+    }
   }
 };
 
 function stream_control(enabled) {
-  message = new proto.AiyBound();
-  sc = new proto.StreamControl();
-  sc.setEnabled(enabled);
-  message.setStreamControl(sc);
-  send_message(message);
+  aiyBound = AiyBound.create({streamControl: {enabled:enabled}});
+  g_socket.send(AiyBound.encode(aiyBound).finish());
 };
-
-function send_message(message) {
-  g_socket.send(message.serializeBinary());
-};
-
-function handle_stream_data(data) {
-  switch (data.getTypeCase()) {
-    case proto.StreamData.TypeCase.CODEC_DATA:
-      handle_codec_data(data.getCodecData());
-      break;
-    case proto.StreamData.TypeCase.FRAME_DATA:
-      handle_frame_data(data.getFrameData());
-      break;
-    case proto.StreamData.TypeCase.INFERENCE_DATA:
-      handle_inference_data(data.getInferenceData());
-      break;
-    default:
-      break;
-  }
-}
 
 function handle_codec_data(data) {
   if (g_player == null) {
@@ -70,8 +63,8 @@ function handle_codec_data(data) {
       reuseMemory: true,
       webgl: "auto",
       size: {
-        width: data.getWidth(),
-        height: data.getHeight(),
+        width: data.width,
+        height: data.height,
       }
     });
 
@@ -85,15 +78,15 @@ function handle_codec_data(data) {
     var crop_div = document.createElement("div");
     crop_div.style.overflow = "hidden";
     crop_div.style.position = "absolute";
-    crop_div.style.width = data.getWidth() + "px";
-    crop_div.style.height = data.getHeight() + "px";
+    crop_div.style.width = data.width + "px";
+    crop_div.style.height = data.height + "px";
     crop_div.appendChild(g_player.canvas);
     g_container.appendChild(crop_div);
 
     g_canvas = document.createElement("canvas");
     g_canvas.style.position = "absolute";
-    g_canvas.width = data.getWidth();
-    g_canvas.height = data.getHeight();
+    g_canvas.width = data.width;
+    g_canvas.height = data.height;
     g_container.appendChild(g_canvas);
 
     var license_link = document.createElement("a");
@@ -102,19 +95,19 @@ function handle_codec_data(data) {
     license_link.href = "broadway/LICENSE";
     license_link.target= "_blank";
     license_link.style.position = "relative";
-    license_link.style.top = data.getHeight() + "px";
+    license_link.style.top = data.height + "px";
     g_container.appendChild(license_link);
   }
 
-  var sps_pps = data.getData_asU8();
-  console.log("Codec data: " + data.getWidth() + "x" + data.getHeight());
+  var sps_pps = data.data;
+  console.log("Codec data: " + data.width + "x" + data.height);
   g_player.decode(sps_pps);
 }
 
 function handle_frame_data(data) {
-  g_player.decode(data.getData_asU8());
+  g_player.decode(data.data);
 
-  var new_seq = data.getSeq();
+  var new_seq = data.seq;
   var prev_seq = g_last_frame_seq;
   g_last_frame_seq = new_seq;
   if (prev_seq > 0) {
@@ -135,23 +128,16 @@ function handle_inference_data(data) {
   var height = g_canvas.height;
   ctx.clearRect(0, 0, width, height);
 
-  var list = data.getElementsList();
-  var len = list.length;
-  for (var i = 0; i < len; i++) {
-    ctx.save();
-    var element = list[i];
-    switch (element.getElementCase()) {
-      case proto.InferenceElement.ElementCase.RECTANGLE:
-        draw_rectangle(ctx, width, height, element.getRectangle());
+  for (var i = 0; i < data.elements.length; ++i) {
+    element = data.elements[i];
+    switch (element.element) {
+      case 'label':
+        draw_label(ctx, width, height, element.label);
         break;
-      case proto.InferenceElement.ElementCase.LABEL:
-        draw_label(ctx, width, height, element.getLabel());
-        break;
-      default:
-        // Ignore.
+      case 'rectangle':
+        draw_rectangle(ctx, width, height, element.rectangle);
         break;
     }
-    ctx.restore();
   }
 }
 
@@ -164,21 +150,21 @@ function color_to_style(color) {
 }
 
 function draw_rectangle(ctx, frame_width, frame_height, rect) {
-  var weight = rect.getWeight();
-  var x = rect.getX() * frame_width - weight / 2;
-  var y = rect.getY() * frame_height - weight / 2;
-  var w = rect.getW() * frame_width + weight / 2;
-  var h = rect.getH() * frame_height + weight / 2;
-  ctx.strokeStyle = color_to_style(rect.getColor());
+  var weight = rect.weight
+  var x = rect.x * frame_width - weight / 2;
+  var y = rect.y * frame_height - weight / 2;
+  var w = rect.w * frame_width + weight / 2;
+  var h = rect.h * frame_height + weight / 2;
+  ctx.strokeStyle = color_to_style(rect.color);
   ctx.lineWidth = weight;
   ctx.strokeRect(x, y, w, h);
 }
 
 function draw_label(ctx, frame_width, frame_height, label) {
-  var x = label.getX() * frame_width;
-  var y = label.getY() * frame_height;
-  var size = 12 * label.getSize();
-  ctx.fillStyle = color_to_style(label.getColor());
+  var x = label.x * frame_width;
+  var y = label.y * frame_height;
+  var size = 12 * label.size;
+  ctx.fillStyle = color_to_style(label.color);
   ctx.font = size + "px arial";
-  ctx.fillText(label.getText(), x, y + size);
+  ctx.fillText(label.text, x, y + size);
 }
