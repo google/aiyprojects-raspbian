@@ -199,7 +199,18 @@ Usage of these APIs changes constantly. Here is a summary of the steps for using
 
 4. Use `google-oauthlib-tool` to authenticate once
 
-5. Use `googlesamples-assistant-devicetool` to register your Raspberry Pi
+5. Use `googlesamples-assistant-devicetool` to register your Raspberry Pi. A few
+   useful commands may be:
+   ```
+   $ googlesamples-assistant-devicetool --project-id <Project ID> register-device \
+   --model <Model ID> \
+   --device <Make up a new Device ID> \
+   --client-type LIBRARY
+
+   $ googlesamples-assistant-devicetool --project-id <Project ID> list --model
+
+   $ googlesamples-assistant-devicetool --project-id <Project ID> list --device
+   ```
 
 ## How to use this library
 
