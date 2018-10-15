@@ -17,7 +17,6 @@
 import logging
 import os.path
 
-import aiy.audio
 import aiy.voicehat
 
 logger = logging.getLogger('status_ui')
@@ -31,7 +30,6 @@ class _StatusUi(object):
     """
 
     def __init__(self):
-        self._trigger_sound_wave = None
         self._state_map = {
             "starting": aiy.voicehat.LED.PULSE_QUICK,
             "ready": aiy.voicehat.LED.BEACON_DARK,
@@ -42,26 +40,6 @@ class _StatusUi(object):
             "error": aiy.voicehat.LED.BLINK_3,
         }
         aiy.voicehat.get_led().set_state(aiy.voicehat.LED.OFF)
-
-    def set_trigger_sound_wave(self, trigger_sound_wave):
-        """Set the trigger sound.
-
-        A trigger sound is played when the status is 'listening' to indicate
-        that the assistant is actively listening to the user.
-        The trigger_sound_wave argument should be the path to a valid wave file.
-        If it is None, the trigger sound is disabled.
-        """
-        if not trigger_sound_wave:
-            self._trigger_sound_wave = None
-            return
-        expanded_path = os.path.expanduser(trigger_sound_wave)
-        if os.path.exists(expanded_path):
-            self._trigger_sound_wave = expanded_path
-        else:
-            logger.warning(
-                'File %s specified as trigger sound does not exist.',
-                trigger_sound_wave)
-            self._trigger_sound_wave = None
 
     def status(self, status):
         """Activate the status.
@@ -74,6 +52,4 @@ class _StatusUi(object):
                            status, ",".join(self._state_map.keys()))
             return False
         aiy.voicehat.get_led().set_state(self._state_map[status])
-        if status == 'listening' and self._trigger_sound_wave:
-            aiy.audio.play_wave(self._trigger_sound_wave)
         return True

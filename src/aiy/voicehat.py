@@ -94,11 +94,6 @@ def get_status_ui():
       - "power-off"
       - "error"
 
-    Optionally, a sound may be played once when the status changes to
-    "listening". For example, if you have a wave file at ~/ding.wav, you may set
-    the trigger sound by:
-    aiy.voicehat.get_status_ui().set_trigger_sound_wave('~/ding.wav')
-
     To set the status, use:
     aiy.voicehat.get_status_ui().set_state('starting')
     aiy.voicehat.get_status_ui().set_state('thinking')
