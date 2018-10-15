@@ -42,6 +42,7 @@ class LED:
 
     def __init__(self, channel):
         self.animator = threading.Thread(target=self._animate, daemon=True)
+        self.brightness = 1
         self.channel = channel
         self.iterator = None
         self.running = False
@@ -55,6 +56,12 @@ class LED:
     def __del__(self):
         self.stop()
         GPIO.cleanup(self.channel)
+
+    def set_brightness(self, brightness):
+        try:
+            self.brightness = int(brightness) / 100
+        except ValueError:
+            raise ValueError('unsupported brightness: %s' % brightness)
 
     def start(self):
         """Start the LED driver."""
@@ -100,7 +107,7 @@ class LED:
                 if not self._parse_state(state):
                     raise ValueError('unsupported state: %d' % state)
             if self.iterator:
-                self.pwm.ChangeDutyCycle(next(self.iterator))
+                self.pwm.ChangeDutyCycle(next(self.iterator) * self.brightness)
                 time.sleep(self.sleep)
             else:
                 # We can also wait for a state change here with a Condition.
@@ -115,7 +122,7 @@ class LED:
             self.pwm.ChangeDutyCycle(0)
             handled = True
         elif state == self.ON:
-            self.pwm.ChangeDutyCycle(100)
+            self.pwm.ChangeDutyCycle(100 * self.brightness)
             handled = True
         elif state == self.BLINK:
             self.iterator = itertools.cycle([0, 100])
