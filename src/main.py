@@ -116,10 +116,7 @@ def process_event(assistant, event):
         _cancelAction = False
         text = event.args['text'].lower()
 
-        if sys.stdout.isatty():
-            print('You said:', text)
-        else:
-            logging.info('You said: ' + text)
+        logging.info('You said: ' + text)
 
         if text == '':
             assistant.stop_conversation()
@@ -143,16 +140,18 @@ def process_event(assistant, event):
                 assistant.start_conversation()
 
         elif text.startswith('play ') and text.endswith(' podcast'):
-            assistant.stop_conversation()
-            _music.command('podcast', text[5:][:-8], _podCatcher)
-            if _music.getConfirmPlayback() == True:
-                assistant.start_conversation()
+            if sys.stdout.isatty() is not True:
+                assistant.stop_conversation()
+                _music.command('podcast', text[5:][:-8], _podCatcher)
+                if _music.getConfirmPlayback() == True:
+                    assistant.start_conversation()
 
         elif text.startswith('play ') and text.endswith(' podcasts'):
-            assistant.stop_conversation()
-            _music.command('podcast', text[5:][:-9], _podCatcher)
-            if _music.getConfirmPlayback() == True:
-                assistant.start_conversation()
+            if sys.stdout.isatty() is not True:
+                assistant.stop_conversation()
+                _music.command('podcast', text[5:][:-9], _podCatcher)
+                if _music.getConfirmPlayback() == True:
+                    assistant.start_conversation()
 
         elif text.startswith('radio '):
             assistant.stop_conversation()
@@ -181,6 +180,10 @@ def process_event(assistant, event):
         elif text.startswith('kodi ') or text.startswith('cody '):
             assistant.stop_conversation()
             _kodiRemote.run(text[5:])
+
+        elif text.startswith('play the next episode of '):
+            assistant.stop_conversation()
+            _kodiRemote.run('play unwatched ' + text[25:])
 
         elif text.startswith('play next episode of '):
             assistant.stop_conversation()
@@ -246,6 +249,20 @@ def process_event(assistant, event):
             assistant.stop_conversation()
             aiy.voicehat.get_led().set_brightness(100)
 
+    elif event.type == EventType.ON_RESPONDING_FINISHED:
+        assistant.stop_conversation()
+        logging.info('EventType.ON_RESPONDING_FINISHED')
+
+    elif event.type == EventType.ON_MEDIA_TRACK_LOAD:
+        assistant.stop_conversation()
+        logging.info('EventType.ON_MEDIA_TRACK_LOAD')
+        logging.info(event.args)
+
+    elif event.type == EventType.ON_MEDIA_TRACK_PLAY:
+        assistant.stop_conversation()
+        logging.info('EventType.ON_MEDIA_TRACK_PLAY')
+        logging.info(event.args)
+
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
 
@@ -253,7 +270,18 @@ def process_event(assistant, event):
         status_ui.status('ready')
 
     elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
+        logging.info('EventType.ON_ASSISTANT_ERROR')
         sys.exit(1)
+
+    elif event.type == EventType.ON_ASSISTANT_ERROR:
+        logging.info('EventType.ON_ASSISTANT_ERROR')
+
+    elif event.args:
+        logging.info(event.type)
+        logging.info(event.args)
+
+    else:
+        logging.info(event.type)
 
 
 def main():
