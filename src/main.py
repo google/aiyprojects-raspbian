@@ -187,6 +187,10 @@ def process_event(assistant, event):
             assistant.stop_conversation()
             _kodiRemote.run('play unwatched ' + text[21:])
 
+        elif text.startswith('play the most recent episode of '):
+            assistant.stop_conversation()
+            _kodiRemote.run('play unwatched ' + text[32:])
+
         elif text.startswith('play most recent episode of '):
             assistant.stop_conversation()
             _kodiRemote.run('play unwatched ' + text[28:])
