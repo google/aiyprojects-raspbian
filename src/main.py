@@ -140,11 +140,10 @@ def process_event(assistant, event):
                 assistant.start_conversation()
 
         elif text.startswith('play ') and text.endswith(' podcast'):
-            if sys.stdout.isatty() is not True:
-                assistant.stop_conversation()
-                _music.command('podcast', text[5:][:-8], _podCatcher)
-                if _music.getConfirmPlayback() == True:
-                    assistant.start_conversation()
+            assistant.stop_conversation()
+            _music.command('podcast', text[5:][:-8], _podCatcher)
+            if _music.getConfirmPlayback() == True:
+                assistant.start_conversation()
 
         elif text.startswith('play ') and text.endswith(' podcasts'):
             if sys.stdout.isatty() is not True:
