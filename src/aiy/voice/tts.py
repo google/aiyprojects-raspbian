@@ -13,27 +13,17 @@
 # limitations under the License.
 
 import argparse
-import contextlib
 import os
 import subprocess
-import uuid
+import tempfile
 
-
-@contextlib.contextmanager
-def _stdout_symlink():
-    name = '/tmp/%s.wav' % uuid.uuid4().hex
-    os.symlink('/dev/stdout', name)
-    try:
-        yield name
-    finally:
-        os.unlink(name)
-
+TMP_DIR = '/run/user/%d' % os.getuid()
 
 def say(text, lang='en-US', volume=60, pitch=130, speed=100, device='default'):
     data = "<volume level='%d'><pitch level='%d'><speed level='%d'>%s</speed></pitch></volume>" % \
-       (volume, pitch, speed, text)
-    with _stdout_symlink() as stdout:
-       cmd = 'pico2wave --wave %s --lang %s "%s" | aplay -D %s -' % (stdout, lang, data, device)
+        (volume, pitch, speed, text)
+    with tempfile.NamedTemporaryFile(suffix='.wav', dir=TMP_DIR) as file:
+       cmd = 'pico2wave --wave %s --lang %s "%s" && aplay -q -D %s %s' % (file.name, lang, data, device, file.name)
        subprocess.check_call(cmd, shell=True)
 
 
