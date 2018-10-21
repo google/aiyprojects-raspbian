@@ -23,12 +23,9 @@ def test_image_path(name):
 
 @contextmanager
 def TestImage(name):
-    try:
-        f = open(test_image_path(name), 'rb')
+    with open(test_image_path(name), 'rb') as f:
+        image = Image.open(f)
         try:
-            image = Image.open(f)
             yield image
         finally:
             image.close()
-    finally:
-        f.close()
