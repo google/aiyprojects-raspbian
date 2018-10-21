@@ -189,7 +189,7 @@ Usage of these APIs changes constantly. Here is a summary of the steps for using
 
 1. Create a Project, Enable API, Enable activity controls
 
-2. Register device model, Download credentials file
+2. Register device model, Download credentials file (check `project_id`)
 
 3. Install Python packages:
    - `google-assistant-library`
