@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
 
 def _tflash_reg(duration_ms):
     if duration_ms <= 128:
@@ -40,6 +41,21 @@ def _write(path, data):
 
 def _device_file(prop):
     return '/sys/class/leds/ktd202x:led1/device/%s' % prop
+
+
+class Color:
+    @staticmethod
+    def blend(color_a, color_b, alpha):
+        return tuple([math.ceil(alpha * color_a[i] + (1.0 - alpha) * color_b[i]) for i in range(3)])
+
+    BLACK  = (0x00, 0x00, 0x00)
+    RED    = (0xFF, 0x00, 0x00)
+    GREEN  = (0x00, 0xFF, 0x00)
+    YELLOW = (0xFF, 0xFF, 0x00)
+    BLUE   = (0x00, 0x00, 0xFF)
+    PURPLE = (0xFF, 0x00, 0xFF)
+    CYAN   = (0x00, 0xFF, 0xFF)
+    WHITE  = (0xFF, 0xFF, 0xFF)
 
 
 class Pattern:
@@ -84,21 +100,14 @@ class Leds:
             self.state = state
             self.brightness = brightness
 
-    def __init__(self):
-        self._pattern = None
-
     @staticmethod
     def rgb(state, rgb):
         """Returns configuration for channels: 1 (red), 2 (green), 3 (blue)."""
-        return {
-            1: Leds.Channel(state, rgb[0]),
-            2: Leds.Channel(state, rgb[1]),
-            3: Leds.Channel(state, rgb[2]),
-        }
+        return {i + 1 : Leds.Channel(state, rgb[i]) for i in range(3)}
 
     @staticmethod
     def rgb_off():
-        return Leds.rgb(Leds.Channel.OFF, (0, 0, 0))
+        return Leds.rgb(Leds.Channel.OFF, Color.BLACK)
 
     @staticmethod
     def rgb_on(rgb):
@@ -125,6 +134,7 @@ class Leds:
         return Leds.privacy(False, 0)
 
     def __init__(self, reset=True):
+        self._pattern = None
         if reset:
             self.reset()
 
@@ -154,6 +164,12 @@ class Leds:
                 command += 'ch%d_enable=%d;' % (index, channel.state)
         if command:
             _write(_device_file('registers'), command)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.reset()
 
 
 class PrivacyLed:
