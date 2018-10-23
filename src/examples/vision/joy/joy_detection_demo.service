@@ -1,11 +1,13 @@
 [Unit]
 Description=AIY Joy Detection Demo
+Wants=dev-vision_spicomm.device
+After=dev-vision_spicomm.device
 
 [Service]
 Type=simple
 Restart=no
 User=pi
-ExecStart=/usr/bin/python3 /home/pi/AIY-projects-python/src/examples/vision/joy/joy_detection_demo.py --enable_streaming
+ExecStart=/usr/bin/python3 /home/pi/AIY-projects-python/src/examples/vision/joy/joy_detection_demo.py --enable_streaming --blink_on_error
 
 [Install]
 WantedBy=multi-user.target
