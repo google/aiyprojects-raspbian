@@ -26,9 +26,7 @@ import sys
 import threading
 import time
 
-from aiy.leds import Leds
-from aiy.leds import Pattern
-from aiy.leds import PrivacyLed
+from aiy.leds import (Color, Leds, Pattern, PrivacyLed)
 from aiy.toneplayer import TonePlayer
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import face_detection
@@ -102,10 +100,6 @@ def moving_average(size):
     window.append((yield 0.0))
     while True:
         window.append((yield sum(window) / len(window)))
-
-
-def blend(color_a, color_b, alpha):
-    return tuple([math.ceil(alpha * color_a[i] + (1.0 - alpha) * color_b[i]) for i in range(3)])
 
 
 def average_joy_score(faces):
@@ -262,7 +256,7 @@ class Animator(Service):
 
     def process(self, joy_score):
         if joy_score > 0:
-            self._leds.update(Leds.rgb_on(blend(JOY_COLOR, SAD_COLOR, joy_score)))
+            self._leds.update(Leds.rgb_on(Color.blend(JOY_COLOR, SAD_COLOR, joy_score)))
         else:
             self._leds.update(Leds.rgb_off())
 
@@ -373,9 +367,11 @@ def main():
     except Exception:
         logger.exception('Exception while running joy demo.')
         if args.blink_on_error:
-            leds = Leds()
-            leds.pattern = Pattern.blink(500)
-            leds.update(Leds.rgb_pattern(RED_COLOR))
+            with Leds() as leds:
+                leds.pattern = Pattern.blink(100)  # 10 Hz
+                leds.update(Leds.rgb_pattern(RED_COLOR))
+                time.sleep(1.0)
+
     return 0
 
 if __name__ == '__main__':
