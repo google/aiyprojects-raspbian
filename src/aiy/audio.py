@@ -30,7 +30,6 @@ AUDIO_SAMPLE_RATE_HZ = 16000
 # Global variables. They are lazily initialized.
 _voicehat_recorder = None
 _voicehat_player = None
-_status_ui = None
 
 class _WaveDump(object):
     """A processor that saves recorded audio to a wave file."""

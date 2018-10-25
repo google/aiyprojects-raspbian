@@ -27,14 +27,10 @@ import sys
 import threading
 
 import aiy.assistant.auth_helpers
-from aiy.assistant.library import Assistant
-import aiy.voicehat
-from google.assistant.library.event import EventType
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-)
+from aiy.assistant.library import Assistant
+from aiy.board import Board, Led
+from google.assistant.library.event import EventType
 
 
 class MyAssistant(object):
@@ -50,6 +46,8 @@ class MyAssistant(object):
         self._task = threading.Thread(target=self._run_task)
         self._can_start_conversation = False
         self._assistant = None
+        self._board = Board()
+        self._board.on_press = self._on_button_pressed
 
     def start(self):
         """Starts the assistant.
@@ -66,28 +64,25 @@ class MyAssistant(object):
                 self._process_event(event)
 
     def _process_event(self, event):
-        print(event)
-        status_ui = aiy.voicehat.get_status_ui()
+        logging.info(event)
         if event.type == EventType.ON_START_FINISHED:
-            status_ui.status('ready')
+            self._board.led.status = Led.BEACON_DARK  # Ready.
             self._can_start_conversation = True
             # Start the voicehat button trigger.
-            aiy.voicehat.get_button().on_press(self._on_button_pressed)
-            if sys.stdout.isatty():
-                print('Say "OK, Google" or press the button, then speak. '
-                      'Press Ctrl+C to quit...')
+            logging.info('Say "OK, Google" or press the button, then speak. '
+                         'Press Ctrl+C to quit...')
 
         elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
             self._can_start_conversation = False
-            status_ui.status('listening')
+            self._board.led.state = Led.ON  # Listening.
 
         elif event.type == EventType.ON_END_OF_UTTERANCE:
-            status_ui.status('thinking')
+            self._board.led.state = Led.PULSE_QUICK  # Thinking.
 
         elif (event.type == EventType.ON_CONVERSATION_TURN_FINISHED
               or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
               or event.type == EventType.ON_NO_RESPONSE):
-            status_ui.status('ready')
+            self._board.led.state = Led.BEACON_DARK  # Ready.
             self._can_start_conversation = True
 
         elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
@@ -103,6 +98,7 @@ class MyAssistant(object):
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
     MyAssistant().start()
 
 

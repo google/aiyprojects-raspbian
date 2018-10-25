@@ -18,7 +18,6 @@ import os.path
 
 import aiy._apis._speech
 import aiy.audio
-import aiy.voicehat
 
 # Global variables. They are lazily initialized.
 _cloudspeech_recognizer = None

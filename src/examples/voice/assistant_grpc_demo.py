@@ -19,35 +19,31 @@ import logging
 
 import aiy.assistant.grpc
 import aiy.audio
-import aiy.voicehat
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-)
-
+from aiy.board import Board, Led
 
 def main():
-    status_ui = aiy.voicehat.get_status_ui()
-    status_ui.status('starting')
-    assistant = aiy.assistant.grpc.get_assistant()
-    button = aiy.voicehat.get_button()
-    with aiy.audio.get_recorder():
-        while True:
-            status_ui.status('ready')
-            print('Press the button and speak')
-            button.wait_for_press()
-            status_ui.status('listening')
-            print('Listening...')
-            text, audio = assistant.recognize()
-            if text:
-                if text == 'goodbye':
-                    status_ui.status('stopping')
-                    print('Bye!')
-                    break
-                print('You said "', text, '"')
-            if audio:
-                aiy.audio.play_audio(audio, assistant.get_volume())
+    logging.basicConfig(level=logging.INFO)
+
+    with Board() as board:
+        board.led.state = Led.PULSE_QUICK  # Starting.
+        assistant = aiy.assistant.grpc.get_assistant()
+        with aiy.audio.get_recorder():
+            while True:
+                board.led.state = Led.BEACON_DARK  # Ready.
+                logging.info('Press the button and speak')
+                board.button.wait_for_press()
+                board.led.state = Led.ON  # Listening.
+                logging.info('Listening...')
+                text, audio = assistant.recognize()
+                if text:
+                    if text == 'goodbye':
+                        board.led.state = Led.PULSE_QUICK  # Stopping.
+                        logging.info('Bye!')
+                        break
+                    logging.info('You said "%s"', text)
+                if audio:
+                    aiy.audio.play_audio(audio, assistant.get_volume())
 
 
 if __name__ == '__main__':

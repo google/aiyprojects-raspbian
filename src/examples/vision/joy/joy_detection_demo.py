@@ -26,13 +26,13 @@ import sys
 import threading
 import time
 
-from aiy.leds import (Color, Leds, Pattern, PrivacyLed)
+from aiy.board import Board
+from aiy.leds import Color, Leds, Pattern, PrivacyLed
 from aiy.toneplayer import TonePlayer
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import face_detection
 from aiy.vision.streaming.server import StreamingServer, InferenceData
 
-from gpiozero import Button
 from picamera import PiCamera
 
 from PIL import Image
@@ -57,7 +57,6 @@ BEEP_SOUND = ('E6q', 'C6q')
 FONT_FILE = '/usr/share/fonts/truetype/freefont/FreeSans.ttf'
 
 BUZZER_GPIO = 22
-BUTTON_GPIO = 23
 
 @contextlib.contextmanager
 def stopwatch(message):
@@ -280,6 +279,7 @@ def joy_detector(num_frames, preview_alpha, image_format, image_folder, enable_s
     leds = Leds()
 
     with contextlib.ExitStack() as stack:
+        board = stack.enter_context(Board())
         player = stack.enter_context(Player(gpio=BUZZER_GPIO, bpm=10))
         photographer = stack.enter_context(Photographer(image_format, image_folder))
         animator = stack.enter_context(Animator(leds))
@@ -307,8 +307,7 @@ def joy_detector(num_frames, preview_alpha, image_format, image_folder, enable_s
         if preview_alpha > 0:
             camera.start_preview(alpha=preview_alpha)
 
-        button = Button(BUTTON_GPIO)
-        button.when_pressed = take_photo
+        board.button.on_press = take_photo
 
         joy_moving_average = moving_average(10)
         joy_moving_average.send(None)  # Initialize.

@@ -27,16 +27,12 @@ import subprocess
 import sys
 
 import aiy.assistant.auth_helpers
-from aiy.assistant.library import Assistant
 import aiy.audio
-import aiy.voicehat
+
+from aiy.assistant.library import Assistant
+from aiy.board import Board, Led
+
 from google.assistant.library.event import EventType
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-)
-
 
 def power_off_pi():
     aiy.audio.say('Good bye!')
@@ -53,17 +49,13 @@ def say_ip():
     aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
 
 
-def process_event(assistant, event):
-    print(event)
-    status_ui = aiy.voicehat.get_status_ui()
+def process_event(assistant, led, event):
+    logging.info(event)
     if event.type == EventType.ON_START_FINISHED:
-        status_ui.status('ready')
-        if sys.stdout.isatty():
-            print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
-
+        led.state = Led.BEACON_DARK  # Ready.
+        print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
-        status_ui.status('listening')
-
+        led.state = Led.ON  # Listening.
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         print('You said:', event.args['text'])
         text = event.args['text'].lower()
@@ -76,28 +68,23 @@ def process_event(assistant, event):
         elif text == 'ip address':
             assistant.stop_conversation()
             say_ip()
-
     elif event.type == EventType.ON_END_OF_UTTERANCE:
-        status_ui.status('thinking')
-
+        led.state = Led.PULSE_QUICK  # Thinking.
     elif (event.type == EventType.ON_CONVERSATION_TURN_FINISHED
           or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
           or event.type == EventType.ON_NO_RESPONSE):
-        status_ui.status('ready')
-
+        led.state = Led.BEACON_DARK  # Ready.
     elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
         sys.exit(1)
 
 
 def main():
-    if platform.machine() == 'armv6l':
-        print('Cannot run hotword demo on Pi Zero!')
-        exit(-1)
+    logging.basicConfig(level=logging.INFO)
 
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
-    with Assistant(credentials) as assistant:
+    with Board() as board, Assistant(credentials) as assistant:
         for event in assistant.start():
-            process_event(assistant, event)
+            process_event(assistant, board.led, event)
 
 
 if __name__ == '__main__':

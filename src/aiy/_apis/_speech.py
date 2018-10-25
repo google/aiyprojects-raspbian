@@ -26,14 +26,10 @@ import google.auth
 import google.auth.exceptions
 import google.auth.transport.grpc
 import google.auth.transport.requests
-try:
-    from google.cloud import speech
-    from google.cloud.speech import enums
-    from google.cloud.speech import types
-except ImportError:
-    print("Failed to import google.cloud.speech. Try:")
-    print("    env/bin/pip install -r requirements.txt")
-    sys.exit(1)
+
+from google.cloud import speech
+from google.cloud.speech import enums
+from google.cloud.speech import types
 
 from google.rpc import code_pb2 as error_code
 from google.assistant.embedded.v1alpha2 import (
