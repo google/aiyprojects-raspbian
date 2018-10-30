@@ -258,11 +258,15 @@ class StreamingServer(object):
         if needs_key:
             self._request_key_frame()
 
-    def send_inference_data(self, data):
+    def send_inference_data(self, svg):
+        message = pb2.ClientBound()
+        message.stream_data.inference_data.SetInParent()
+        message.stream_data.inference_data.svg = svg
+
         needs_key = False
         with self._lock:
             for client in self._clients:
-                needs_key |= client.send_inference_data(data)
+                needs_key |= client.send_inference_data(message)
         if needs_key:
             self._request_key_frame()
 
@@ -720,33 +724,3 @@ class _AnnexbClient(_Client):
                 return buf
         except:
             return None
-
-def xml_tag(name, attrs, value=''):
-     sattrs = ' '.join('%s="%s"' % (name, value) for name, value in attrs.items())
-     if value:
-        return '<%s %s>%s</%s>' % (name, sattrs, value, name)
-     else:
-        return '<%s %s/>' % (name, sattrs)
-
-class InferenceData(object):
-    def __init__(self):
-        self._tags = []
-
-    def add_rectangle(self, x, y, w, h, color, stroke_width):
-        self._tags.append(xml_tag('rect', {'x': x, 'y': y, 'width': w, 'height': h,
-                                           'stroke': 'rgb(%s, %s, %s)' % color,
-                                           'stroke-width': stroke_width,
-                                           'fill-opacity': '0.0'}))
-
-    def add_label(self, text, x, y, color, size):
-        self._tags.append(xml_tag('text', {'x': x, 'y': y,
-                                           'fill': 'rgb(%s, %s, %s)' % color,
-                                           'font-size': size}, text))
-
-    def get_svg(self, width, height):
-        xml = xml_tag('svg', {'width': width, 'height': height, 'xmlns': 'http://www.w3.org/2000/svg'},
-                      '\n'.join(self._tags))
-        message = pb2.ClientBound()
-        message.stream_data.inference_data.SetInParent()
-        message.stream_data.inference_data.svg = xml
-        return message

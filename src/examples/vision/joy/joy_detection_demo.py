@@ -26,12 +26,14 @@ import sys
 import threading
 import time
 
+import aiy.vision.streaming.svg as svg
+
 from aiy.board import Board
 from aiy.leds import Color, Leds, Pattern, PrivacyLed
 from aiy.toneplayer import TonePlayer
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import face_detection
-from aiy.vision.streaming.server import StreamingServer, InferenceData
+from aiy.vision.streaming.server import StreamingServer
 
 from picamera import PiCamera
 
@@ -119,16 +121,21 @@ def scale_bounding_box(bounding_box, scale_x, scale_y):
 
 
 def server_inference_data(faces, frame_size, joy_score):
-    data = InferenceData()
+    width, height = frame_size
+    doc = svg.Svg(width=width, height=height)
+
     for face in faces:
         x, y, w, h = face.bounding_box
-        data.add_rectangle(x, y, w, h, RED_COLOR, int(face.joy_score * 5) + 2)
-        data.add_label("%.2f" % face.joy_score, x, y - 5, RED_COLOR, 40)
+        doc.add(svg.Rect(x=int(x), y=int(y), width=int(w), height=int(h),
+                         stroke=svg.rgb(RED_COLOR),
+                         stroke_width=int(face.joy_score * 5) + 2,
+                         fill_opacity=0.0))
+        doc.add(svg.Text('%.2f' % face.joy_score, x=x, y=y - 5,
+                         fill=svg.rgb(RED_COLOR), font_size=40))
 
-    data.add_label('Faces: %d\n Avg. score: %.2f' % (len(faces), joy_score), 10, 70, RED_COLOR, 60)
-
-    width, height = frame_size
-    return data.get_svg(width, height)
+    doc.add(svg.Text('Faces: %d\n Avg. score: %.2f' % (len(faces), joy_score),
+            x=10, y=70, fill=svg.rgb(RED_COLOR), font_size=60))
+    return str(doc)
 
 
 class Service:
