@@ -1,14 +1,8 @@
 syntax = "proto3";
 
-message AiyBound {
+message ServerBound {
   oneof message {
     StreamControl stream_control = 1;
-  }
-}
-
-message ClientBound {
-  oneof message {
-    StreamData stream_data = 1;
   }
 }
 
@@ -16,32 +10,28 @@ message StreamControl {
   bool enabled = 1;
 }
 
-message StreamData {
-  oneof type {
-    CodecData codec_data = 1;
-    FrameData frame_data = 2;
-    InferenceData inference_data = 3;
+message ClientBound {
+  oneof message {
+    Start start = 1;
+    Stop stop = 2;
+    Video video = 3;
+    Overlay overlay = 4;
   }
+  uint64 timestamp_us = 10;
 }
 
-message CodecData {
+message Start {
   uint32 width = 1;
   uint32 height = 2;
-  bytes data = 3;
 }
 
-message FrameData {
-  enum FrameType {
-    UNKNOWN = 0;
-    KEY = 1;
-    DELTA = 2;
-  }
-  uint64 seq = 1;
-  uint64 pts = 2;
-  FrameType type = 3;
-  bytes data = 4;
+message Stop {
 }
 
-message InferenceData {
+message Video {
+  bytes data = 1;
+}
+
+message Overlay {
   string svg = 1;
 }

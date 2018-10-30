@@ -19,47 +19,21 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x0emessages.proto\"?\n\x08\x41iyBound\x12(\n\x0estream_control\x18\x01 \x01(\x0b\x32\x0e.StreamControlH\x00\x42\t\n\x07message\"<\n\x0b\x43lientBound\x12\"\n\x0bstream_data\x18\x01 \x01(\x0b\x32\x0b.StreamDataH\x00\x42\t\n\x07message\" \n\rStreamControl\x12\x0f\n\x07\x65nabled\x18\x01 \x01(\x08\"\x82\x01\n\nStreamData\x12 \n\ncodec_data\x18\x01 \x01(\x0b\x32\n.CodecDataH\x00\x12 \n\nframe_data\x18\x02 \x01(\x0b\x32\n.FrameDataH\x00\x12(\n\x0einference_data\x18\x03 \x01(\x0b\x32\x0e.InferenceDataH\x00\x42\x06\n\x04type\"8\n\tCodecData\x12\r\n\x05width\x18\x01 \x01(\r\x12\x0e\n\x06height\x18\x02 \x01(\r\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\"\x85\x01\n\tFrameData\x12\x0b\n\x03seq\x18\x01 \x01(\x04\x12\x0b\n\x03pts\x18\x02 \x01(\x04\x12\"\n\x04type\x18\x03 \x01(\x0e\x32\x14.FrameData.FrameType\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\",\n\tFrameType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x07\n\x03KEY\x10\x01\x12\t\n\x05\x44\x45LTA\x10\x02\"\x1c\n\rInferenceData\x12\x0b\n\x03svg\x18\x01 \x01(\tb\x06proto3')
+  serialized_pb=_b('\n\x0emessages.proto\"B\n\x0bServerBound\x12(\n\x0estream_control\x18\x01 \x01(\x0b\x32\x0e.StreamControlH\x00\x42\t\n\x07message\" \n\rStreamControl\x12\x0f\n\x07\x65nabled\x18\x01 \x01(\x08\"\x94\x01\n\x0b\x43lientBound\x12\x17\n\x05start\x18\x01 \x01(\x0b\x32\x06.StartH\x00\x12\x15\n\x04stop\x18\x02 \x01(\x0b\x32\x05.StopH\x00\x12\x17\n\x05video\x18\x03 \x01(\x0b\x32\x06.VideoH\x00\x12\x1b\n\x07overlay\x18\x04 \x01(\x0b\x32\x08.OverlayH\x00\x12\x14\n\x0ctimestamp_us\x18\n \x01(\x04\x42\t\n\x07message\"&\n\x05Start\x12\r\n\x05width\x18\x01 \x01(\r\x12\x0e\n\x06height\x18\x02 \x01(\r\"\x06\n\x04Stop\"\x15\n\x05Video\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\"\x16\n\x07Overlay\x12\x0b\n\x03svg\x18\x01 \x01(\tb\x06proto3')
 )
 
 
 
-_FRAMEDATA_FRAMETYPE = _descriptor.EnumDescriptor(
-  name='FrameType',
-  full_name='FrameData.FrameType',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='UNKNOWN', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='KEY', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='DELTA', index=2, number=2,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=460,
-  serialized_end=504,
-)
-_sym_db.RegisterEnumDescriptor(_FRAMEDATA_FRAMETYPE)
 
-
-_AIYBOUND = _descriptor.Descriptor(
-  name='AiyBound',
-  full_name='AiyBound',
+_SERVERBOUND = _descriptor.Descriptor(
+  name='ServerBound',
+  full_name='ServerBound',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='stream_control', full_name='AiyBound.stream_control', index=0,
+      name='stream_control', full_name='ServerBound.stream_control', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -77,45 +51,11 @@ _AIYBOUND = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='message', full_name='AiyBound.message',
+      name='message', full_name='ServerBound.message',
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=18,
-  serialized_end=81,
-)
-
-
-_CLIENTBOUND = _descriptor.Descriptor(
-  name='ClientBound',
-  full_name='ClientBound',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='stream_data', full_name='ClientBound.stream_data', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-    _descriptor.OneofDescriptor(
-      name='message', full_name='ClientBound.message',
-      index=0, containing_type=None, fields=[]),
-  ],
-  serialized_start=83,
-  serialized_end=143,
+  serialized_end=84,
 )
 
 
@@ -145,36 +85,50 @@ _STREAMCONTROL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=145,
-  serialized_end=177,
+  serialized_start=86,
+  serialized_end=118,
 )
 
 
-_STREAMDATA = _descriptor.Descriptor(
-  name='StreamData',
-  full_name='StreamData',
+_CLIENTBOUND = _descriptor.Descriptor(
+  name='ClientBound',
+  full_name='ClientBound',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='codec_data', full_name='StreamData.codec_data', index=0,
+      name='start', full_name='ClientBound.start', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='frame_data', full_name='StreamData.frame_data', index=1,
+      name='stop', full_name='ClientBound.stop', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='inference_data', full_name='StreamData.inference_data', index=2,
+      name='video', full_name='ClientBound.video', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='overlay', full_name='ClientBound.overlay', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='timestamp_us', full_name='ClientBound.timestamp_us', index=4,
+      number=10, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -190,38 +144,86 @@ _STREAMDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='type', full_name='StreamData.type',
+      name='message', full_name='ClientBound.message',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=180,
-  serialized_end=310,
+  serialized_start=121,
+  serialized_end=269,
 )
 
 
-_CODECDATA = _descriptor.Descriptor(
-  name='CodecData',
-  full_name='CodecData',
+_START = _descriptor.Descriptor(
+  name='Start',
+  full_name='Start',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='width', full_name='CodecData.width', index=0,
+      name='width', full_name='Start.width', index=0,
       number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='height', full_name='CodecData.height', index=1,
+      name='height', full_name='Start.height', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=271,
+  serialized_end=309,
+)
+
+
+_STOP = _descriptor.Descriptor(
+  name='Stop',
+  full_name='Stop',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=311,
+  serialized_end=317,
+)
+
+
+_VIDEO = _descriptor.Descriptor(
+  name='Video',
+  full_name='Video',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
     _descriptor.FieldDescriptor(
-      name='data', full_name='CodecData.data', index=2,
-      number=3, type=12, cpp_type=9, label=1,
+      name='data', full_name='Video.data', index=0,
+      number=1, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -238,73 +240,20 @@ _CODECDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=312,
-  serialized_end=368,
+  serialized_start=319,
+  serialized_end=340,
 )
 
 
-_FRAMEDATA = _descriptor.Descriptor(
-  name='FrameData',
-  full_name='FrameData',
+_OVERLAY = _descriptor.Descriptor(
+  name='Overlay',
+  full_name='Overlay',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='seq', full_name='FrameData.seq', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='pts', full_name='FrameData.pts', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='type', full_name='FrameData.type', index=2,
-      number=3, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='FrameData.data', index=3,
-      number=4, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-    _FRAMEDATA_FRAMETYPE,
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=371,
-  serialized_end=504,
-)
-
-
-_INFERENCEDATA = _descriptor.Descriptor(
-  name='InferenceData',
-  full_name='InferenceData',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='svg', full_name='InferenceData.svg', index=0,
+      name='svg', full_name='Overlay.svg', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -322,54 +271,45 @@ _INFERENCEDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=506,
-  serialized_end=534,
+  serialized_start=342,
+  serialized_end=364,
 )
 
-_AIYBOUND.fields_by_name['stream_control'].message_type = _STREAMCONTROL
-_AIYBOUND.oneofs_by_name['message'].fields.append(
-  _AIYBOUND.fields_by_name['stream_control'])
-_AIYBOUND.fields_by_name['stream_control'].containing_oneof = _AIYBOUND.oneofs_by_name['message']
-_CLIENTBOUND.fields_by_name['stream_data'].message_type = _STREAMDATA
+_SERVERBOUND.fields_by_name['stream_control'].message_type = _STREAMCONTROL
+_SERVERBOUND.oneofs_by_name['message'].fields.append(
+  _SERVERBOUND.fields_by_name['stream_control'])
+_SERVERBOUND.fields_by_name['stream_control'].containing_oneof = _SERVERBOUND.oneofs_by_name['message']
+_CLIENTBOUND.fields_by_name['start'].message_type = _START
+_CLIENTBOUND.fields_by_name['stop'].message_type = _STOP
+_CLIENTBOUND.fields_by_name['video'].message_type = _VIDEO
+_CLIENTBOUND.fields_by_name['overlay'].message_type = _OVERLAY
 _CLIENTBOUND.oneofs_by_name['message'].fields.append(
-  _CLIENTBOUND.fields_by_name['stream_data'])
-_CLIENTBOUND.fields_by_name['stream_data'].containing_oneof = _CLIENTBOUND.oneofs_by_name['message']
-_STREAMDATA.fields_by_name['codec_data'].message_type = _CODECDATA
-_STREAMDATA.fields_by_name['frame_data'].message_type = _FRAMEDATA
-_STREAMDATA.fields_by_name['inference_data'].message_type = _INFERENCEDATA
-_STREAMDATA.oneofs_by_name['type'].fields.append(
-  _STREAMDATA.fields_by_name['codec_data'])
-_STREAMDATA.fields_by_name['codec_data'].containing_oneof = _STREAMDATA.oneofs_by_name['type']
-_STREAMDATA.oneofs_by_name['type'].fields.append(
-  _STREAMDATA.fields_by_name['frame_data'])
-_STREAMDATA.fields_by_name['frame_data'].containing_oneof = _STREAMDATA.oneofs_by_name['type']
-_STREAMDATA.oneofs_by_name['type'].fields.append(
-  _STREAMDATA.fields_by_name['inference_data'])
-_STREAMDATA.fields_by_name['inference_data'].containing_oneof = _STREAMDATA.oneofs_by_name['type']
-_FRAMEDATA.fields_by_name['type'].enum_type = _FRAMEDATA_FRAMETYPE
-_FRAMEDATA_FRAMETYPE.containing_type = _FRAMEDATA
-DESCRIPTOR.message_types_by_name['AiyBound'] = _AIYBOUND
-DESCRIPTOR.message_types_by_name['ClientBound'] = _CLIENTBOUND
+  _CLIENTBOUND.fields_by_name['start'])
+_CLIENTBOUND.fields_by_name['start'].containing_oneof = _CLIENTBOUND.oneofs_by_name['message']
+_CLIENTBOUND.oneofs_by_name['message'].fields.append(
+  _CLIENTBOUND.fields_by_name['stop'])
+_CLIENTBOUND.fields_by_name['stop'].containing_oneof = _CLIENTBOUND.oneofs_by_name['message']
+_CLIENTBOUND.oneofs_by_name['message'].fields.append(
+  _CLIENTBOUND.fields_by_name['video'])
+_CLIENTBOUND.fields_by_name['video'].containing_oneof = _CLIENTBOUND.oneofs_by_name['message']
+_CLIENTBOUND.oneofs_by_name['message'].fields.append(
+  _CLIENTBOUND.fields_by_name['overlay'])
+_CLIENTBOUND.fields_by_name['overlay'].containing_oneof = _CLIENTBOUND.oneofs_by_name['message']
+DESCRIPTOR.message_types_by_name['ServerBound'] = _SERVERBOUND
 DESCRIPTOR.message_types_by_name['StreamControl'] = _STREAMCONTROL
-DESCRIPTOR.message_types_by_name['StreamData'] = _STREAMDATA
-DESCRIPTOR.message_types_by_name['CodecData'] = _CODECDATA
-DESCRIPTOR.message_types_by_name['FrameData'] = _FRAMEDATA
-DESCRIPTOR.message_types_by_name['InferenceData'] = _INFERENCEDATA
+DESCRIPTOR.message_types_by_name['ClientBound'] = _CLIENTBOUND
+DESCRIPTOR.message_types_by_name['Start'] = _START
+DESCRIPTOR.message_types_by_name['Stop'] = _STOP
+DESCRIPTOR.message_types_by_name['Video'] = _VIDEO
+DESCRIPTOR.message_types_by_name['Overlay'] = _OVERLAY
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-AiyBound = _reflection.GeneratedProtocolMessageType('AiyBound', (_message.Message,), dict(
-  DESCRIPTOR = _AIYBOUND,
+ServerBound = _reflection.GeneratedProtocolMessageType('ServerBound', (_message.Message,), dict(
+  DESCRIPTOR = _SERVERBOUND,
   __module__ = 'messages_pb2'
-  # @@protoc_insertion_point(class_scope:AiyBound)
+  # @@protoc_insertion_point(class_scope:ServerBound)
   ))
-_sym_db.RegisterMessage(AiyBound)
-
-ClientBound = _reflection.GeneratedProtocolMessageType('ClientBound', (_message.Message,), dict(
-  DESCRIPTOR = _CLIENTBOUND,
-  __module__ = 'messages_pb2'
-  # @@protoc_insertion_point(class_scope:ClientBound)
-  ))
-_sym_db.RegisterMessage(ClientBound)
+_sym_db.RegisterMessage(ServerBound)
 
 StreamControl = _reflection.GeneratedProtocolMessageType('StreamControl', (_message.Message,), dict(
   DESCRIPTOR = _STREAMCONTROL,
@@ -378,33 +318,40 @@ StreamControl = _reflection.GeneratedProtocolMessageType('StreamControl', (_mess
   ))
 _sym_db.RegisterMessage(StreamControl)
 
-StreamData = _reflection.GeneratedProtocolMessageType('StreamData', (_message.Message,), dict(
-  DESCRIPTOR = _STREAMDATA,
+ClientBound = _reflection.GeneratedProtocolMessageType('ClientBound', (_message.Message,), dict(
+  DESCRIPTOR = _CLIENTBOUND,
   __module__ = 'messages_pb2'
-  # @@protoc_insertion_point(class_scope:StreamData)
+  # @@protoc_insertion_point(class_scope:ClientBound)
   ))
-_sym_db.RegisterMessage(StreamData)
+_sym_db.RegisterMessage(ClientBound)
 
-CodecData = _reflection.GeneratedProtocolMessageType('CodecData', (_message.Message,), dict(
-  DESCRIPTOR = _CODECDATA,
+Start = _reflection.GeneratedProtocolMessageType('Start', (_message.Message,), dict(
+  DESCRIPTOR = _START,
   __module__ = 'messages_pb2'
-  # @@protoc_insertion_point(class_scope:CodecData)
+  # @@protoc_insertion_point(class_scope:Start)
   ))
-_sym_db.RegisterMessage(CodecData)
+_sym_db.RegisterMessage(Start)
 
-FrameData = _reflection.GeneratedProtocolMessageType('FrameData', (_message.Message,), dict(
-  DESCRIPTOR = _FRAMEDATA,
+Stop = _reflection.GeneratedProtocolMessageType('Stop', (_message.Message,), dict(
+  DESCRIPTOR = _STOP,
   __module__ = 'messages_pb2'
-  # @@protoc_insertion_point(class_scope:FrameData)
+  # @@protoc_insertion_point(class_scope:Stop)
   ))
-_sym_db.RegisterMessage(FrameData)
+_sym_db.RegisterMessage(Stop)
 
-InferenceData = _reflection.GeneratedProtocolMessageType('InferenceData', (_message.Message,), dict(
-  DESCRIPTOR = _INFERENCEDATA,
+Video = _reflection.GeneratedProtocolMessageType('Video', (_message.Message,), dict(
+  DESCRIPTOR = _VIDEO,
   __module__ = 'messages_pb2'
-  # @@protoc_insertion_point(class_scope:InferenceData)
+  # @@protoc_insertion_point(class_scope:Video)
   ))
-_sym_db.RegisterMessage(InferenceData)
+_sym_db.RegisterMessage(Video)
+
+Overlay = _reflection.GeneratedProtocolMessageType('Overlay', (_message.Message,), dict(
+  DESCRIPTOR = _OVERLAY,
+  __module__ = 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:Overlay)
+  ))
+_sym_db.RegisterMessage(Overlay)
 
 
 # @@protoc_insertion_point(module_scope)

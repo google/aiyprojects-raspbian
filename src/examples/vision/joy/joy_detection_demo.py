@@ -120,7 +120,7 @@ def scale_bounding_box(bounding_box, scale_x, scale_y):
     return (x * scale_x, y * scale_y, w * scale_x, h * scale_y)
 
 
-def server_inference_data(faces, frame_size, joy_score):
+def generate_overlay(faces, frame_size, joy_score):
     width, height = frame_size
     doc = svg.Svg(width=width, height=height)
 
@@ -300,7 +300,6 @@ def joy_detector(num_frames, preview_alpha, image_format, image_folder, enable_s
         server = None
         if enable_streaming:
             server = stack.enter_context(StreamingServer(camera))
-            server.run()
 
         def model_loaded():
             logger.info('Model loaded.')
@@ -333,8 +332,7 @@ def joy_detector(num_frames, preview_alpha, image_format, image_folder, enable_s
                 player.play(SAD_SOUND)
 
             if server:
-                data = server_inference_data(faces, frame_size, joy_score)
-                server.send_inference_data(data)
+                server.send_overlay(generate_overlay(faces, frame_size, joy_score))
 
             if done.is_set():
                 break

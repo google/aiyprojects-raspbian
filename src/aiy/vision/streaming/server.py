@@ -2,6 +2,7 @@ import base64
 import hashlib
 import os
 import logging
+import queue
 import select
 import socket
 import struct
@@ -13,26 +14,35 @@ import time
 import aiy.vision.streaming.proto.messages_pb2 as pb2
 
 from collections import namedtuple
+from enum import Enum
 from http.server import BaseHTTPRequestHandler
 from io import BytesIO
 from itertools import cycle
 from picamera import PiVideoFrameType
 
+logger = logging.getLogger(__name__)
 
 AVAHI_SERVICE = '_aiy_vision_video._tcp'
 ENCODING_BIT_RATE = 1000000
 TX_QUEUE_SIZE = 15
-WS_PORT = 4664
+
+WEB_PORT = 4664
 TCP_PORT = 4665
 ANNEXB_PORT = 4666
-
 
 def _close_socket(sock):
     try:
         sock.shutdown(socket.SHUT_RDWR)
+        sock.close()
     except OSError:
         pass
 
+def _listen_socket(port):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind(('', port))
+    sock.listen()
+    return sock
 
 def kit_info():
     def simple_hash(data, length=4):
@@ -67,8 +77,65 @@ def kit_info():
     else:
         return 0, pi_info()
 
+class DroppingQueue:
+
+    def __init__(self, maxsize):
+        if maxsize <= 0:
+            raise ValueError('Maxsize must be positive.')
+        self.maxsize = maxsize
+        self._items = []
+        self._cond = threading.Condition(threading.Lock())
+
+    def put(self, item, replace_last=False):
+        with self._cond:
+            was_empty = len(self._items) == 0
+            if len(self._items) < self.maxsize:
+                self._items.append(item)
+                if was_empty:
+                    self._cond.notify()
+                return False  # not dropped
+            else:
+                if replace_last:
+                    self._items[len(self._items) - 1] = item
+                    return False  # not dropped
+                else:
+                    return True  # dropped
+
+    def get(self):
+        with self._cond:
+            while not self._items:
+                self._cond.wait()
+            return self._items.pop(0)
+
+
+class AtomicSet:
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._set = set()
+
+    def add(self, value):
+        with self._lock:
+            self._set.add(value)
+
+    def remove(self, value):
+        with self._lock:
+            try:
+                self._set.remove(value)
+                return True
+            except KeyError:
+                return False
+
+    def __len__(self):
+        with self._lock:
+            return len(self._set)
+
+    def __iter__(self):
+        with self._lock:
+            return iter(self._set.copy())
 
 class PresenceServer:
+
     def __init__(self, name, port):
         cmd = ['avahi-publish-service', name, '_aiy_vision_video._tcp', str(port), 'AIY Streaming']
         self._process = subprocess.Popen(cmd, shell=False)
@@ -77,204 +144,7 @@ class PresenceServer:
         self._process.terminate()
         self._process.wait()
 
-
 class StreamingServer(object):
-
-    def __init__(self, camera):
-        self._lock = threading.Lock()
-        self._logger = logging.getLogger(__name__)
-        self._camera = camera
-        self._stream_count = 0
-        self._tcp_socket = None
-        self._web_socket = None
-        self._annexb_socket = None
-        self._thread = None
-        self._closed = False
-        self._waiting_for_key = False
-        self._start_time = time.monotonic()
-        self._seq = 0
-        self._clients = []
-
-    def run(self):
-        with self._lock:
-            if self._thread:
-                self._logger.error('Server already running')
-                return
-            self._closed = False
-            self._thread = threading.Thread(target=self._server_thread)
-            self._thread.start()
-
-    def close(self):
-        to_join = None
-        clients = None
-        with self._lock:
-            if self._closed:
-                return
-            self._closed = True
-
-            clients = self._clients
-            self._clients = []
-            if self._tcp_socket:
-                _close_socket(self._tcp_socket)
-                self._tcp_socket = None
-            if self._web_socket:
-                _close_socket(self._web_socket)
-                self._web_socket = None
-            if self._annexb_socket:
-                _close_socket(self._annexb_socket)
-                self._annexb_socket = None
-            if self._thread:
-                to_join = self._thread
-                self._thread = None
-        if clients:
-            self._logger.info('Closing %d clients', len(clients))
-            for client in clients:
-                client.close()
-        if to_join:
-            to_join.join()
-        self._logger.info('Server closed')
-
-    def _server_thread(self):
-        tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        tcp_socket.bind(('', TCP_PORT))
-        tcp_socket.listen()
-        tcp_port = tcp_socket.getsockname()[1]
-
-        web_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        web_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        web_socket.bind(('', WS_PORT))
-        web_socket.listen()
-        web_port = web_socket.getsockname()[1]
-
-        annexb_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        annexb_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        annexb_socket.bind(('', ANNEXB_PORT))
-        annexb_socket.listen()
-        annexb_port = annexb_socket.getsockname()[1]
-
-        with self._lock:
-            self._tcp_socket = tcp_socket
-            self._web_socket = web_socket
-            self._annexb_socket = annexb_socket
-
-        self._logger.info('Listening on ports tcp: %d web: %d annexb: %d',
-                          tcp_port, web_port, annexb_port)
-
-        _, device_name = kit_info()
-        presence = PresenceServer(device_name, tcp_port)
-
-        while True:
-            with self._lock:
-                if self._closed:
-                    break
-            socks = [tcp_socket, web_socket, annexb_socket]
-            try:
-                rlist, _, _ = select.select(socks, socks, socks)
-                for ready in rlist:
-                    client_sock, client_addr = ready.accept()
-                    if ready == tcp_socket:
-                        kind = 'tcp'
-                        client = _ProtoClient(self, client_sock, client_addr)
-                    elif ready == web_socket:
-                        kind = 'web'
-                        client = _WsProtoClient(self, client_sock, client_addr)
-                    elif ready == annexb_socket:
-                        kind = 'annexb'
-                        client = _AnnexbClient(self, client_sock, client_addr)
-                    else:
-                        # Shouldn't happen.
-                        client_sock.close()
-                        continue
-
-                    self._logger.info('New %s connection from %s:%d', kind,
-                                      client_addr[0], client_addr[1])
-
-                    with self._lock:
-                        self._clients.append(client)
-                    client.start()
-            except:
-                self._logger.info('Server sockets closed')
-
-        self._logger.info('Server shutting down')
-        presence.close()
-        _close_socket(tcp_socket)
-        _close_socket(web_socket)
-        _close_socket(annexb_socket)
-        with self._lock:
-            self._tcp_socket = None
-            self._web_socket = None
-            self._annexb_socket = None
-
-    def _stream_control(self, enable):
-        start_recording = False
-        stop_recording = False
-        with self._lock:
-            if enable:
-                self._stream_count += 1
-                start_recording = self._stream_count == 1
-            else:
-                self._stream_count -= 1
-                stop_recording = self._stream_count == 0
-        if start_recording:
-            self._logger.info('Start recording')
-            self._camera.start_recording(
-                _EncoderSink(self),
-                format='h264',
-                profile='baseline',
-                inline_headers=True,
-                bitrate=ENCODING_BIT_RATE,
-                intra_period=0)
-        if stop_recording:
-            self._logger.info('Stop recording')
-            self._camera.stop_recording()
-
-    def _client_closed(self, client):
-        with self._lock:
-            if client in self._clients:
-                self._clients.remove(client)
-
-    def _on_video_data(self, data):
-        frame_type = self._camera.frame.frame_type
-        is_key = frame_type == PiVideoFrameType.key_frame
-        is_delta = frame_type == PiVideoFrameType.frame
-        is_codec_data = frame_type == PiVideoFrameType.sps_header
-        if is_key:
-            self._waiting_for_key = False
-        needs_key = False
-        if is_codec_data:
-            with self._lock:
-                for client in self._clients:
-                    needs_key |= client.send_codec_data(self._camera.resolution, data)
-        elif is_key or is_delta:
-            needs_key = False
-            pts = int((time.monotonic() - self._start_time) * 1e6)
-            with self._lock:
-                for client in self._clients:
-                    needs_key |= client.send_frame_data(is_key, self._seq, pts, data)
-                self._seq += 1
-        else:
-            self._logger.info('Unknown frame %d bytes', len(data))
-        if needs_key:
-            self._request_key_frame()
-
-    def send_inference_data(self, svg):
-        message = pb2.ClientBound()
-        message.stream_data.inference_data.SetInParent()
-        message.stream_data.inference_data.svg = svg
-
-        needs_key = False
-        with self._lock:
-            for client in self._clients:
-                needs_key |= client.send_inference_data(message)
-        if needs_key:
-            self._request_key_frame()
-
-    def _request_key_frame(self):
-        if not self._waiting_for_key:
-            self._logger.info('Requesting key frame')
-            self._camera.request_key_frame()
-            self._waiting_for_key = True
 
     def __enter__(self):
         return self
@@ -282,33 +152,137 @@ class StreamingServer(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
+    def __init__(self, camera, tcp_port=TCP_PORT, web_port=WEB_PORT, annexb_port=ANNEXB_PORT):
+        self._camera = camera
+        self._clients = AtomicSet()
+        self._enabled_clients = AtomicSet()
+        self._done = threading.Event()
+        self._command_queue = queue.Queue()
 
-class _EncoderSink(object):
+        self._thread = threading.Thread(target=self._run,
+                                        args=(tcp_port, web_port, annexb_port))
+        self._thread.start()
 
-    def __init__(self, server):
-        self._server = server
+    def close(self):
+        self._done.set()
+        self._thread.join()
+
+    def send_overlay(self, svg):
+        for client in self._enabled_clients:
+            client.send_overlay(svg)
+
+    def _process_command(self, client, command):
+        was_streaming = len(self._enabled_clients) > 0
+
+        if command is ClientCommand.ENABLE:
+            self._enabled_clients.add(client)
+        elif command is ClientCommand.DISABLE:
+            self._enabled_clients.remove(client)
+        elif command == ClientCommand.STOP:
+            self._enabled_clients.remove(client)
+            self._clients.remove(client)
+            client.stop()
+            logger.info('Number of active clients: %d', len(self._clients))
+
+        is_streaming = len(self._enabled_clients) > 0
+
+        if not was_streaming and is_streaming:
+            logger.info('Camera start recording')
+            self._camera.start_recording(self,
+                format='h264',
+                profile='baseline',
+                inline_headers=True,
+                bitrate=ENCODING_BIT_RATE,
+                intra_period=0)
+        if was_streaming and not is_streaming:
+            logger.info('Camera stop recording')
+            self._camera.stop_recording()
+
+
+    def _run(self, tcp_port, web_port, annexb_port):
+        tcp_socket = _listen_socket(tcp_port)
+        web_socket = _listen_socket(web_port)
+        annexb_socket = _listen_socket(annexb_port)
+
+        logger.info('Listening on ports tcp: %d web: %d annexb: %d',
+                    tcp_port, web_port, annexb_port)
+
+        _, device_name = kit_info()
+        presence = PresenceServer(device_name, tcp_port)
+
+        socks = (tcp_socket, web_socket, annexb_socket)
+        resolution = self._camera.resolution
+        try:
+            while not self._done.is_set():
+                # Process client commands.
+                try:
+                    while True:
+                        client, command = self._command_queue.get_nowait()
+                        self._process_command(client, command)
+                except queue.Empty:
+                    pass
+
+                rlist, _, _ = select.select(socks, socks, socks, 0.2)  # 200ms
+                for ready in rlist:
+                    client_sock, client_addr = ready.accept()
+                    name = '%s:%d' % client_addr
+                    if ready is tcp_socket:
+                        client = _ProtoClient(name, client_sock, self._command_queue, resolution)
+                    elif ready is web_socket:
+                        client = _WsProtoClient(name, client_sock, self._command_queue, resolution)
+                    elif ready is annexb_socket:
+                        client = _AnnexbClient(name, client_sock, self._command_queue)
+
+                    self._clients.add(client)
+                    client.start()
+                    logger.info('New %s connection from %s', client.TYPE, name)
+                    logger.info('Number of active clients: %d', len(self._clients))
+        finally:
+            logger.info('Server is shutting down')
+            presence.close()
+            _close_socket(tcp_socket)
+            _close_socket(web_socket)
+            _close_socket(annexb_socket)
+
+            if len(self._enabled_clients):
+                logger.info('Camera stop recording')
+                self._camera.stop_recording()
+
+            for client in self._clients:
+                client.stop()
+            logger.info('Done')
 
     def write(self, data):
-        self._server._on_video_data(data)
+        """Called by camera thread for each compressed frame."""
+        frame_type = self._camera.frame.frame_type
+        states = {client.send_video(frame_type, data) for client in self._enabled_clients}
 
-    def flush(self):
-        pass
+        if ClientState.ENABLED_NEEDS_SPS in states:
+            logger.info('Requesting key frame')
+            self._camera.request_key_frame()
 
+class ClientLogger(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        return '[%s] %s' % (self.extra['name'], msg), kwargs
+
+class ClientState(Enum):
+    DISABLED = 1
+    ENABLED_NEEDS_SPS = 2
+    ENABLED = 3
+
+class ClientCommand(Enum):
+    STOP = 1
+    ENABLE = 2
+    DISABLE = 3
 
 class _Client(object):
-    def __init__(self, server, socket, addr):
-        self._lock = threading.Lock()
-        self._cond = threading.Condition(self._lock)
-        self._logger = logging.getLogger(__name__)
-        self._streaming = False
-        self._closed = False
-        self._server = server
+    def __init__(self, name, socket, command_queue):
+        self._lock = threading.Lock()  # Protects _state.
+        self._state = ClientState.DISABLED
+        self._logger = ClientLogger(logger, {'name': name})
         self._socket = socket
-        self._ip = addr[0]
-        self._port = addr[1]
-        self._tx_q = []
-        self._needs_codec_data = True
-        self._needs_key = True
+        self._command_queue = command_queue
+        self._tx_q = DroppingQueue(TX_QUEUE_SIZE)
         self._rx_thread = threading.Thread(target=self._rx_thread)
         self._tx_thread = threading.Thread(target=self._tx_thread)
 
@@ -316,151 +290,124 @@ class _Client(object):
         self._rx_thread.start()
         self._tx_thread.start()
 
-    def __del__(self):
-        self.close()
-
-    def close(self):
-        with self._lock:
-            if self._closed:
-                return
-            self._closed = True
-            self._cond.notifyAll()
-            streaming = self._streaming
-            self._streaming = False
+    def stop(self):
+        self._logger.info('Stopping...')
         _close_socket(self._socket)
+        self._tx_q.put(None)
+        self._tx_thread.join()
+        self._rx_thread.join()
+        self._logger.info('Stopped.')
 
-        self._log_info('Connection closed')
-        if streaming:
-            self._server._stream_control(False)
-        self._server._client_closed(self)
-
-    def send_codec_data(self, resolution, data):
+    def send_video(self, frame_type, data):
+        """Only called by camera thread."""
         with self._lock:
-            if not self._streaming:
-                return False
-            self._needs_codec_data = False
-            return self._queue_codec_data_locked(resolution, data)
+            if self._state == ClientState.DISABLED:
+                pass
+            elif self._state == ClientState.ENABLED_NEEDS_SPS:
+                if frame_type == PiVideoFrameType.sps_header:
+                    dropped = self._queue_video(data)
+                    if not dropped:
+                        self._state = ClientState.ENABLED
+            elif self._state == ClientState.ENABLED:
+                dropped = self._queue_video(data)
+                if dropped:
+                    self._state = ClientState.ENABLED_NEEDS_SPS
+            return self._state
 
-    def send_frame_data(self, is_key, seq, pts, data):
+    def send_overlay(self, svg):
+        """Can be called by any user thread."""
         with self._lock:
-            if not self._streaming:
-                return False
+            if self._state != ClientState.DISABLED:
+                self._queue_overlay(svg)
 
-            if self._needs_codec_data:
-                return True
+    def _send_command(self, command):
+        self._command_queue.put((self, command))
 
-            if self._needs_key and not is_key:
-                return True
-            self._needs_key = False
-
-            return self._queue_frame_data_locked(is_key, seq, pts, data)
-
-    def send_inference_data(self, data):
-        with self._lock:
-            if not self._streaming:
-                return False
-            return self._queue_inference_data_locked(data)
-
-    def _log(self, func, fmt, *args):
-        args = (self._ip, self._port) + args
-        func('%s:%d: ' + fmt, *args)
-
-    def _log_info(self, fmt, *args):
-        self._log(self._logger.info, fmt, *args)
-
-    def _log_warning(self, fmt, *args):
-        self._log(self._logger.warning, fmt, *args)
-
-    def _log_error(self, fmt, *args):
-        self._log(self._logger.error, fmt, *args)
-
-    def _queue_message_locked(self, message):
-        dropped = False
-        self._tx_q.append(message)
-        while len(self._tx_q) > TX_QUEUE_SIZE:
-            dropped = True
-            self._tx_q.pop(0)
-            self._needs_codec_data = True
-            self._needs_key = True
-            self._log_warning('running behind, dropping messages')
-        self._cond.notifyAll()
+    def _queue_message(self, message, replace_last=False):
+        dropped = self._tx_q.put(message, replace_last)
+        if dropped:
+            self._logger.warning('Running behind, dropping messages')
         return dropped
 
     def _tx_thread(self):
-        while True:
-            with self._lock:
-                if self._closed:
+        try:
+            while True:
+                message = self._tx_q.get()
+                if message is None:
                     break
-                if self._tx_q:
-                    message = self._tx_q.pop(0)
-                else:
-                    self._cond.wait()
-                    continue
-            try:
                 self._send_message(message)
-            except Exception as e:
-                self._log_error('Failed to send data: %s', e)
-                self.close()
+            self._logger.info('Tx thread finished')
+        except Exception as e:
+            self._logger.warning('Tx thread failed: %s', e)
+
+        self._send_command(ClientCommand.STOP)
 
     def _rx_thread(self):
-        while True:
-            with self._lock:
-                if self._closed:
+        try:
+            while True:
+                message = self._receive_message()
+                if message is None:
                     break
-
-            message = self._receive_message()
-            if message:
                 self._handle_message(message)
-            else:
-                self.close()
+            self._logger.info('Rx thread finished')
+        except Exception as e:
+            self._logger.warning('Rx thread failed: %s', e)
 
+        self._send_command(ClientCommand.STOP)
 
 class _ProtoClient(_Client):
-    def __init__(self, server, socket, addr):
-        _Client.__init__(self, server, socket, addr)
+    TYPE = 'tcp'
 
-    def _queue_codec_data_locked(self, resolution, data):
-        message = pb2.ClientBound()
-        message.stream_data.codec_data.width = resolution[0]
-        message.stream_data.codec_data.height = resolution[1]
-        message.stream_data.codec_data.data = data
-        return self._queue_message_locked(message)
+    def __init__(self, name, socket, command_queue, resolution):
+        super().__init__(name, socket, command_queue)
+        self._resolution = resolution
 
-    def _queue_frame_data_locked(self, is_key, seq, pts, data):
-        message = pb2.ClientBound()
-        if is_key:
-            message.stream_data.frame_data.type = pb2.FrameData.KEY
-        else:
-            message.stream_data.frame_data.type = pb2.FrameData.DELTA
-        message.stream_data.frame_data.seq = seq
-        message.stream_data.frame_data.pts = pts
-        message.stream_data.frame_data.data = data
-        return self._queue_message_locked(message)
+    def _queue_start(self, resolution):
+        message = pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000))
+        message.start.width, message.start.height = resolution
+        return self._queue_message(message)
 
-    def _queue_inference_data_locked(self, data):
-        return self._queue_message_locked(data)
+    def _queue_stop(self):
+        message = pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000))
+        message.timestamp_us = int(time.monotonic() * 1000000)
+        message.stop.SetInParent()
+        return self._queue_message(message, replace_last=True)
+
+    def _queue_video(self, data):
+        message = pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000))
+        message.video.data = data
+        return self._queue_message(message)
+
+    def _queue_overlay(self, svg):
+        message = pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000))
+        message.overlay.svg = svg
+        return self._queue_message(message)
 
     def _handle_message(self, message):
         which = message.WhichOneof('message')
-        try:
-            if which == 'stream_control':
-                self._handle_stream_control(message.stream_control)
-            else:
-                self._log_warning('unhandled message %s', which)
-        except Exception as e:
-            self._log_error('Error handling message %s: %s', which, e)
-            self.close()
+        if which == 'stream_control':
+            self._handle_stream_control(message.stream_control)
 
     def _handle_stream_control(self, stream_control):
-        self._log_info('stream_control %s', stream_control.enabled)
         enabled = stream_control.enabled
+        self._logger.info('stream_control %s', enabled)
+
         with self._lock:
-            if enabled == self._streaming:
-                self._log_info('ignoring NOP stream_control')
-                return
+            if self._state == ClientState.DISABLED and not enabled:
+                self._logger.info('Ignoring stream_control disable')
+            elif self._state in (ClientState.ENABLED_NEEDS_SPS, ClientState.ENABLED) and enabled:
+                self._logger.info('Ignoring stream_control enable')
             else:
-                self._streaming = enabled
-        self._server._stream_control(enabled)
+                if enabled:
+                    self._logger.info('Enabling client')
+                    self._state = ClientState.ENABLED_NEEDS_SPS
+                    self._queue_start(self._resolution)
+                    self._send_command(ClientCommand.ENABLE)
+                else:
+                    self._logger.info('Disabling client')
+                    self._state = ClientState.DISABLED
+                    self._queue_stop()
+                    self._send_command(ClientCommand.DISABLE)
 
     def _send_message(self, message):
         buf = message.SerializeToString()
@@ -468,27 +415,30 @@ class _ProtoClient(_Client):
         self._socket.sendall(buf)
 
     def _receive_bytes(self, num_bytes):
-        received = bytearray(b'')
-        while num_bytes > len(received):
+        received = bytearray()
+        while len(received) < num_bytes:
             buf = self._socket.recv(num_bytes - len(received))
             if not buf:
-                break
+                return buf
             received.extend(buf)
-        return bytes(received)
+        return received
 
     def _receive_message(self):
-        try:
-            buf = self._receive_bytes(4)
-            num_bytes = struct.unpack('!I', buf)[0]
-            buf = self._receive_bytes(num_bytes)
-            message = pb2.AiyBound()
-            message.ParseFromString(buf)
-            return message
-        except:
+        buf = self._receive_bytes(4)
+        if not buf:
             return None
+        num_bytes = struct.unpack('!I', buf)[0]
+        buf = self._receive_bytes(num_bytes)
+        if not buf:
+            return None
+        message = pb2.ServerBound()
+        message.ParseFromString(buf)
+        return message
 
 
 class _WsProtoClient(_ProtoClient):
+    TYPE = 'web'
+
     class WsPacket(object):
         def __init__(self):
             self.fin = True
@@ -527,16 +477,17 @@ class _WsProtoClient(_ProtoClient):
                 buf.extend(self.payload)
             return bytes(buf)
 
-    def __init__(self, server, socket, addr):
-        self._handshaked = False
-        _ProtoClient.__init__(self, server, socket, addr)
+    def __init__(self, name, socket, command_queue, resolution):
+        super().__init__(name, socket, command_queue, resolution)
+        self._upgraded = False
 
     def _receive_message(self):
         try:
-            while True:
-                if self._handshaked:
-                    break
-                self._process_web_request()
+            if not self._upgraded:
+                if self._process_web_request():
+                    return None
+                else:
+                    self._upgraded = True
 
             packets = []
             while True:
@@ -544,12 +495,12 @@ class _WsProtoClient(_ProtoClient):
                 if packet.opcode == 0:
                     # Continuation
                     if not packets:
-                        self._log_error('Invalid continuation received')
+                        self._logger.error('Invalid continuation received')
                         return None
                     packets.append(packet)
                 elif packet.opcode == 1:
                     # Text, not supported.
-                    self._log_error('Received text packet')
+                    self._logger.error('Received text packet')
                     return None
                 elif packet.opcode == 2:
                     # Binary.
@@ -558,43 +509,42 @@ class _WsProtoClient(_ProtoClient):
                         joined = bytearray()
                         for p in packets:
                             joined.extend(p.payload)
-                        message = pb2.AiyBound()
+                        message = pb2.ServerBound()
                         message.ParseFromString(joined)
                         return message
                 elif packet.opcode == 8:
                     # Close.
-                    self._log_info('WebSocket close requested')
+                    self._logger.info('WebSocket close requested')
                     return None
                 elif packet.opcode == 9:
                     # Ping, send pong.
-                    self._log_info('Received ping')
+                    self._logger.info('Received ping')
                     response = self.WsPacket()
                     response.opcode = 10
                     response.append(packet.payload)
-                    with self._lock:
-                        self._queue_message_locked(response)
+                    self._queue_message(response)
                 elif packet.opcode == 10:
                     # Pong. Igore as we don't send pings.
-                    self._log_info('Dropping pong')
+                    self._logger.info('Dropping pong')
                 else:
-                    self._log_info('Dropping opcode %d', packet.opcode)
+                    self._logger.info('Dropping opcode %d', packet.opcode)
         except:
             return None
 
     def _receive_packet(self):
         packet = self.WsPacket()
-        buf = super()._receive_bytes(2)
+        buf = self._receive_bytes(2)
         packet.fin = buf[0] & 0x80 > 0
         packet.opcode = buf[0] & 0x0F
         packet.masked = buf[1] & 0x80 > 0
         packet.length = buf[1] & 0x7F
         if packet.length == 126:
-            packet.length = struct.unpack('!H', super()._receive_bytes(2))[0]
+            packet.length = struct.unpack('!H', self._receive_bytes(2))[0]
         elif packet.length == 127:
-            packet.length = struct.unpack('!Q', super()._receive_bytes(8))[0]
+            packet.length = struct.unpack('!Q', self._receive_bytes(8))[0]
         if packet.masked:
-            packet.mask = super()._receive_bytes(4)
-        packet.append(super()._receive_bytes(packet.length))
+            packet.mask = self._receive_bytes(4)
+        packet.append(self._receive_bytes(packet.length))
         return packet
 
     def _send_message(self, message):
@@ -621,33 +571,32 @@ class _WsProtoClient(_ProtoClient):
             'Content-Length: %(content_length)s\r\n'
             'Connection: Keep-Alive\r\n\r\n'
         )
-        try:
-            header_buf = bytearray()
-            while b'\r\n\r\n' not in header_buf:
-                buf = self._socket.recv(2048)
-                if not buf:
-                    raise Exception('Socket closed while receiving header')
-                header_buf.extend(buf)
-                if len(header_buf) >= 10 * 1024:
-                    raise Exception('HTTP header too large')
-            request = self.HTTPRequest(header_buf)
 
-            connection = request.headers['Connection']
-            upgrade = request.headers['Upgrade']
-            if 'Upgrade' in connection and upgrade == 'websocket':
-                self._handshake(request)
-            elif request.command == 'GET':
-                content = self._get_asset(request.path)
-                response_hdr = response_template % {'content_length': len(content)}
-                response = bytearray(response_hdr.encode('ascii'))
-                response.extend(content)
-                with self._lock:
-                    self._queue_message_locked(response)
-            else:
-                raise Exception('Unsupported request')
-        except Exception as e:
-            self.close()
-            raise e
+        header_buf = bytearray()
+        while b'\r\n\r\n' not in header_buf:
+            buf = self._socket.recv(2048)
+            if not buf:
+                raise Exception('Socket closed while receiving header')
+            header_buf.extend(buf)
+            if len(header_buf) >= 10 * 1024:
+                raise Exception('HTTP header too large')
+        request = self.HTTPRequest(header_buf)
+
+        connection = request.headers['Connection']
+        upgrade = request.headers['Upgrade']
+        if 'Upgrade' in connection and upgrade == 'websocket':
+            self._handshake(request)
+            return False
+        elif request.command == 'GET':
+            content = self._get_asset(request.path)
+            response_hdr = response_template % {'content_length': len(content)}
+            response = bytearray(response_hdr.encode('ascii'))
+            response.extend(content)
+            self._queue_message(response)
+            self._queue_message(None)
+            return True
+        else:
+            raise Exception('Unsupported request')
 
     def _handshake(self, request):
         magic = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
@@ -658,18 +607,12 @@ class _WsProtoClient(_ProtoClient):
             'Sec-WebSocket-Accept: %(sec_key)s\r\n\r\n'
         )
 
-        try:
-            sec_key = request.headers['Sec-WebSocket-Key']
-            sec_key = sec_key.encode('ascii') + magic.encode('ascii')
-            sec_key = base64.b64encode(hashlib.sha1(sec_key).digest()).decode('ascii')
-            response = response_template % {'sec_key': sec_key}
-            with self._lock:
-                self._queue_message_locked(response.encode('ascii'))
-            self._handshaked = True
-            self._log_info('Upgraded to WebSocket')
-        except Exception as e:
-            self._log_error('WebSocket handshake error: %s', e)
-            self.close()
+        sec_key = request.headers['Sec-WebSocket-Key']
+        sec_key = sec_key.encode('ascii') + magic.encode('ascii')
+        sec_key = base64.b64encode(hashlib.sha1(sec_key).digest()).decode('ascii')
+        response = response_template % {'sec_key': sec_key}
+        self._queue_message(response.encode('ascii'))
+        self._logger.info('Upgraded to WebSocket')
 
     def _get_asset(self, path):
         if not path or '..' in path:
@@ -687,27 +630,24 @@ class _WsProtoClient(_ProtoClient):
 
 
 class _AnnexbClient(_Client):
-    def __init__(self, server, socket, addr):
-        _Client.__init__(self, server, socket, addr)
-        with self._lock:
-            self._streaming = True
-        self._server._stream_control(True)
+    TYPE = 'annexb'
 
-    def start(self):
-        super().start()
-        with self._lock:
-            self._streaming = True
-        self._server._stream_control(True)
+    def __init__(self, name, socket, command_queue):
+        super().__init__(name, socket, command_queue)
+        self._state = ClientState.ENABLED_NEEDS_SPS
+        self._send_command(ClientCommand.ENABLE)
 
-    def _queue_codec_data_locked(self, resolution, data):
-        return self._queue_message_locked(data)
+    def _queue_start(self, resolution):
+        pass
 
-    def _queue_frame_data_locked(self, is_key, seq, pts, data):
-        return self._queue_message_locked(data)
+    def _queue_stop(self):
+        pass
 
-    def _queue_inference_data_locked(self, data):
-        # Silently drop inference data.
-        return False
+    def _queue_video(self, data):
+        return self._queue_message(data)
+
+    def _queue_overlay(self, svg):
+        pass
 
     def _handle_message(self, message):
         pass
@@ -716,11 +656,7 @@ class _AnnexbClient(_Client):
         self._socket.sendall(message)
 
     def _receive_message(self):
-        try:
-            buf = self._socket.recv(1024)
-            if not buf:
-                return None
-            else:
-                return buf
-        except:
+        buf = self._socket.recv(1024)
+        if not buf:
             return None
+        raise RuntimeError('Invalid state.')
