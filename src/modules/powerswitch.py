@@ -65,7 +65,7 @@ class PowerSwitch(object):
 
             logging.info('Code to send: ' + str(code))
 
-            self.mqtt.command('/rf-power/code', code)
+            self.mqtt.command('/power/code', code)
 
         else:
             aiy.audio.say('Unrecognised switch')
