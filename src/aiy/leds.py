@@ -13,6 +13,9 @@
 # limitations under the License.
 
 import math
+import os
+
+_DEVICE_PATH = '/sys/class/leds/ktd202x:led1/device/'
 
 def _tflash_reg(duration_ms):
     if duration_ms <= 128:
@@ -40,8 +43,7 @@ def _write(path, data):
 
 
 def _device_file(prop):
-    return '/sys/class/leds/ktd202x:led1/device/%s' % prop
-
+    return os.path.join(_DEVICE_PATH, prop)
 
 class Color:
     @staticmethod
@@ -133,7 +135,14 @@ class Leds:
     def privacy_off():
         return Leds.privacy(False, 0)
 
+    @staticmethod
+    def installed():
+        return os.path.exists(_DEVICE_PATH)
+
     def __init__(self, reset=True):
+        if not Leds.installed():
+            raise RuntimeError('Leds are not available on this board.')
+
         self._pattern = None
         if reset:
             self.reset()

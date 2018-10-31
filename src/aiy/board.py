@@ -22,6 +22,8 @@ from collections import namedtuple
 
 import RPi.GPIO as GPIO
 
+from aiy.leds import Color, Leds, Pattern
+
 class Button:
     def _run(self):
         pressed = 0.0
@@ -85,32 +87,91 @@ class Button:
         self._pressed.put(event)
         event.wait()
 
+class MultiColorLed:
+    Config = namedtuple('Config', ['channels', 'pattern'])
 
-PwmConfig = namedtuple('PwmConfig', ['duty_cycles', 'pause'])
+    OFF         = Config(channels=lambda color: Leds.rgb_off(),
+                         pattern=None)
+    ON          = Config(channels=Leds.rgb_on,
+                         pattern=None)
+    BLINK       = Config(channels=Leds.rgb_pattern,
+                         pattern=Pattern.blink(500))
+    BLINK_3     = BLINK
+    BEACON      = BLINK
+    BEACON_DARK = BLINK
+    DECAY       = BLINK
+    PULSE_SLOW  = Config(channels=Leds.rgb_pattern,
+                         pattern=Pattern.breathe(500))
+    PULSE_QUICK = Config(channels=Leds.rgb_pattern,
+                         pattern=Pattern.breathe(100))
+
+    def _update(self, state, brightness):
+        with self._lock:
+            if state is not None:
+                self._state = state
+            if brightness is not None:
+                self._brightness = brightness
+
+            color = (int(255 * self._brightness), 0, 0)
+            if self._state.pattern:
+                self._leds.pattern = self._state.pattern
+            self._leds.update(self._state.channels(color))
+
+    def __init__(self, channel):
+        self._lock = threading.Lock()
+        self._brightness = 1.0  # Read and written atomically.
+        self._state = self.OFF
+        self._leds = Leds()
+
+    def close(self):
+        self._leds.reset()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.close()
+
+    @property
+    def brightness(self):
+        return self._brightness
+
+    @brightness.setter
+    def brightness(self, value):
+        if value < 0.0 or value > 1.0:
+            raise ValueError('Brightness must be between 0.0 and 1.0.')
+        self._update(state=None, brightness=value)
+
+    def _set_state(self, state):
+        self._update(state=state, brightness=None)
+    state = property(None, _set_state)
 
 
-class Led:
-    OFF         = PwmConfig(duty_cycles=lambda: [0], pause=1.0)
-    ON          = PwmConfig(duty_cycles=lambda: [100], pause=1.0)
-    BLINK       = PwmConfig(duty_cycles=lambda: [0, 100], pause=0.5)
-    BLINK_3     = PwmConfig(duty_cycles=lambda: [0, 100] * 3 + [0, 0],
-                            pause=0.25),
-    BEACON      = PwmConfig(duty_cycles=lambda: itertools.chain([30] * 100,
-                                                                [100] * 8,
-                                                                range(100, 30, -5)),
-                            pause=0.05)
-    BEACON_DARK = PwmConfig(duty_cycles=lambda: itertools.chain([0] * 100,
-                                                                range(0, 30, 3),
-                                                                range(30, 0, -3)),
-                            pause=0.05)
-    DECAY       = PwmConfig(duty_cycles=lambda: range(100, 0, -2),
-                            pause=0.05),
-    PULSE_SLOW  = PwmConfig(duty_cycles=lambda: itertools.chain(range(0, 100, 2),
-                                                                range(100, 0, -2)),
-                            pause=0.1)
-    PULSE_QUICK = PwmConfig(duty_cycles=lambda: itertools.chain(range(0, 100, 5),
+
+class SingleColorLed:
+    Config = namedtuple('Config', ['duty_cycles', 'pause'])
+
+    OFF         = Config(duty_cycles=lambda: [0], pause=1.0)
+    ON          = Config(duty_cycles=lambda: [100], pause=1.0)
+    BLINK       = Config(duty_cycles=lambda: [0, 100], pause=0.5)
+    BLINK_3     = Config(duty_cycles=lambda: [0, 100] * 3 + [0, 0],
+                         pause=0.25),
+    BEACON      = Config(duty_cycles=lambda: itertools.chain([30] * 100,
+                                                             [100] * 8,
+                                                             range(100, 30, -5)),
+                         pause=0.05)
+    BEACON_DARK = Config(duty_cycles=lambda: itertools.chain([0] * 100,
+                                                             range(0, 30, 3),
+                                                             range(30, 0, -3)),
+                         pause=0.05)
+    DECAY       = Config(duty_cycles=lambda: range(100, 0, -2),
+                         pause=0.05),
+    PULSE_SLOW  = Config(duty_cycles=lambda: itertools.chain(range(0, 100, 2),
+                                                             range(100, 0, -2)),
+                         pause=0.1)
+    PULSE_QUICK = Config(duty_cycles=lambda: itertools.chain(range(0, 100, 5),
                                                                 range(100, 0, -5)),
-                            pause=0.05)
+                         pause=0.05)
 
     def _run(self):
         while True:
@@ -165,6 +226,13 @@ class Led:
         self._queue.put(state)
         self._updated.set()
     state = property(None, _set_state)
+
+
+if Leds.installed():
+    Led = MultiColorLed
+else:
+    Led = SingleColorLed
+
 
 BUTTON_PIN = 23
 LED_PIN = 25
