@@ -15,43 +15,48 @@
 # limitations under the License.
 """Camera image classification demo code.
 
-Runs continuous image detection on the VisionBonnet and prints the object and
-probability for top three objects.
+Runs continuous image classification on camera frames and prints detected object
+classes.
 
 Example:
 image_classification_camera.py --num_frames 10
 """
 import argparse
+import contextlib
 
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import image_classification
 from picamera import PiCamera
 
-def classes_info(classes, count):
-    return ', '.join('%s (%.2f)' % pair for pair in classes[0:count])
+def classes_info(classes):
+    return ', '.join('%s (%.2f)' % pair for pair in classes)
 
+@contextlib.contextmanager
+def CameraPreview(camera, enabled):
+    enabled and camera.start_preview()
+    try:
+        yield
+    finally:
+        enabled and camera.stop_preview()
 
 def main():
     parser = argparse.ArgumentParser('Image classification camera inference example.')
-    parser.add_argument('--num_frames', '-n', type=int, dest='num_frames', default=None,
+    parser.add_argument('--num_frames', '-n', type=int, default=None,
         help='Sets the number of frames to run for, otherwise runs forever.')
-    parser.add_argument('--num_objects', '-c', type=int, dest='num_objects', default=3,
+    parser.add_argument('--num_objects', '-c', type=int, default=3,
         help='Sets the number of object interences to print.')
-
+    parser.add_argument('--nopreview', dest='preview', action='store_false', default=True,
+        help='Enable camera preview')
     args = parser.parse_args()
 
-    # Forced sensor mode, 1640x1232, full FoV. See:
-    # https://picamera.readthedocs.io/en/release-1.13/fov.html#sensor-modes
-    with PiCamera(sensor_mode=4, framerate=30) as camera:
-        camera.start_preview()
-
-        with CameraInference(image_classification.model()) as inference:
-            for result in inference.run(args.num_frames):
-                classes = image_classification.get_classes(result)
-                print(classes_info(classes, args.num_objects))
-
-        camera.stop_preview()
-
+    with PiCamera(sensor_mode=4, framerate=30) as camera, \
+         CameraPreview(camera, enabled=args.preview), \
+         CameraInference(image_classification.model()) as inference:
+        for result in inference.run(args.num_frames):
+            classes = image_classification.get_classes(result, max_num_objects=args.num_objects)
+            print(classes_info(classes))
+            if classes:
+                camera.annotate_text = '%s (%.2f)' % classes[0]
 
 if __name__ == '__main__':
     main()
