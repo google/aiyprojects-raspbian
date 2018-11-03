@@ -2,12 +2,16 @@
 Description=AIY Joy Detection Demo
 Requires=dev-vision_spicomm.device
 After=dev-vision_spicomm.device
+Wants=aiy-board-info.service
+After=aiy-board-info.service
 
 [Service]
 Type=simple
 Restart=no
 User=pi
-ExecStart=/usr/bin/python3 /home/pi/AIY-projects-python/src/examples/vision/joy/joy_detection_demo.py --enable_streaming --blink_on_error
+Environment=AIY_BOARD_NAME=AIY-Board
+EnvironmentFile=-/run/aiy-board-info
+ExecStart=/usr/bin/python3 /home/pi/AIY-projects-python/src/examples/vision/joy/joy_detection_demo.py --enable_streaming --mdns_name "${AIY_BOARD_NAME}" --blink_on_error
 
 [Install]
 WantedBy=multi-user.target

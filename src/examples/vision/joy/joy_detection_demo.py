@@ -273,7 +273,8 @@ class Animator(Service):
         self.submit(joy_score)
 
 
-def joy_detector(num_frames, preview_alpha, image_format, image_folder, enable_streaming):
+def joy_detector(num_frames, preview_alpha, image_format, image_folder,
+                 enable_streaming, streaming_bitrate, mdns_name):
     done = threading.Event()
     def stop():
         logger.info('Stopping...')
@@ -283,9 +284,8 @@ def joy_detector(num_frames, preview_alpha, image_format, image_folder, enable_s
     signal.signal(signal.SIGTERM, lambda signal, frame: stop())
 
     logger.info('Starting...')
-    leds = Leds()
-
     with contextlib.ExitStack() as stack:
+        leds = stack.enter_context(Leds())
         board = stack.enter_context(Board())
         player = stack.enter_context(Player(gpio=BUZZER_GPIO, bpm=10))
         photographer = stack.enter_context(Photographer(image_format, image_folder))
@@ -299,7 +299,8 @@ def joy_detector(num_frames, preview_alpha, image_format, image_folder, enable_s
 
         server = None
         if enable_streaming:
-            server = stack.enter_context(StreamingServer(camera))
+            server = stack.enter_context(StreamingServer(camera, bitrate=streaming_bitrate,
+                                                         mdns_name=mdns_name))
 
         def model_loaded():
             logger.info('Model loaded.')
@@ -341,31 +342,32 @@ def joy_detector(num_frames, preview_alpha, image_format, image_folder, enable_s
 def main():
     logging.basicConfig(level=logging.INFO)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--num_frames', '-n', type=int, dest='num_frames', default=None,
-                        help='Number of frames to run for, -1 to not terminate')
-    parser.add_argument('--preview_alpha', '-pa', type=int, dest='preview_alpha', default=0,
-                        help='Transparency value of the preview overlay (0-255).')
-    parser.add_argument('--image_format', type=str, dest='image_format', default='jpeg',
-                        choices=('jpeg', 'bmp', 'png'), help='Format of captured images.')
-    parser.add_argument('--image_folder', type=str, dest='image_folder', default='~/Pictures',
-                        help='Folder to save captured images.')
-    parser.add_argument('--blink_on_error', dest='blink_on_error', default=False,
-                        action='store_true', help='Blink red if error occurred.')
-    parser.add_argument('--enable_streaming', dest='enable_streaming', default=False,
-                        action='store_true', help='Enable streaming server.')
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--num_frames', '-n', type=int, default=None,
+                        help='Number of frames to run for')
+    parser.add_argument('--preview_alpha', '-pa', type=int, default=0,
+                        help='Video preview overlay transparency (0-255)')
+    parser.add_argument('--image_format', default='jpeg',
+                        choices=('jpeg', 'bmp', 'png'),
+                        help='Format of captured images')
+    parser.add_argument('--image_folder', default='~/Pictures',
+                        help='Folder to save captured images')
+    parser.add_argument('--blink_on_error', default=False, action='store_true',
+                        help='Blink red if error occurred')
+    parser.add_argument('--enable_streaming', default=False, action='store_true',
+                        help='Enable streaming server')
+    parser.add_argument('--streaming_bitrate', type=int, default=1000000,
+                        help='Streaming server video bitrate (kbps)')
+    parser.add_argument('--mdns_name', default='',
+                        help='Streaming server mDNS name')
     args = parser.parse_args()
 
     if args.preview_alpha < 0 or args.preview_alpha > 255:
         parser.error('Invalid preview_alpha value: %d' % args.preview_alpha)
 
-    if not os.path.exists('/dev/vision_spicomm'):
-        logger.error('AIY Vision Bonnet is not attached or not configured properly.')
-        return 1
-
     try:
-        joy_detector(args.num_frames, args.preview_alpha, args.image_format,
-                     args.image_folder, args.enable_streaming)
+        joy_detector(args.num_frames, args.preview_alpha, args.image_format, args.image_folder,
+                     args.enable_streaming, args.streaming_bitrate, args.mdns_name)
     except KeyboardInterrupt:
         pass
     except Exception:

@@ -1,5 +1,7 @@
 import base64
+import contextlib
 import hashlib
+import io
 import os
 import logging
 import queue
@@ -16,66 +18,28 @@ import aiy.vision.streaming.proto.messages_pb2 as pb2
 from collections import namedtuple
 from enum import Enum
 from http.server import BaseHTTPRequestHandler
-from io import BytesIO
 from itertools import cycle
 from picamera import PiVideoFrameType
 
 logger = logging.getLogger(__name__)
 
-AVAHI_SERVICE = '_aiy_vision_video._tcp'
-ENCODING_BIT_RATE = 1000000
-TX_QUEUE_SIZE = 15
-
-WEB_PORT = 4664
-TCP_PORT = 4665
-ANNEXB_PORT = 4666
-
-def _close_socket(sock):
+def _shutdown(sock):
     try:
         sock.shutdown(socket.SHUT_RDWR)
-        sock.close()
     except OSError:
         pass
 
-def _listen_socket(port):
+@contextlib.contextmanager
+def Socket(port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind(('', port))
     sock.listen()
-    return sock
-
-def kit_info():
-    def simple_hash(data, length=4):
-        digest = hashlib.md5(data).digest()
-        return ''.join(str(digest[i] % 10) for i in range(length))
-
-    def device_tree_node(node):
-        with open(os.path.join('/proc/device-tree/', node), 'rb') as f:
-            return f.read().replace(b'\x00', b'')
-
-    def pi_info():
-        return 'Raspberry-Pi-%s' % simple_hash(device_tree_node('serial-number'))
-
-    HAT = namedtuple('HAT', ['product', 'product_id', 'product_ver', 'uuid', 'vendor'])
-
-    def hat_info():
-        return HAT(product=device_tree_node('hat/product').decode('utf-8'),
-                   product_id=int(device_tree_node('hat/product_id'), 16),
-                   product_ver=int(device_tree_node('hat/product_ver'), 16),
-                   uuid=device_tree_node('hat/uuid'),
-                   vendor=device_tree_node('hat/vendor').decode('utf-8'))
-
-    if os.path.exists('/proc/device-tree/hat/'):
-        hat = hat_info()
-        if hat.vendor == 'Google, LLC':
-            kit_id = hat.product_id
-            name = {1: 'Voice', 2: 'Vision', 3: 'Voice'}.get(kit_id, 'AIY-Kit')
-        else:
-            kit_id = 0
-            name = 'Kit'
-        return kit_id, '%s-%s' % (name, simple_hash(hat.uuid))
-    else:
-        return 0, pi_info()
+    try:
+        yield sock
+    finally:
+        _shutdown(sock)
+        sock.close()
 
 class DroppingQueue:
 
@@ -93,13 +57,13 @@ class DroppingQueue:
                 self._items.append(item)
                 if was_empty:
                     self._cond.notify()
-                return False  # not dropped
+                return False  # Not dropped.
             else:
                 if replace_last:
                     self._items[len(self._items) - 1] = item
-                    return False  # not dropped
+                    return False  # Not dropped.
                 else:
-                    return True  # dropped
+                    return True  # Dropped.
 
     def get(self):
         with self._cond:
@@ -117,6 +81,7 @@ class AtomicSet:
     def add(self, value):
         with self._lock:
             self._set.add(value)
+            return value
 
     def remove(self, value):
         with self._lock:
@@ -136,15 +101,7 @@ class AtomicSet:
 
 class PresenceServer:
 
-    def __init__(self, name, port):
-        cmd = ['avahi-publish-service', name, '_aiy_vision_video._tcp', str(port), 'AIY Streaming']
-        self._process = subprocess.Popen(cmd, shell=False)
-
-    def close(self):
-        self._process.terminate()
-        self._process.wait()
-
-class StreamingServer(object):
+    SERVICE_TYPE = '_aiy_vision_video._tcp'
 
     def __enter__(self):
         return self
@@ -152,15 +109,35 @@ class StreamingServer(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def __init__(self, camera, tcp_port=TCP_PORT, web_port=WEB_PORT, annexb_port=ANNEXB_PORT):
+    def __init__(self, name, port):
+        logger.info('Start publishing %s on port %d.', name, port)
+        cmd = ['avahi-publish-service', name, self.SERVICE_TYPE, str(port), 'AIY Streaming']
+        self._process = subprocess.Popen(cmd, shell=False)
+
+    def close(self):
+        self._process.terminate()
+        self._process.wait()
+        logger.info('Stop publishing.')
+
+
+class StreamingServer:
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def __init__(self, camera, bitrate=1000000, mdns_name=None,
+                 tcp_port=4665, web_port=4664, annexb_port=4666):
+        self._bitrate = bitrate
         self._camera = camera
         self._clients = AtomicSet()
         self._enabled_clients = AtomicSet()
         self._done = threading.Event()
-        self._command_queue = queue.Queue()
-
+        self._commands = queue.Queue()
         self._thread = threading.Thread(target=self._run,
-                                        args=(tcp_port, web_port, annexb_port))
+                                        args=(mdns_name, tcp_port, web_port, annexb_port))
         self._thread.start()
 
     def close(self):
@@ -171,8 +148,17 @@ class StreamingServer(object):
         for client in self._enabled_clients:
             client.send_overlay(svg)
 
+    def _start_recording(self):
+        logger.info('Camera start recording')
+        self._camera.start_recording(self, format='h264', profile='baseline',
+            inline_headers=True, bitrate=self._bitrate, intra_period=0)
+
+    def _stop_recording(self):
+        logger.info('Camera stop recording')
+        self._camera.stop_recording()
+
     def _process_command(self, client, command):
-        was_streaming = len(self._enabled_clients) > 0
+        was_streaming = bool(self._enabled_clients)
 
         if command is ClientCommand.ENABLE:
             self._enabled_clients.add(client)
@@ -180,73 +166,57 @@ class StreamingServer(object):
             self._enabled_clients.remove(client)
         elif command == ClientCommand.STOP:
             self._enabled_clients.remove(client)
-            self._clients.remove(client)
-            client.stop()
+            if self._clients.remove(client):
+                client.stop()
             logger.info('Number of active clients: %d', len(self._clients))
 
-        is_streaming = len(self._enabled_clients) > 0
+        is_streaming = bool(self._enabled_clients)
 
         if not was_streaming and is_streaming:
-            logger.info('Camera start recording')
-            self._camera.start_recording(self,
-                format='h264',
-                profile='baseline',
-                inline_headers=True,
-                bitrate=ENCODING_BIT_RATE,
-                intra_period=0)
+            self._start_recording()
         if was_streaming and not is_streaming:
-            logger.info('Camera stop recording')
-            self._camera.stop_recording()
+            self._stop_recording()
 
-
-    def _run(self, tcp_port, web_port, annexb_port):
-        tcp_socket = _listen_socket(tcp_port)
-        web_socket = _listen_socket(web_port)
-        annexb_socket = _listen_socket(annexb_port)
-
-        logger.info('Listening on ports tcp: %d web: %d annexb: %d',
-                    tcp_port, web_port, annexb_port)
-
-        _, device_name = kit_info()
-        presence = PresenceServer(device_name, tcp_port)
-
-        socks = (tcp_socket, web_socket, annexb_socket)
-        resolution = self._camera.resolution
+    def _run(self, mdns_name, tcp_port, web_port, annexb_port):
         try:
-            while not self._done.is_set():
-                # Process client commands.
-                try:
-                    while True:
-                        client, command = self._command_queue.get_nowait()
-                        self._process_command(client, command)
-                except queue.Empty:
-                    pass
+            with contextlib.ExitStack() as stack:
+                logger.info('Listening on ports tcp: %d, web: %d, annexb: %d',
+                            tcp_port, web_port, annexb_port)
+                tcp_socket = stack.enter_context(Socket(tcp_port))
+                web_socket = stack.enter_context(Socket(web_port))
+                annexb_socket = stack.enter_context(Socket(annexb_port))
+                if mdns_name:
+                    presence = stack.enter_context(PresenceServer(mdns_name, tcp_port))
 
-                rlist, _, _ = select.select(socks, socks, socks, 0.2)  # 200ms
-                for ready in rlist:
-                    client_sock, client_addr = ready.accept()
-                    name = '%s:%d' % client_addr
-                    if ready is tcp_socket:
-                        client = _ProtoClient(name, client_sock, self._command_queue, resolution)
-                    elif ready is web_socket:
-                        client = _WsProtoClient(name, client_sock, self._command_queue, resolution)
-                    elif ready is annexb_socket:
-                        client = _AnnexbClient(name, client_sock, self._command_queue)
+                socks = (tcp_socket, web_socket, annexb_socket)
+                while not self._done.is_set():
+                    # Process available client commands.
+                    try:
+                        while True:
+                            client, command = self._commands.get_nowait()
+                            self._process_command(client, command)
+                    except queue.Empty:
+                        pass  # Done processing commands.
 
-                    self._clients.add(client)
-                    client.start()
-                    logger.info('New %s connection from %s', client.TYPE, name)
-                    logger.info('Number of active clients: %d', len(self._clients))
+                    # Process recently connected clients.
+                    rlist, _, _ = select.select(socks, [], [], 0.2)  # 200ms
+                    for ready in rlist:
+                        sock, addr = ready.accept()
+                        name = '%s:%d' % addr
+                        if ready is tcp_socket:
+                            client = _ProtoClient(name, sock, self._commands, self._camera.resolution)
+                        elif ready is web_socket:
+                            client = _WsProtoClient(name, sock, self._commands, self._camera.resolution)
+                        elif ready is annexb_socket:
+                            client = _AnnexbClient(name, sock, self._commands)
+                        logger.info('New %s connection from %s', client.TYPE, name)
+
+                        self._clients.add(client).start()
+                        logger.info('Number of active clients: %d', len(self._clients))
         finally:
             logger.info('Server is shutting down')
-            presence.close()
-            _close_socket(tcp_socket)
-            _close_socket(web_socket)
-            _close_socket(annexb_socket)
-
-            if len(self._enabled_clients):
-                logger.info('Camera stop recording')
-                self._camera.stop_recording()
+            if self._enabled_clients:
+                self._stop_recording()
 
             for client in self._clients:
                 client.stop()
@@ -275,14 +245,14 @@ class ClientCommand(Enum):
     ENABLE = 2
     DISABLE = 3
 
-class _Client(object):
+class _Client:
     def __init__(self, name, socket, command_queue):
         self._lock = threading.Lock()  # Protects _state.
         self._state = ClientState.DISABLED
         self._logger = ClientLogger(logger, {'name': name})
         self._socket = socket
-        self._command_queue = command_queue
-        self._tx_q = DroppingQueue(TX_QUEUE_SIZE)
+        self._commands = command_queue
+        self._tx_q = DroppingQueue(15)
         self._rx_thread = threading.Thread(target=self._rx_thread)
         self._tx_thread = threading.Thread(target=self._tx_thread)
 
@@ -292,7 +262,8 @@ class _Client(object):
 
     def stop(self):
         self._logger.info('Stopping...')
-        _close_socket(self._socket)
+        _shutdown(self._socket)
+        self._socket.close()
         self._tx_q.put(None)
         self._tx_thread.join()
         self._rx_thread.join()
@@ -321,7 +292,7 @@ class _Client(object):
                 self._queue_overlay(svg)
 
     def _send_command(self, command):
-        self._command_queue.put((self, command))
+        self._commands.put((self, command))
 
     def _queue_message(self, message, replace_last=False):
         dropped = self._tx_q.put(message, replace_last)
@@ -439,7 +410,7 @@ class _ProtoClient(_Client):
 class _WsProtoClient(_ProtoClient):
     TYPE = 'web'
 
-    class WsPacket(object):
+    class WsPacket:
         def __init__(self):
             self.fin = True
             self.opcode = 2
@@ -561,7 +532,7 @@ class _WsProtoClient(_ProtoClient):
 
     class HTTPRequest(BaseHTTPRequestHandler):
         def __init__(self, request_buf):
-            self.rfile = BytesIO(request_buf)
+            self.rfile = io.BytesIO(request_buf)
             self.raw_requestline = self.rfile.readline()
             self.parse_request()
 
