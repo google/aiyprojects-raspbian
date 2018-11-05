@@ -236,6 +236,12 @@ class Music(object):
                 return
 
             elif podcastID in ['recent','today','today\'s','yesterday']:
+                podcasts = podcatcher.getPodcastInfo(podcastID, offset)
+
+                if len(podcasts) == 0:
+                    aiy.audio.say('No podcasts available')
+                    return 
+
                 aiy.audio.say('Available podcasts are')
                 button = aiy.voicehat.get_button()
                 button.on_press(self._buttonPressCancel)
