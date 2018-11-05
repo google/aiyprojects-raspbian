@@ -15,36 +15,40 @@
 
 """A demo of the Google Assistant GRPC recognizer."""
 
+import argparse
+import locale
 import logging
 
-import aiy.assistant.grpc
-import aiy.audio
+from aiy.assistant.grpc import AssistantServiceClientWithLed
+from aiy.board import Board
 
-from aiy.board import Board, Led
+def volume(string):
+    value = int(string)
+    if value < 0 or value > 100:
+        raise argparse.ArgumentTypeError('Volume must be in [0...100] range.')
+    return value
+
+def locale_language():
+    language, _ = locale.getdefaultlocale()
+    return language
 
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
+
+    parser = argparse.ArgumentParser(description='Assistant service example.')
+    parser.add_argument('--language', default=locale_language())
+    parser.add_argument('--volume', type=volume, default=100)
+    args = parser.parse_args()
 
     with Board() as board:
-        board.led.state = Led.PULSE_QUICK  # Starting.
-        assistant = aiy.assistant.grpc.get_assistant()
-        with aiy.audio.get_recorder():
-            while True:
-                board.led.state = Led.BEACON_DARK  # Ready.
-                logging.info('Press the button and speak')
-                board.button.wait_for_press()
-                board.led.state = Led.ON  # Listening.
-                logging.info('Listening...')
-                text, audio = assistant.recognize()
-                if text:
-                    if text == 'goodbye':
-                        board.led.state = Led.PULSE_QUICK  # Stopping.
-                        logging.info('Bye!')
-                        break
-                    logging.info('You said "%s"', text)
-                if audio:
-                    aiy.audio.play_audio(audio, assistant.get_volume())
-
+        assistant = AssistantServiceClientWithLed(board=board,
+                                                  volume_percentage=args.volume,
+                                                  language_code=args.language)
+        while True:
+            logging.info('Press button to start conversation...')
+            board.button.wait_for_press()
+            logging.info('Conversation started!')
+            assistant.conversation()
 
 if __name__ == '__main__':
     main()

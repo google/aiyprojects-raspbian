@@ -14,39 +14,58 @@
 # limitations under the License.
 
 """A demo of the Google CloudSpeech recognizer."""
-
-import aiy.audio
-import aiy.cloudspeech
+import argparse
+import locale
+import logging
 
 from aiy.board import Board, Led
+from aiy.cloudspeech import CloudSpeechClient
+
+
+def get_hints(language_code):
+    if language_code.startswith('en_'):
+        return ('turn on the light',
+                'turn off the light',
+                'blink the light',
+                'goodbye')
+    return None
+
+def locale_language():
+    language, _ = locale.getdefaultlocale()
+    return language
 
 def main():
-    recognizer = aiy.cloudspeech.get_recognizer()
-    recognizer.expect_phrase('turn off the light')
-    recognizer.expect_phrase('turn on the light')
-    recognizer.expect_phrase('blink')
+    logging.basicConfig(level=logging.DEBUG)
 
-    aiy.audio.get_recorder().start()
+    parser = argparse.ArgumentParser(description='Assistant service example.')
+    parser.add_argument('--language', default=locale_language())
+    args = parser.parse_args()
 
+    logging.info('Initializing for language %s...', args.language)
+    hints = get_hints(args.language)
+    client = CloudSpeechClient()
     with Board() as board:
         while True:
-            print('Press the button and speak')
-            board.button.wait_for_press()
-            print('Listening...')
-            text = recognizer.recognize()
-            if not text:
-                print('Sorry, I did not hear you.')
+            if hints:
+                logging.info('Say something, e.g. %s.' % ', '.join(hints))
             else:
-                print('You said "', text, '"')
-                if 'turn on the light' in text:
-                    board.led.state = Led.ON
-                elif 'turn off the light' in text:
-                    board.led.state = Led.OFF
-                elif 'blink' in text:
-                    board.led.state = Led.BLINK
-                elif 'goodbye' in text:
-                    break
+                logging.info('Say something.')
+            text = client.recognize(language_code=args.language,
+                                    hint_phrases=hints)
+            if text is None:
+                logging.info('You said nothing.')
+                continue
 
+            logging.info('You said: "%s"' % text)
+            text = text.lower()
+            if 'turn on the light' in text:
+                board.led.state = Led.ON
+            elif 'turn off the light' in text:
+                board.led.state = Led.OFF
+            elif 'blink the light' in text:
+                board.led.state = Led.BLINK
+            elif 'goodbye' in text:
+                break
 
 if __name__ == '__main__':
     main()
