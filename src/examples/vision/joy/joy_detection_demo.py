@@ -314,7 +314,7 @@ def joy_detector(num_frames, preview_alpha, image_format, image_folder,
         if preview_alpha > 0:
             camera.start_preview(alpha=preview_alpha)
 
-        board.button.on_press = take_photo
+        board.button.when_pressed = take_photo
 
         joy_moving_average = moving_average(10)
         joy_moving_average.send(None)  # Initialize.

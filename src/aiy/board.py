@@ -25,44 +25,55 @@ import RPi.GPIO as GPIO
 from aiy.leds import Color, Leds, Pattern
 
 class Button:
+
+    @staticmethod
+    def _trigger(event_queue, callback):
+        try:
+            while True:
+                event_queue.get_nowait().set()
+        except queue.Empty:
+            pass
+
+        if callback:
+            callback()
+
     def _run(self):
-        pressed = 0.0
-        active = False
+        when_pressed = 0.0
+        pressed = False
         while not self._done.is_set():
             now = time.monotonic()
             if now - pressed > self._debounce_time:
                 if GPIO.input(self._channel) == self._expected:
-                    if not active:
-                        active = True
-                        pressed = now
-                        self._trigger()
+                    if not pressed:
+                        pressed = True
+                        when_pressed = now
+                        self._trigger(self._pressed_queue, self._pressed_callback)
                 else:
-                    active = False
+                    if pressed:
+                        pressed = False
+                        self._trigger(self._released_queue, self._released_callback)
             self._done.wait(0.05)
 
-    def _trigger(self):
-        # Release wait_for_press waiters.
-        try:
-            while True:
-                self._pressed.get_nowait().set()
-        except queue.Empty:
-            pass
-
-        # Call callback.
-        callback = self._callback  # Atomic read.
-        if callback:
-            callback()
-
-    def __init__(self, channel, edge=GPIO.FALLING, pull_up_down=GPIO.PUD_UP,
+    def __init__(self, channel, edge='falling', pull_up_down='up',
                  debounce_time=0.08):
-        self._callback = None
+        if pull_up_down not in ('up', 'down'):
+            raise ValueError('Must be "up" or "down"')
+
+        if edge not in ('falling', 'rising'):
+            raise ValueError('Must be "falling" or "rising"')
+
         self._channel = channel
+        GPIO.setup(channel, GPIO.IN,
+                   pull_up_down={'up': GPIO.PUD_UP, 'down': GPIO.PUD_DOWN}[pull_up_down])
+
+        self._pressed_callback = None
+        self._released_callback = None
+
         self._debounce_time = debounce_time
-        self._expected = True if edge == GPIO.RISING else False
+        self._expected = True if edge == 'rising' else False
 
-        GPIO.setup(channel, GPIO.IN, pull_up_down=pull_up_down)
-
-        self._pressed = queue.Queue()
+        self._pressed_queue = queue.Queue()
+        self._released_queue = queue.Queue()
 
         self._done = threading.Event()
         self._thread = threading.Thread(target=self._run)
@@ -71,6 +82,7 @@ class Button:
     def close(self):
         self._done.set()
         self._thread.join()
+        GPIO.cleanup(self._channel)
 
     def __enter__(self):
         return self
@@ -78,14 +90,23 @@ class Button:
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.close()
 
-    def _on_press(self, callback):
-        self._callback = callback  # Atomic write.
-    on_press = property(None, _on_press)
+    def _when_pressed(self, callback):
+        self._pressed_callback = callback
+    when_pressed = property(None, _when_pressed)
 
-    def wait_for_press(self):
+    def _when_released(self, callback):
+        self._released_callback = callback
+    when_released = property(None, _when_released)
+
+    def wait_for_press(self, timeout=None):
         event = threading.Event()
-        self._pressed.put(event)
-        event.wait()
+        self._pressed_queue.put(event)
+        return event.wait(timeout)
+
+    def wait_for_release(self, timeout=None):
+        event = threading.Event()
+        self._released_queue.put(event)
+        return event.wait(timeout)
 
 class MultiColorLed:
     Config = namedtuple('Config', ['channels', 'pattern'])
@@ -189,7 +210,7 @@ class SingleColorLed:
 
     def __init__(self, channel):
         self._brightness = 1.0  # Read and written atomically.
-
+        self._channel = channel
         self._queue = queue.Queue(maxsize=1)
         self._queue.put(self.OFF)
         self._updated = threading.Event()
@@ -205,6 +226,7 @@ class SingleColorLed:
         self._queue.put(None)
         self._thread.join()
         self._pwm.stop()
+        GPIO.cleanup(self._channel)
 
     def __enter__(self):
         return self
@@ -240,18 +262,20 @@ LED_PIN = 25
 class Board:
 
     def __init__(self, button_pin=BUTTON_PIN, led_pin=LED_PIN):
+        self._stack = contextlib.ExitStack()
+        self._lock = threading.Lock()
         self._button_pin = button_pin
         self._button = None
         self._led = None
         self._led_pin = led_pin
-        self._stack = contextlib.ExitStack()
-        self._lock = threading.Lock()
 
         GPIO.setmode(GPIO.BCM)
 
     def close(self):
         self._stack.close()
-        GPIO.cleanup()
+        with self._lock:
+            self._button = None
+            self._led = None
 
     def __enter__(self):
         return self

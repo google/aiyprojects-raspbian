@@ -15,7 +15,7 @@ def main():
         board.button.wait_for_press()
 
         done = threading.Event()
-        board.button.on_press = done.set
+        board.button.when_pressed = done.set
 
         def wait():
             start = time.monotonic()

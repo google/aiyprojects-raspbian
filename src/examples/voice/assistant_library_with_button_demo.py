@@ -47,7 +47,7 @@ class MyAssistant(object):
         self._can_start_conversation = False
         self._assistant = None
         self._board = Board()
-        self._board.button.on_press = self._on_button_pressed
+        self._board.button.when_pressed = self._on_button_pressed
 
     def start(self):
         """Starts the assistant.
