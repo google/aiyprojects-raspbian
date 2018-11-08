@@ -22,14 +22,19 @@ from PIL import Image
 from aiy.vision.inference import ImageInference
 from aiy.vision.models import image_classification
 
-def read_stdin():
-    return io.BytesIO(sys.stdin.buffer.read())
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--input', '-i', dest='input', required=True)
-    parser.add_argument('--use_squeezenet', action='store_true', default=False,
-                        help='Uses SqueezeNet based model.')
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--input', '-i', required=True,
+                        help='Input image file.')
+    parser.add_argument('--threshold', '-t', type=float, default=0.1,
+                        help='Classification probability threshold.')
+    parser.add_argument('--top_k', '-n', type=int, default=5,
+                        help='Max number of returned classes.')
+    parser.add_argument('--sparse', '-s', action='store_true', default=False,
+                        help='Use sparse tensors.')
+    parser.add_argument('--model', '-m', choices=('squeezenet', 'mobilenet'), default='mobilenet',
+                        help='Model to run.')
     args = parser.parse_args()
 
     # There are two models available for image classification task:
@@ -37,12 +42,24 @@ def main():
     # accuracy on ImageNet;
     # 2) SqueezeNet based (image_classification.SQUEEZENET), which has 45.3% top-1
     # accuracy on ImageNet;
-    model_type = (image_classification.SQUEEZENET if args.use_squeezenet
-                  else image_classification.MOBILENET)
+    model_type = {'squeezenet': image_classification.SQUEEZENET,
+                  'mobilenet': image_classification.MOBILENET}[args.model]
+
     with ImageInference(image_classification.model(model_type)) as inference:
-        image = Image.open(read_stdin() if args.input == '-' else args.input)
-        classes = image_classification.get_classes(inference.run(image),
-            max_num_objects=5, object_prob_threshold=0.1)
+        image = Image.open(args.input)
+
+        if args.sparse:
+            configs = image_classification.sparse_configs(top_k=args.top_k,
+                                                          threshold=args.threshold,
+                                                          model_type=model_type)
+            result = inference.run(image, sparse_configs=configs)
+            classes = image_classification.get_classes_sparse(result)
+        else:
+            result = inference.run(image)
+            classes = image_classification.get_classes(result,
+                                                       top_k=args.top_k,
+                                                       threshold=args.threshold)
+
         for i, (label, score) in enumerate(classes):
             print('Result %d: %s (prob=%f)' % (i, label, score))
 

@@ -3,9 +3,9 @@
 import os
 
 
-def load_compute_graph(name):
+def load_compute_graph(filename):
     path = os.environ.get('VISION_BONNET_MODELS_PATH', '/opt/aiy/models')
-    with open(os.path.join(path, name), 'rb') as f:
+    with open(os.path.join(path, filename), 'rb') as f:
         return f.read()
 
 def shape_tuple(shape):

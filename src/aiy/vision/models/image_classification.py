@@ -13,7 +13,7 @@
 # limitations under the License.
 """API for Image Classification tasks."""
 
-from aiy.vision.inference import ModelDescriptor
+from aiy.vision.inference import ModelDescriptor, ThresholdingConfig
 from aiy.vision.models import utils
 from aiy.vision.models.image_classification_classes import CLASSES
 
@@ -25,15 +25,25 @@ from aiy.vision.models.image_classification_classes import CLASSES
 # SqueezeNet based model has 45.3% top-1 accuracy on ImageNet.
 MOBILENET = 'image_classification_mobilenet'
 SQUEEZENET = 'image_classification_squeezenet'
+
 _COMPUTE_GRAPH_NAME_MAP = {
     MOBILENET: 'mobilenet_v1_160res_0.5_imagenet.binaryproto',
     SQUEEZENET: 'squeezenet_160res_5x5_0.75.binaryproto',
 }
+
 _OUTPUT_TENSOR_NAME_MAP = {
     MOBILENET: 'MobilenetV1/Predictions/Softmax',
     SQUEEZENET: 'Prediction',
 }
 
+def sparse_configs(top_k=len(CLASSES), threshold=0.0, model_type=MOBILENET):
+    name = _OUTPUT_TENSOR_NAME_MAP[model_type]
+    return {
+        name: ThresholdingConfig(logical_shape=[len(CLASSES)],
+                                 threshold=threshold,
+                                 top_k=top_k,
+                                 to_ignore=[])
+    }
 
 def model(model_type=MOBILENET):
     return ModelDescriptor(
@@ -50,18 +60,18 @@ def _get_probs(result):
     return tuple(tensor.data)
 
 
-def get_classes(result, max_num_objects=None, object_prob_threshold=0.0):
+def get_classes(result, top_k=None, threshold=0.0):
     """Converts image classification model output to list of detected objects.
 
     Args:
       result: output tensor from image classification model.
-      max_num_objects: int; max number of objects to return.
-      object_prob_threshold: float; min probability of each returned object.
+      top_k: int; max number of objects to return.
+      threshold: float; min probability of each returned object.
 
     Returns:
       A list of (class_name: string, probability: float) pairs ordered by
       probability from highest to lowest. The number of pairs is not greater than
-      max_num_objects. Each probability is greater than object_prob_threshold. For
+      top_k. Each probability is greater than threshold. For
       example:
 
       [('Egyptian cat', 0.767578)
@@ -69,7 +79,34 @@ def get_classes(result, max_num_objects=None, object_prob_threshold=0.0):
        ('lynx/catamount', 0.039795)]
     """
     probs = _get_probs(result)
-    pairs = [pair for pair in enumerate(probs) if pair[1] > object_prob_threshold]
+    pairs = [pair for pair in enumerate(probs) if pair[1] > threshold]
     pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
-    pairs = pairs[0:max_num_objects]
+    pairs = pairs[0:top_k]
+    return [('/'.join(CLASSES[index]), prob) for index, prob in pairs]
+
+
+def _get_pairs(result):
+    assert len(result.tensors) == 1
+    tensor = result.tensors[_OUTPUT_TENSOR_NAME_MAP[result.model_name]]
+    indices = tuple(tensor.indices)
+    data = tuple(tensor.data)
+    return [(index.values[0], prob) for index, prob in zip(indices, data)]
+
+
+def get_classes_sparse(result):
+    """Converts sparse image classification model output to list of detected objects.
+
+    Args:
+      result: sparse output tensor from image classification model.
+
+    Returns:
+      A list of (class_name: string, probability: float) pairs ordered by
+      probability from highest to lowest.
+      For example:
+
+      [('Egyptian cat', 0.767578)
+       ('tiger cat, 0.163574)
+    """
+    pairs = _get_pairs(result)
+    pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
     return [('/'.join(CLASSES[index]), prob) for index, prob in pairs]

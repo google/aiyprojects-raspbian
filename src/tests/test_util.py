@@ -11,24 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import contextlib
 import os
-from contextlib import contextmanager
+import unittest
 
 from PIL import Image
-
 
 def test_image_path(name):
     p = os.path.join(os.path.dirname(__file__), 'images', name)
     return os.path.abspath(p)
 
-@contextmanager
+@contextlib.contextmanager
 def TestImage(name):
-    try:
-        f = open(test_image_path(name), 'rb')
+    with open(test_image_path(name), 'rb') as f:
+        image = Image.open(f)
         try:
-            image = Image.open(f)
             yield image
         finally:
             image.close()
-    finally:
-        f.close()
+
+def define_test_case(scope, test_class, *test_args):
+    def init(self, *args, **kwargs):
+        unittest.TestCase.__init__(self, *args, **kwargs)
+        test_class.__init__(self, *test_args)
+    name = 'Test%s' % str(test_args)
+    scope[name] = type(name, (test_class, unittest.TestCase), {'__init__': init})

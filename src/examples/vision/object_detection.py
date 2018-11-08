@@ -33,25 +33,39 @@ def crop_center(image):
     x, y = (width - size) / 2, (height - size) / 2
     return image.crop((x, y, x + size, y + size)), (x, y)
 
-def read_stdin():
-    return io.BytesIO(sys.stdin.buffer.read())
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--input', '-i', dest='input', required=True)
-    parser.add_argument('--output', '-o', dest='output')
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--input', '-i', dest='input', required=True,
+                        help='Input image file.')
+    parser.add_argument('--output', '-o', dest='output',
+                        help='Output image file with bounding boxes.')
+    parser.add_argument('--sparse', '-s', action='store_true', default=False,
+                        help='Use sparse tensors.')
+    parser.add_argument('--threshold', '-t', type=float, default=0.3,
+                        help='Detection probability threshold.')
     args = parser.parse_args()
 
     with ImageInference(object_detection.model()) as inference:
-        image = Image.open(read_stdin() if args.input == '-' else args.input)
+        image = Image.open(args.input)
         image_center, offset = crop_center(image)
-        draw = ImageDraw.Draw(image)
-        result = inference.run(image_center)
-        for i, obj in enumerate(object_detection.get_objects(result, 0.3, offset)):
-            print('Object #%d: %s' % (i, str(obj)))
-            x, y, width, height = obj.bounding_box
-            draw.rectangle((x, y, x + width, y + height), outline='red')
+
+        if args.sparse:
+            result = inference.run(image_center,
+                                   sparse_configs=object_detection.sparse_configs(args.threshold))
+            objects = object_detection.get_objects_sparse(result, offset)
+        else:
+            result = inference.run(image_center)
+            objects = object_detection.get_objects(result, args.threshold, offset)
+
+        for i, obj in enumerate(objects):
+            print('Object #%d: %s' % (i, obj))
+
         if args.output:
+            draw = ImageDraw.Draw(image)
+            for i, obj in enumerate(objects):
+                x, y, width, height = obj.bounding_box
+                draw.rectangle((x, y, x + width, y + height), outline='red')
             image.save(args.output)
 
 

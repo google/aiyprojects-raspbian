@@ -14,38 +14,54 @@
 import unittest
 
 from aiy.vision.inference import ImageInference
-from aiy.vision.models import object_detection
-from .test_util import TestImage
+from aiy.vision.models import object_detection as od
+from .test_util import define_test_case, TestImage
 
-def _crop_center(image):
+def crop_center(image):
     width, height = image.size
     size = min(width, height)
     x, y = (width - size) / 2, (height - size) / 2
     return image.crop((x, y, x + size, y + size)), (x, y)
 
-class ObjectDetectionTest(unittest.TestCase):
 
-    def testDog(self):
-        with TestImage('dog.jpg') as image:
-            image_center, offset = _crop_center(image)
-            with ImageInference(object_detection.model()) as inference:
-                objects = object_detection.get_objects(inference.run(image_center), 0.3, offset)
-                self.assertEqual(1, len(objects))
-                self.assertEqual(object_detection.Object.DOG, objects[0].kind)
-                self.assertAlmostEqual(0.914, objects[0].score, delta=0.001)
-                self.assertEqual((52, 116, 570, 485), objects[0].bounding_box)
+class ObjectDetectionTest:
+    THRESHOLD = 0.3
 
-    def testCat(self):
-        with TestImage('cat.jpg') as image:
-            image_center, offset = _crop_center(image)
-            with ImageInference(object_detection.model()) as inference:
-                objects = object_detection.get_objects(inference.run(image_center), 0.3, offset)
-                print(objects[0])
-                self.assertEqual(1, len(objects))
-                self.assertEqual(object_detection.Object.CAT, objects[0].kind)
-                self.assertAlmostEqual(0.672, objects[0].score, delta=0.001)
-                self.assertEqual((575, 586, 2187, 1758), objects[0].bounding_box)
+    def __init__(self, image_file, sparse):
+        self.image_file = image_file
+        self.sparse = sparse
+        self.check = {'dog.jpg': self.check_dog, 'cat.jpg': self.check_cat}[image_file]
 
+    def check_dog(self, objects):
+        self.assertEqual(1, len(objects))
+        self.assertEqual(od.Object.DOG, objects[0].kind)
+        self.assertAlmostEqual(0.914, objects[0].score, delta=0.001)
+        self.assertEqual((52, 116, 570, 485), objects[0].bounding_box)
+
+
+    def check_cat(self, objects):
+        self.assertEqual(1, len(objects))
+        self.assertEqual(od.Object.CAT, objects[0].kind)
+        self.assertAlmostEqual(0.672, objects[0].score, delta=0.001)
+        self.assertEqual((575, 586, 2187, 1758), objects[0].bounding_box)
+
+    def test_detection(self):
+        with TestImage(self.image_file) as image:
+            image_center, offset = crop_center(image)
+            with ImageInference(od.model()) as inference:
+                if self.sparse:
+                    sparse_configs = od.sparse_configs(threshold=self.THRESHOLD)
+                    result = inference.run(image_center, sparse_configs=sparse_configs)
+                    objects = od.get_objects_sparse(result, offset)
+                else:
+                    result = inference.run(image_center)
+                    objects = od.get_objects(result, self.THRESHOLD, offset)
+                self.check(objects)
+
+define_test_case(globals(), ObjectDetectionTest, 'dog.jpg', False)
+define_test_case(globals(), ObjectDetectionTest, 'dog.jpg', True)
+define_test_case(globals(), ObjectDetectionTest, 'cat.jpg', False)
+define_test_case(globals(), ObjectDetectionTest, 'cat.jpg', True)
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2)

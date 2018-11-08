@@ -41,13 +41,19 @@ logger = logging.getLogger(__name__)
 ModelDescriptor = namedtuple('ModelDescriptor',
     ('name', 'input_shape', 'input_normalizer', 'compute_graph'))
 
+ThresholdingConfig = namedtuple('ThresholdingConfig',
+    ('logical_shape', 'threshold', 'top_k', 'to_ignore'))
+
+FromSparseTensorConfig = namedtuple('FromSparseTensorConfig',
+    ('logical_shape', 'tensor_name', 'squeeze_dims'))
+
 # major: int, major firmware version
 # minor: int, minor firmware version
 FirmwareVersion = namedtuple('FirmwareVersion', ('major', 'minor'))
 FirmwareVersion.__str__ = lambda self: '%d.%d' % (self.major, self.minor)
 
 
-_SUPPORTED_FIRMWARE_VERSION = FirmwareVersion(1, 1)
+_SUPPORTED_FIRMWARE_VERSION = FirmwareVersion(1, 2)
 
 
 class FirmwareVersionException(Exception):
@@ -87,17 +93,17 @@ def _close_stack_silently(stack):
 class CameraInference:
     """Helper class to run camera inference."""
 
-    def __init__(self, descriptor, params=None):
+    def __init__(self, descriptor, params=None, sparse_configs=None):
         self._rate = 0.0
         self._count = 0
         self._stack = contextlib.ExitStack()
         self._engine = self._stack.enter_context(InferenceEngine())
 
         try:
-            key = self._engine.load_model(descriptor)
-            self._stack.callback(lambda: self._engine.unload_model(key))
+            model_name = self._engine.load_model(descriptor)
+            self._stack.callback(lambda: self._engine.unload_model(model_name))
 
-            self._engine.start_camera_inference(key, params)
+            self._engine.start_camera_inference(model_name, params, sparse_configs)
             self._stack.callback(lambda: self._engine.stop_camera_inference())
         except Exception:
             _close_stack_silently(self._stack)
@@ -110,7 +116,7 @@ class CameraInference:
         before = None
         for _ in (itertools.count() if count is None else range(count)):
             result = self._engine.camera_inference()
-            now = time.time()
+            now = time.monotonic()
             self._rate = 1.0 / (now - before) if before else 0.0
             before = now
             self._count += 1
@@ -142,14 +148,14 @@ class ImageInference(object):
         self._engine = self._stack.enter_context(InferenceEngine())
 
         try:
-            self._key = self._engine.load_model(descriptor)
-            self._stack.callback(lambda: self._engine.unload_model(self._key))
+            self._model_name = self._engine.load_model(descriptor)
+            self._stack.callback(lambda: self._engine.unload_model(self._model_name))
         except Exception:
             _close_stack_silently(self._stack)
             raise
 
-    def run(self, image, params=None):
-        return self._engine.image_inference(self._key, image, params)
+    def run(self, image, params=None, sparse_configs=None):
+        return self._engine.image_inference(self._model_name, image, params, sparse_configs)
 
     def close(self):
         self._stack.close()
@@ -165,6 +171,28 @@ class InferenceException(Exception):
 
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
+
+def _get_sparse_config(config):
+    if type(config) == ThresholdingConfig:
+        return pb2.SparseConfig(
+            logical_shape=pb2.Tuple(values=config.logical_shape),
+            thresholding=pb2.SparseConfig.Thresholding(
+                threshold=config.threshold,
+                top_k=config.top_k,
+                to_ignore=[pb2.SparseConfig.Thresholding.ToIgnore(dim=d, label=l) for d, l in config.to_ignore]))
+    elif type(config) == FromSparseTensorConfig:
+        return pb2.SparseConfig(
+            logical_shape=pb2.Tuple(values=config.logical_shape),
+            from_sparse_tensor=pb2.SparseConfig.FromSparseTensor(
+                tensor_name=config.tensor_name,
+                squeeze_dims=config.squeeze_dims))
+    else:
+        raise ValueError('Invalid sparse config type.')
+
+def _get_sparse_configs(configs):
+    if configs:
+        return {name: _get_sparse_config(config) for name, config in configs.items()}
+    return None
 
 
 def _image_to_tensor(image):
@@ -196,6 +224,7 @@ def _request_bytes(*args, **kwargs):
 
 
 _REQ_GET_FIRMWARE_INFO = _request_bytes(get_firmware_info=pb2.Request.GetFirmwareInfo())
+_REQ_GET_SYSTEM_INFO = _request_bytes(get_system_info=pb2.Request.GetSystemInfo())
 _REQ_CAMERA_INFERENCE = _request_bytes(camera_inference=pb2.Request.CameraInference())
 _REQ_STOP_CAMERA_INFERENCE = _request_bytes(stop_camera_inference=pb2.Request.StopCameraInference())
 _REQ_GET_CAMERA_STATE = _request_bytes(get_camera_state=pb2.Request.GetCameraState())
@@ -295,7 +324,7 @@ class InferenceEngine(object):
         self._communicate(pb2.Request(
             unload_model=pb2.Request.UnloadModel(model_name=model_name)))
 
-    def start_camera_inference(self, model_name, params=None):
+    def start_camera_inference(self, model_name, params=None, sparse_configs=None):
         """Starts inference running on VisionBonnet."""
         _check_model_name(model_name)
 
@@ -303,7 +332,8 @@ class InferenceEngine(object):
         self._communicate(pb2.Request(
             start_camera_inference=pb2.Request.StartCameraInference(
                 model_name=model_name,
-                params=_get_params(params))))
+                params=_get_params(params),
+                sparse_configs=_get_sparse_configs(sparse_configs))))
 
     def camera_inference(self):
         """Returns the latest inference result from VisionBonnet."""
@@ -326,7 +356,12 @@ class InferenceEngine(object):
         except InferenceException:
             return FirmwareVersion(1, 0)  # Request is not supported by firmware, default to 1.0
 
-    def image_inference(self, model_name, image, params=None):
+    def get_system_info(self):
+        """Returns system information: uptime, memory usage, temperature."""
+        return self._communicate_bytes(_REQ_GET_SYSTEM_INFO).system_info
+
+
+    def image_inference(self, model_name, image, params=None, sparse_configs=None):
         """Runs inference on image using model identified by model_name.
 
         Args:
@@ -344,4 +379,5 @@ class InferenceEngine(object):
             image_inference=pb2.Request.ImageInference(
                 model_name=model_name,
                 tensor=_image_to_tensor(image),
-                params=_get_params(params)))).inference_result
+                params=_get_params(params),
+                sparse_configs=_get_sparse_configs(sparse_configs)))).inference_result

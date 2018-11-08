@@ -19,8 +19,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='protocol.proto',
   package='spacepark.vision',
   syntax='proto3',
-  serialized_pb=_b('\n\x0eprotocol.proto\x12\x10spacepark.vision\"@\n\tRectangle\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\r\n\x05width\x18\x03 \x01(\x05\x12\x0e\n\x06height\x18\x04 \x01(\x05\"J\n\x0bTensorShape\x12\r\n\x05\x62\x61tch\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\x12\r\n\x05width\x18\x03 \x01(\x05\x12\r\n\x05\x64\x65pth\x18\x04 \x01(\x05\"H\n\nByteTensor\x12,\n\x05shape\x18\x01 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"I\n\x0b\x46loatTensor\x12,\n\x05shape\x18\x01 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12\x0c\n\x04\x64\x61ta\x18\x02 \x03(\x02\"0\n\x10TensorNormalizer\x12\x0c\n\x04mean\x18\x01 \x01(\x02\x12\x0e\n\x06stddev\x18\x02 \x01(\x02\"\xd5\n\n\x07Request\x12\x39\n\nload_model\x18\x01 \x01(\x0b\x32#.spacepark.vision.Request.LoadModelH\x00\x12=\n\x0cunload_model\x18\x02 \x01(\x0b\x32%.spacepark.vision.Request.UnloadModelH\x00\x12\x43\n\x0fimage_inference\x18\x03 \x01(\x0b\x32(.spacepark.vision.Request.ImageInferenceH\x00\x12P\n\x16start_camera_inference\x18\x04 \x01(\x0b\x32..spacepark.vision.Request.StartCameraInferenceH\x00\x12\x45\n\x10\x63\x61mera_inference\x18\x05 \x01(\x0b\x32).spacepark.vision.Request.CameraInferenceH\x00\x12N\n\x15stop_camera_inference\x18\x06 \x01(\x0b\x32-.spacepark.vision.Request.StopCameraInferenceH\x00\x12\x44\n\x10get_camera_state\x18\x07 \x01(\x0b\x32(.spacepark.vision.Request.GetCameraStateH\x00\x12>\n\rimu_self_test\x18\x08 \x01(\x0b\x32%.spacepark.vision.Request.ImuSelfTestH\x00\x12\x46\n\x11get_firmware_info\x18\t \x01(\x0b\x32).spacepark.vision.Request.GetFirmwareInfoH\x00\x1a\xa8\x01\n\tLoadModel\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12\x32\n\x0binput_shape\x18\x02 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12<\n\x10input_normalizer\x18\x03 \x01(\x0b\x32\".spacepark.vision.TensorNormalizer\x12\x15\n\rcompute_graph\x18\x04 \x01(\x0c\x1a!\n\x0bUnloadModel\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x1a\xc7\x01\n\x0eImageInference\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12,\n\x06tensor\x18\x02 \x01(\x0b\x32\x1c.spacepark.vision.ByteTensor\x12\x44\n\x06params\x18\x03 \x03(\x0b\x32\x34.spacepark.vision.Request.ImageInference.ParamsEntry\x1a-\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xd2\x01\n\x14StartCameraInference\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12+\n\x06window\x18\x02 \x01(\x0b\x32\x1b.spacepark.vision.Rectangle\x12J\n\x06params\x18\x03 \x03(\x0b\x32:.spacepark.vision.Request.StartCameraInference.ParamsEntry\x1a-\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x11\n\x0f\x43\x61meraInference\x1a\x15\n\x13StopCameraInference\x1a\x10\n\x0eGetCameraState\x1a\r\n\x0bImuSelfTest\x1a\x11\n\x0fGetFirmwareInfoB\t\n\x07request\"\xa9\x03\n\x0fInferenceResult\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12\r\n\x05width\x18\x02 \x01(\x05\x12\x0e\n\x06height\x18\x03 \x01(\x05\x12+\n\x06window\x18\x04 \x01(\x0b\x32\x1b.spacepark.vision.Rectangle\x12\x13\n\x0b\x64uration_ms\x18\x05 \x01(\x05\x12?\n\x07tensors\x18\x06 \x03(\x0b\x32..spacepark.vision.InferenceResult.TensorsEntry\x12\x36\n\x05\x66rame\x18\x07 \x01(\x0b\x32\'.spacepark.vision.InferenceResult.Frame\x1aM\n\x0cTensorsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.spacepark.vision.FloatTensor:\x02\x38\x01\x1aY\n\x05\x46rame\x12\r\n\x05index\x18\x01 \x01(\x05\x12\x14\n\x0ctimestamp_us\x18\x02 \x01(\x03\x12+\n\x05image\x18\x03 \x01(\x0b\x32\x1c.spacepark.vision.ByteTensor\"=\n\x0b\x43\x61meraState\x12\x0f\n\x07running\x18\x01 \x01(\x08\x12\r\n\x05width\x18\x02 \x01(\x05\x12\x0e\n\x06height\x18\x03 \x01(\x05\"<\n\x0c\x46irmwareInfo\x12\x15\n\rmajor_version\x18\x01 \x01(\x05\x12\x15\n\rminor_version\x18\x02 \x01(\x05\"\xe4\x02\n\x08Response\x12\x31\n\x06status\x18\x01 \x01(\x0b\x32!.spacepark.vision.Response.Status\x12=\n\x10inference_result\x18\x02 \x01(\x0b\x32!.spacepark.vision.InferenceResultH\x00\x12\x35\n\x0c\x63\x61mera_state\x18\x03 \x01(\x0b\x32\x1d.spacepark.vision.CameraStateH\x00\x12\x37\n\rfirmware_info\x18\x04 \x01(\x0b\x32\x1e.spacepark.vision.FirmwareInfoH\x00\x1aj\n\x06Status\x12\x34\n\x04\x63ode\x18\x01 \x01(\x0e\x32&.spacepark.vision.Response.Status.Code\x12\x0f\n\x07message\x18\x02 \x01(\t\"\x19\n\x04\x43ode\x12\x06\n\x02OK\x10\x00\x12\t\n\x05\x45RROR\x10\x01\x42\n\n\x08responseb\x06proto3')
+  serialized_pb=_b('\n\x0eprotocol.proto\x12\x10spacepark.vision\"@\n\tRectangle\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\r\n\x05width\x18\x03 \x01(\x05\x12\x0e\n\x06height\x18\x04 \x01(\x05\"J\n\x0bTensorShape\x12\r\n\x05\x62\x61tch\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\x12\r\n\x05width\x18\x03 \x01(\x05\x12\r\n\x05\x64\x65pth\x18\x04 \x01(\x05\"H\n\nByteTensor\x12,\n\x05shape\x18\x01 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"\x17\n\x05Tuple\x12\x0e\n\x06values\x18\x01 \x03(\x05\"s\n\x0b\x46loatTensor\x12,\n\x05shape\x18\x01 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12\x0c\n\x04\x64\x61ta\x18\x02 \x03(\x02\x12(\n\x07indices\x18\x03 \x03(\x0b\x32\x17.spacepark.vision.Tuple\"\xbf\x03\n\x0cSparseConfig\x12.\n\rlogical_shape\x18\x01 \x01(\x0b\x32\x17.spacepark.vision.Tuple\x12\x43\n\x0cthresholding\x18\x02 \x01(\x0b\x32+.spacepark.vision.SparseConfig.ThresholdingH\x00\x12M\n\x12\x66rom_sparse_tensor\x18\x03 \x01(\x0b\x32/.spacepark.vision.SparseConfig.FromSparseTensorH\x00\x1a\xa1\x01\n\x0cThresholding\x12\x11\n\tthreshold\x18\x01 \x01(\x02\x12\r\n\x05top_k\x18\x02 \x01(\x05\x12G\n\tto_ignore\x18\x03 \x03(\x0b\x32\x34.spacepark.vision.SparseConfig.Thresholding.ToIgnore\x1a&\n\x08ToIgnore\x12\x0b\n\x03\x64im\x18\x01 \x01(\x05\x12\r\n\x05label\x18\x02 \x01(\x05\x1a=\n\x10\x46romSparseTensor\x12\x13\n\x0btensor_name\x18\x01 \x01(\t\x12\x14\n\x0csqueeze_dims\x18\x02 \x03(\x05\x42\x08\n\x06\x63onfig\"0\n\x10TensorNormalizer\x12\x0c\n\x04mean\x18\x01 \x01(\x02\x12\x0e\n\x06stddev\x18\x02 \x01(\x02\"\x86\x0e\n\x07Request\x12\x39\n\nload_model\x18\x01 \x01(\x0b\x32#.spacepark.vision.Request.LoadModelH\x00\x12=\n\x0cunload_model\x18\x02 \x01(\x0b\x32%.spacepark.vision.Request.UnloadModelH\x00\x12\x43\n\x0fimage_inference\x18\x03 \x01(\x0b\x32(.spacepark.vision.Request.ImageInferenceH\x00\x12P\n\x16start_camera_inference\x18\x04 \x01(\x0b\x32..spacepark.vision.Request.StartCameraInferenceH\x00\x12\x45\n\x10\x63\x61mera_inference\x18\x05 \x01(\x0b\x32).spacepark.vision.Request.CameraInferenceH\x00\x12N\n\x15stop_camera_inference\x18\x06 \x01(\x0b\x32-.spacepark.vision.Request.StopCameraInferenceH\x00\x12\x44\n\x10get_camera_state\x18\x07 \x01(\x0b\x32(.spacepark.vision.Request.GetCameraStateH\x00\x12>\n\rimu_self_test\x18\x08 \x01(\x0b\x32%.spacepark.vision.Request.ImuSelfTestH\x00\x12\x46\n\x11get_firmware_info\x18\t \x01(\x0b\x32).spacepark.vision.Request.GetFirmwareInfoH\x00\x12\x42\n\x0fget_system_info\x18\n \x01(\x0b\x32\'.spacepark.vision.Request.GetSystemInfoH\x00\x1a\xa8\x01\n\tLoadModel\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12\x32\n\x0binput_shape\x18\x02 \x01(\x0b\x32\x1d.spacepark.vision.TensorShape\x12<\n\x10input_normalizer\x18\x03 \x01(\x0b\x32\".spacepark.vision.TensorNormalizer\x12\x15\n\rcompute_graph\x18\x04 \x01(\x0c\x1a!\n\x0bUnloadModel\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x1a\xf2\x02\n\x0eImageInference\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12,\n\x06tensor\x18\x02 \x01(\x0b\x32\x1c.spacepark.vision.ByteTensor\x12\x44\n\x06params\x18\x03 \x03(\x0b\x32\x34.spacepark.vision.Request.ImageInference.ParamsEntry\x12S\n\x0esparse_configs\x18\x04 \x03(\x0b\x32;.spacepark.vision.Request.ImageInference.SparseConfigsEntry\x1a-\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1aT\n\x12SparseConfigsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12-\n\x05value\x18\x02 \x01(\x0b\x32\x1e.spacepark.vision.SparseConfig:\x02\x38\x01\x1a\x83\x03\n\x14StartCameraInference\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12+\n\x06window\x18\x02 \x01(\x0b\x32\x1b.spacepark.vision.Rectangle\x12J\n\x06params\x18\x03 \x03(\x0b\x32:.spacepark.vision.Request.StartCameraInference.ParamsEntry\x12Y\n\x0esparse_configs\x18\x04 \x03(\x0b\x32\x41.spacepark.vision.Request.StartCameraInference.SparseConfigsEntry\x1a-\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1aT\n\x12SparseConfigsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12-\n\x05value\x18\x02 \x01(\x0b\x32\x1e.spacepark.vision.SparseConfig:\x02\x38\x01\x1a\x11\n\x0f\x43\x61meraInference\x1a\x15\n\x13StopCameraInference\x1a\x10\n\x0eGetCameraState\x1a\r\n\x0bImuSelfTest\x1a\x11\n\x0fGetFirmwareInfo\x1a\x0f\n\rGetSystemInfoB\t\n\x07request\"\xa9\x03\n\x0fInferenceResult\x12\x12\n\nmodel_name\x18\x01 \x01(\t\x12\r\n\x05width\x18\x02 \x01(\x05\x12\x0e\n\x06height\x18\x03 \x01(\x05\x12+\n\x06window\x18\x04 \x01(\x0b\x32\x1b.spacepark.vision.Rectangle\x12\x13\n\x0b\x64uration_ms\x18\x05 \x01(\x05\x12?\n\x07tensors\x18\x06 \x03(\x0b\x32..spacepark.vision.InferenceResult.TensorsEntry\x12\x36\n\x05\x66rame\x18\x07 \x01(\x0b\x32\'.spacepark.vision.InferenceResult.Frame\x1aM\n\x0cTensorsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.spacepark.vision.FloatTensor:\x02\x38\x01\x1aY\n\x05\x46rame\x12\r\n\x05index\x18\x01 \x01(\x05\x12\x14\n\x0ctimestamp_us\x18\x02 \x01(\x03\x12+\n\x05image\x18\x03 \x01(\x0b\x32\x1c.spacepark.vision.ByteTensor\"=\n\x0b\x43\x61meraState\x12\x0f\n\x07running\x18\x01 \x01(\x08\x12\r\n\x05width\x18\x02 \x01(\x05\x12\x0e\n\x06height\x18\x03 \x01(\x05\"<\n\x0c\x46irmwareInfo\x12\x15\n\rmajor_version\x18\x01 \x01(\x05\x12\x15\n\rminor_version\x18\x02 \x01(\x05\"s\n\nSystemInfo\x12\x16\n\x0euptime_seconds\x18\x01 \x01(\x05\x12\x1b\n\x13temperature_celsius\x18\x02 \x01(\x02\x12\x17\n\x0fheap_used_bytes\x18\x03 \x01(\x03\x12\x17\n\x0fheap_free_bytes\x18\x04 \x01(\x03\"\x99\x03\n\x08Response\x12\x31\n\x06status\x18\x01 \x01(\x0b\x32!.spacepark.vision.Response.Status\x12=\n\x10inference_result\x18\x02 \x01(\x0b\x32!.spacepark.vision.InferenceResultH\x00\x12\x35\n\x0c\x63\x61mera_state\x18\x03 \x01(\x0b\x32\x1d.spacepark.vision.CameraStateH\x00\x12\x37\n\rfirmware_info\x18\x04 \x01(\x0b\x32\x1e.spacepark.vision.FirmwareInfoH\x00\x12\x33\n\x0bsystem_info\x18\x05 \x01(\x0b\x32\x1c.spacepark.vision.SystemInfoH\x00\x1aj\n\x06Status\x12\x34\n\x04\x63ode\x18\x01 \x01(\x0e\x32&.spacepark.vision.Response.Status.Code\x12\x0f\n\x07message\x18\x02 \x01(\t\"\x19\n\x04\x43ode\x12\x06\n\x02OK\x10\x00\x12\t\n\x05\x45RROR\x10\x01\x42\n\n\x08responseb\x06proto3')
 )
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
@@ -41,8 +42,8 @@ _RESPONSE_STATUS_CODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2618,
-  serialized_end=2643,
+  serialized_start=3738,
+  serialized_end=3763,
 )
 _sym_db.RegisterEnumDescriptor(_RESPONSE_STATUS_CODE)
 
@@ -60,28 +61,28 @@ _RECTANGLE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='y', full_name='spacepark.vision.Rectangle.y', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='width', full_name='spacepark.vision.Rectangle.width', index=2,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='height', full_name='spacepark.vision.Rectangle.height', index=3,
       number=4, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -112,28 +113,28 @@ _TENSORSHAPE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='height', full_name='spacepark.vision.TensorShape.height', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='width', full_name='spacepark.vision.TensorShape.width', index=2,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='depth', full_name='spacepark.vision.TensorShape.depth', index=3,
       number=4, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -164,14 +165,14 @@ _BYTETENSOR = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='data', full_name='spacepark.vision.ByteTensor.data', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -189,27 +190,20 @@ _BYTETENSOR = _descriptor.Descriptor(
 )
 
 
-_FLOATTENSOR = _descriptor.Descriptor(
-  name='FloatTensor',
-  full_name='spacepark.vision.FloatTensor',
+_TUPLE = _descriptor.Descriptor(
+  name='Tuple',
+  full_name='spacepark.vision.Tuple',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='shape', full_name='spacepark.vision.FloatTensor.shape', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='spacepark.vision.FloatTensor.data', index=1,
-      number=2, type=2, cpp_type=6, label=3,
+      name='values', full_name='spacepark.vision.Tuple.values', index=0,
+      number=1, type=5, cpp_type=1, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -223,7 +217,218 @@ _FLOATTENSOR = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=252,
-  serialized_end=325,
+  serialized_end=275,
+)
+
+
+_FLOATTENSOR = _descriptor.Descriptor(
+  name='FloatTensor',
+  full_name='spacepark.vision.FloatTensor',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='shape', full_name='spacepark.vision.FloatTensor.shape', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='data', full_name='spacepark.vision.FloatTensor.data', index=1,
+      number=2, type=2, cpp_type=6, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='indices', full_name='spacepark.vision.FloatTensor.indices', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=277,
+  serialized_end=392,
+)
+
+
+_SPARSECONFIG_THRESHOLDING_TOIGNORE = _descriptor.Descriptor(
+  name='ToIgnore',
+  full_name='spacepark.vision.SparseConfig.Thresholding.ToIgnore',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='dim', full_name='spacepark.vision.SparseConfig.Thresholding.ToIgnore.dim', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='label', full_name='spacepark.vision.SparseConfig.Thresholding.ToIgnore.label', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=731,
+  serialized_end=769,
+)
+
+_SPARSECONFIG_THRESHOLDING = _descriptor.Descriptor(
+  name='Thresholding',
+  full_name='spacepark.vision.SparseConfig.Thresholding',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='threshold', full_name='spacepark.vision.SparseConfig.Thresholding.threshold', index=0,
+      number=1, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='top_k', full_name='spacepark.vision.SparseConfig.Thresholding.top_k', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='to_ignore', full_name='spacepark.vision.SparseConfig.Thresholding.to_ignore', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_SPARSECONFIG_THRESHOLDING_TOIGNORE, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=608,
+  serialized_end=769,
+)
+
+_SPARSECONFIG_FROMSPARSETENSOR = _descriptor.Descriptor(
+  name='FromSparseTensor',
+  full_name='spacepark.vision.SparseConfig.FromSparseTensor',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='tensor_name', full_name='spacepark.vision.SparseConfig.FromSparseTensor.tensor_name', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='squeeze_dims', full_name='spacepark.vision.SparseConfig.FromSparseTensor.squeeze_dims', index=1,
+      number=2, type=5, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=771,
+  serialized_end=832,
+)
+
+_SPARSECONFIG = _descriptor.Descriptor(
+  name='SparseConfig',
+  full_name='spacepark.vision.SparseConfig',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='logical_shape', full_name='spacepark.vision.SparseConfig.logical_shape', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='thresholding', full_name='spacepark.vision.SparseConfig.thresholding', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='from_sparse_tensor', full_name='spacepark.vision.SparseConfig.from_sparse_tensor', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_SPARSECONFIG_THRESHOLDING, _SPARSECONFIG_FROMSPARSETENSOR, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='config', full_name='spacepark.vision.SparseConfig.config',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=395,
+  serialized_end=842,
 )
 
 
@@ -240,14 +445,14 @@ _TENSORNORMALIZER = _descriptor.Descriptor(
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='stddev', full_name='spacepark.vision.TensorNormalizer.stddev', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -260,8 +465,8 @@ _TENSORNORMALIZER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=327,
-  serialized_end=375,
+  serialized_start=844,
+  serialized_end=892,
 )
 
 
@@ -278,28 +483,28 @@ _REQUEST_LOADMODEL = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='input_shape', full_name='spacepark.vision.Request.LoadModel.input_shape', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='input_normalizer', full_name='spacepark.vision.Request.LoadModel.input_normalizer', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='compute_graph', full_name='spacepark.vision.Request.LoadModel.compute_graph', index=3,
       number=4, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -312,8 +517,8 @@ _REQUEST_LOADMODEL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1020,
-  serialized_end=1188,
+  serialized_start=1605,
+  serialized_end=1773,
 )
 
 _REQUEST_UNLOADMODEL = _descriptor.Descriptor(
@@ -329,7 +534,7 @@ _REQUEST_UNLOADMODEL = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -342,8 +547,8 @@ _REQUEST_UNLOADMODEL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1190,
-  serialized_end=1223,
+  serialized_start=1775,
+  serialized_end=1808,
 )
 
 _REQUEST_IMAGEINFERENCE_PARAMSENTRY = _descriptor.Descriptor(
@@ -359,14 +564,14 @@ _REQUEST_IMAGEINFERENCE_PARAMSENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='value', full_name='spacepark.vision.Request.ImageInference.ParamsEntry.value', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -379,8 +584,45 @@ _REQUEST_IMAGEINFERENCE_PARAMSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1380,
-  serialized_end=1425,
+  serialized_start=2050,
+  serialized_end=2095,
+)
+
+_REQUEST_IMAGEINFERENCE_SPARSECONFIGSENTRY = _descriptor.Descriptor(
+  name='SparseConfigsEntry',
+  full_name='spacepark.vision.Request.ImageInference.SparseConfigsEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='spacepark.vision.Request.ImageInference.SparseConfigsEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='spacepark.vision.Request.ImageInference.SparseConfigsEntry.value', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=_descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001')),
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2097,
+  serialized_end=2181,
 )
 
 _REQUEST_IMAGEINFERENCE = _descriptor.Descriptor(
@@ -396,25 +638,32 @@ _REQUEST_IMAGEINFERENCE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='tensor', full_name='spacepark.vision.Request.ImageInference.tensor', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='params', full_name='spacepark.vision.Request.ImageInference.params', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='sparse_configs', full_name='spacepark.vision.Request.ImageInference.sparse_configs', index=3,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
-  nested_types=[_REQUEST_IMAGEINFERENCE_PARAMSENTRY, ],
+  nested_types=[_REQUEST_IMAGEINFERENCE_PARAMSENTRY, _REQUEST_IMAGEINFERENCE_SPARSECONFIGSENTRY, ],
   enum_types=[
   ],
   options=None,
@@ -423,8 +672,8 @@ _REQUEST_IMAGEINFERENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1226,
-  serialized_end=1425,
+  serialized_start=1811,
+  serialized_end=2181,
 )
 
 _REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY = _descriptor.Descriptor(
@@ -440,14 +689,14 @@ _REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='value', full_name='spacepark.vision.Request.StartCameraInference.ParamsEntry.value', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -460,8 +709,45 @@ _REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1380,
-  serialized_end=1425,
+  serialized_start=2050,
+  serialized_end=2095,
+)
+
+_REQUEST_STARTCAMERAINFERENCE_SPARSECONFIGSENTRY = _descriptor.Descriptor(
+  name='SparseConfigsEntry',
+  full_name='spacepark.vision.Request.StartCameraInference.SparseConfigsEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='spacepark.vision.Request.StartCameraInference.SparseConfigsEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='spacepark.vision.Request.StartCameraInference.SparseConfigsEntry.value', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=_descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001')),
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2097,
+  serialized_end=2181,
 )
 
 _REQUEST_STARTCAMERAINFERENCE = _descriptor.Descriptor(
@@ -477,25 +763,32 @@ _REQUEST_STARTCAMERAINFERENCE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='window', full_name='spacepark.vision.Request.StartCameraInference.window', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='params', full_name='spacepark.vision.Request.StartCameraInference.params', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='sparse_configs', full_name='spacepark.vision.Request.StartCameraInference.sparse_configs', index=3,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
-  nested_types=[_REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY, ],
+  nested_types=[_REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY, _REQUEST_STARTCAMERAINFERENCE_SPARSECONFIGSENTRY, ],
   enum_types=[
   ],
   options=None,
@@ -504,8 +797,8 @@ _REQUEST_STARTCAMERAINFERENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1428,
-  serialized_end=1638,
+  serialized_start=2184,
+  serialized_end=2571,
 )
 
 _REQUEST_CAMERAINFERENCE = _descriptor.Descriptor(
@@ -527,8 +820,8 @@ _REQUEST_CAMERAINFERENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1640,
-  serialized_end=1657,
+  serialized_start=2573,
+  serialized_end=2590,
 )
 
 _REQUEST_STOPCAMERAINFERENCE = _descriptor.Descriptor(
@@ -550,8 +843,8 @@ _REQUEST_STOPCAMERAINFERENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1659,
-  serialized_end=1680,
+  serialized_start=2592,
+  serialized_end=2613,
 )
 
 _REQUEST_GETCAMERASTATE = _descriptor.Descriptor(
@@ -573,8 +866,8 @@ _REQUEST_GETCAMERASTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1682,
-  serialized_end=1698,
+  serialized_start=2615,
+  serialized_end=2631,
 )
 
 _REQUEST_IMUSELFTEST = _descriptor.Descriptor(
@@ -596,8 +889,8 @@ _REQUEST_IMUSELFTEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1700,
-  serialized_end=1713,
+  serialized_start=2633,
+  serialized_end=2646,
 )
 
 _REQUEST_GETFIRMWAREINFO = _descriptor.Descriptor(
@@ -619,8 +912,31 @@ _REQUEST_GETFIRMWAREINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1715,
-  serialized_end=1732,
+  serialized_start=2648,
+  serialized_end=2665,
+)
+
+_REQUEST_GETSYSTEMINFO = _descriptor.Descriptor(
+  name='GetSystemInfo',
+  full_name='spacepark.vision.Request.GetSystemInfo',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2667,
+  serialized_end=2682,
 )
 
 _REQUEST = _descriptor.Descriptor(
@@ -636,67 +952,74 @@ _REQUEST = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='unload_model', full_name='spacepark.vision.Request.unload_model', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='image_inference', full_name='spacepark.vision.Request.image_inference', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='start_camera_inference', full_name='spacepark.vision.Request.start_camera_inference', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='camera_inference', full_name='spacepark.vision.Request.camera_inference', index=4,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='stop_camera_inference', full_name='spacepark.vision.Request.stop_camera_inference', index=5,
       number=6, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='get_camera_state', full_name='spacepark.vision.Request.get_camera_state', index=6,
       number=7, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='imu_self_test', full_name='spacepark.vision.Request.imu_self_test', index=7,
       number=8, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='get_firmware_info', full_name='spacepark.vision.Request.get_firmware_info', index=8,
       number=9, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='get_system_info', full_name='spacepark.vision.Request.get_system_info', index=9,
+      number=10, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
-  nested_types=[_REQUEST_LOADMODEL, _REQUEST_UNLOADMODEL, _REQUEST_IMAGEINFERENCE, _REQUEST_STARTCAMERAINFERENCE, _REQUEST_CAMERAINFERENCE, _REQUEST_STOPCAMERAINFERENCE, _REQUEST_GETCAMERASTATE, _REQUEST_IMUSELFTEST, _REQUEST_GETFIRMWAREINFO, ],
+  nested_types=[_REQUEST_LOADMODEL, _REQUEST_UNLOADMODEL, _REQUEST_IMAGEINFERENCE, _REQUEST_STARTCAMERAINFERENCE, _REQUEST_CAMERAINFERENCE, _REQUEST_STOPCAMERAINFERENCE, _REQUEST_GETCAMERASTATE, _REQUEST_IMUSELFTEST, _REQUEST_GETFIRMWAREINFO, _REQUEST_GETSYSTEMINFO, ],
   enum_types=[
   ],
   options=None,
@@ -708,8 +1031,8 @@ _REQUEST = _descriptor.Descriptor(
       name='request', full_name='spacepark.vision.Request.request',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=378,
-  serialized_end=1743,
+  serialized_start=895,
+  serialized_end=2693,
 )
 
 
@@ -726,14 +1049,14 @@ _INFERENCERESULT_TENSORSENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='value', full_name='spacepark.vision.InferenceResult.TensorsEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -746,8 +1069,8 @@ _INFERENCERESULT_TENSORSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2003,
-  serialized_end=2080,
+  serialized_start=2953,
+  serialized_end=3030,
 )
 
 _INFERENCERESULT_FRAME = _descriptor.Descriptor(
@@ -763,21 +1086,21 @@ _INFERENCERESULT_FRAME = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='timestamp_us', full_name='spacepark.vision.InferenceResult.Frame.timestamp_us', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='image', full_name='spacepark.vision.InferenceResult.Frame.image', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -790,8 +1113,8 @@ _INFERENCERESULT_FRAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2082,
-  serialized_end=2171,
+  serialized_start=3032,
+  serialized_end=3121,
 )
 
 _INFERENCERESULT = _descriptor.Descriptor(
@@ -807,49 +1130,49 @@ _INFERENCERESULT = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='width', full_name='spacepark.vision.InferenceResult.width', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='height', full_name='spacepark.vision.InferenceResult.height', index=2,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='window', full_name='spacepark.vision.InferenceResult.window', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='duration_ms', full_name='spacepark.vision.InferenceResult.duration_ms', index=4,
       number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='tensors', full_name='spacepark.vision.InferenceResult.tensors', index=5,
       number=6, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='frame', full_name='spacepark.vision.InferenceResult.frame', index=6,
       number=7, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -862,8 +1185,8 @@ _INFERENCERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1746,
-  serialized_end=2171,
+  serialized_start=2696,
+  serialized_end=3121,
 )
 
 
@@ -880,21 +1203,21 @@ _CAMERASTATE = _descriptor.Descriptor(
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='width', full_name='spacepark.vision.CameraState.width', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='height', full_name='spacepark.vision.CameraState.height', index=2,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -907,8 +1230,8 @@ _CAMERASTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2173,
-  serialized_end=2234,
+  serialized_start=3123,
+  serialized_end=3184,
 )
 
 
@@ -925,14 +1248,14 @@ _FIRMWAREINFO = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='minor_version', full_name='spacepark.vision.FirmwareInfo.minor_version', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -945,8 +1268,60 @@ _FIRMWAREINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2236,
-  serialized_end=2296,
+  serialized_start=3186,
+  serialized_end=3246,
+)
+
+
+_SYSTEMINFO = _descriptor.Descriptor(
+  name='SystemInfo',
+  full_name='spacepark.vision.SystemInfo',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='uptime_seconds', full_name='spacepark.vision.SystemInfo.uptime_seconds', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='temperature_celsius', full_name='spacepark.vision.SystemInfo.temperature_celsius', index=1,
+      number=2, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='heap_used_bytes', full_name='spacepark.vision.SystemInfo.heap_used_bytes', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='heap_free_bytes', full_name='spacepark.vision.SystemInfo.heap_free_bytes', index=3,
+      number=4, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3248,
+  serialized_end=3363,
 )
 
 
@@ -963,14 +1338,14 @@ _RESPONSE_STATUS = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='message', full_name='spacepark.vision.Response.Status.message', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
   ],
   extensions=[
   ],
@@ -984,8 +1359,8 @@ _RESPONSE_STATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2537,
-  serialized_end=2643,
+  serialized_start=3657,
+  serialized_end=3763,
 )
 
 _RESPONSE = _descriptor.Descriptor(
@@ -1001,28 +1376,35 @@ _RESPONSE = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='inference_result', full_name='spacepark.vision.Response.inference_result', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='camera_state', full_name='spacepark.vision.Response.camera_state', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
     _descriptor.FieldDescriptor(
       name='firmware_info', full_name='spacepark.vision.Response.firmware_info', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='system_info', full_name='spacepark.vision.Response.system_info', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -1038,29 +1420,50 @@ _RESPONSE = _descriptor.Descriptor(
       name='response', full_name='spacepark.vision.Response.response',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=2299,
-  serialized_end=2655,
+  serialized_start=3366,
+  serialized_end=3775,
 )
 
 _BYTETENSOR.fields_by_name['shape'].message_type = _TENSORSHAPE
 _FLOATTENSOR.fields_by_name['shape'].message_type = _TENSORSHAPE
+_FLOATTENSOR.fields_by_name['indices'].message_type = _TUPLE
+_SPARSECONFIG_THRESHOLDING_TOIGNORE.containing_type = _SPARSECONFIG_THRESHOLDING
+_SPARSECONFIG_THRESHOLDING.fields_by_name['to_ignore'].message_type = _SPARSECONFIG_THRESHOLDING_TOIGNORE
+_SPARSECONFIG_THRESHOLDING.containing_type = _SPARSECONFIG
+_SPARSECONFIG_FROMSPARSETENSOR.containing_type = _SPARSECONFIG
+_SPARSECONFIG.fields_by_name['logical_shape'].message_type = _TUPLE
+_SPARSECONFIG.fields_by_name['thresholding'].message_type = _SPARSECONFIG_THRESHOLDING
+_SPARSECONFIG.fields_by_name['from_sparse_tensor'].message_type = _SPARSECONFIG_FROMSPARSETENSOR
+_SPARSECONFIG.oneofs_by_name['config'].fields.append(
+  _SPARSECONFIG.fields_by_name['thresholding'])
+_SPARSECONFIG.fields_by_name['thresholding'].containing_oneof = _SPARSECONFIG.oneofs_by_name['config']
+_SPARSECONFIG.oneofs_by_name['config'].fields.append(
+  _SPARSECONFIG.fields_by_name['from_sparse_tensor'])
+_SPARSECONFIG.fields_by_name['from_sparse_tensor'].containing_oneof = _SPARSECONFIG.oneofs_by_name['config']
 _REQUEST_LOADMODEL.fields_by_name['input_shape'].message_type = _TENSORSHAPE
 _REQUEST_LOADMODEL.fields_by_name['input_normalizer'].message_type = _TENSORNORMALIZER
 _REQUEST_LOADMODEL.containing_type = _REQUEST
 _REQUEST_UNLOADMODEL.containing_type = _REQUEST
 _REQUEST_IMAGEINFERENCE_PARAMSENTRY.containing_type = _REQUEST_IMAGEINFERENCE
+_REQUEST_IMAGEINFERENCE_SPARSECONFIGSENTRY.fields_by_name['value'].message_type = _SPARSECONFIG
+_REQUEST_IMAGEINFERENCE_SPARSECONFIGSENTRY.containing_type = _REQUEST_IMAGEINFERENCE
 _REQUEST_IMAGEINFERENCE.fields_by_name['tensor'].message_type = _BYTETENSOR
 _REQUEST_IMAGEINFERENCE.fields_by_name['params'].message_type = _REQUEST_IMAGEINFERENCE_PARAMSENTRY
+_REQUEST_IMAGEINFERENCE.fields_by_name['sparse_configs'].message_type = _REQUEST_IMAGEINFERENCE_SPARSECONFIGSENTRY
 _REQUEST_IMAGEINFERENCE.containing_type = _REQUEST
 _REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY.containing_type = _REQUEST_STARTCAMERAINFERENCE
+_REQUEST_STARTCAMERAINFERENCE_SPARSECONFIGSENTRY.fields_by_name['value'].message_type = _SPARSECONFIG
+_REQUEST_STARTCAMERAINFERENCE_SPARSECONFIGSENTRY.containing_type = _REQUEST_STARTCAMERAINFERENCE
 _REQUEST_STARTCAMERAINFERENCE.fields_by_name['window'].message_type = _RECTANGLE
 _REQUEST_STARTCAMERAINFERENCE.fields_by_name['params'].message_type = _REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY
+_REQUEST_STARTCAMERAINFERENCE.fields_by_name['sparse_configs'].message_type = _REQUEST_STARTCAMERAINFERENCE_SPARSECONFIGSENTRY
 _REQUEST_STARTCAMERAINFERENCE.containing_type = _REQUEST
 _REQUEST_CAMERAINFERENCE.containing_type = _REQUEST
 _REQUEST_STOPCAMERAINFERENCE.containing_type = _REQUEST
 _REQUEST_GETCAMERASTATE.containing_type = _REQUEST
 _REQUEST_IMUSELFTEST.containing_type = _REQUEST
 _REQUEST_GETFIRMWAREINFO.containing_type = _REQUEST
+_REQUEST_GETSYSTEMINFO.containing_type = _REQUEST
 _REQUEST.fields_by_name['load_model'].message_type = _REQUEST_LOADMODEL
 _REQUEST.fields_by_name['unload_model'].message_type = _REQUEST_UNLOADMODEL
 _REQUEST.fields_by_name['image_inference'].message_type = _REQUEST_IMAGEINFERENCE
@@ -1070,6 +1473,7 @@ _REQUEST.fields_by_name['stop_camera_inference'].message_type = _REQUEST_STOPCAM
 _REQUEST.fields_by_name['get_camera_state'].message_type = _REQUEST_GETCAMERASTATE
 _REQUEST.fields_by_name['imu_self_test'].message_type = _REQUEST_IMUSELFTEST
 _REQUEST.fields_by_name['get_firmware_info'].message_type = _REQUEST_GETFIRMWAREINFO
+_REQUEST.fields_by_name['get_system_info'].message_type = _REQUEST_GETSYSTEMINFO
 _REQUEST.oneofs_by_name['request'].fields.append(
   _REQUEST.fields_by_name['load_model'])
 _REQUEST.fields_by_name['load_model'].containing_oneof = _REQUEST.oneofs_by_name['request']
@@ -1097,6 +1501,9 @@ _REQUEST.fields_by_name['imu_self_test'].containing_oneof = _REQUEST.oneofs_by_n
 _REQUEST.oneofs_by_name['request'].fields.append(
   _REQUEST.fields_by_name['get_firmware_info'])
 _REQUEST.fields_by_name['get_firmware_info'].containing_oneof = _REQUEST.oneofs_by_name['request']
+_REQUEST.oneofs_by_name['request'].fields.append(
+  _REQUEST.fields_by_name['get_system_info'])
+_REQUEST.fields_by_name['get_system_info'].containing_oneof = _REQUEST.oneofs_by_name['request']
 _INFERENCERESULT_TENSORSENTRY.fields_by_name['value'].message_type = _FLOATTENSOR
 _INFERENCERESULT_TENSORSENTRY.containing_type = _INFERENCERESULT
 _INFERENCERESULT_FRAME.fields_by_name['image'].message_type = _BYTETENSOR
@@ -1111,6 +1518,7 @@ _RESPONSE.fields_by_name['status'].message_type = _RESPONSE_STATUS
 _RESPONSE.fields_by_name['inference_result'].message_type = _INFERENCERESULT
 _RESPONSE.fields_by_name['camera_state'].message_type = _CAMERASTATE
 _RESPONSE.fields_by_name['firmware_info'].message_type = _FIRMWAREINFO
+_RESPONSE.fields_by_name['system_info'].message_type = _SYSTEMINFO
 _RESPONSE.oneofs_by_name['response'].fields.append(
   _RESPONSE.fields_by_name['inference_result'])
 _RESPONSE.fields_by_name['inference_result'].containing_oneof = _RESPONSE.oneofs_by_name['response']
@@ -1120,17 +1528,22 @@ _RESPONSE.fields_by_name['camera_state'].containing_oneof = _RESPONSE.oneofs_by_
 _RESPONSE.oneofs_by_name['response'].fields.append(
   _RESPONSE.fields_by_name['firmware_info'])
 _RESPONSE.fields_by_name['firmware_info'].containing_oneof = _RESPONSE.oneofs_by_name['response']
+_RESPONSE.oneofs_by_name['response'].fields.append(
+  _RESPONSE.fields_by_name['system_info'])
+_RESPONSE.fields_by_name['system_info'].containing_oneof = _RESPONSE.oneofs_by_name['response']
 DESCRIPTOR.message_types_by_name['Rectangle'] = _RECTANGLE
 DESCRIPTOR.message_types_by_name['TensorShape'] = _TENSORSHAPE
 DESCRIPTOR.message_types_by_name['ByteTensor'] = _BYTETENSOR
+DESCRIPTOR.message_types_by_name['Tuple'] = _TUPLE
 DESCRIPTOR.message_types_by_name['FloatTensor'] = _FLOATTENSOR
+DESCRIPTOR.message_types_by_name['SparseConfig'] = _SPARSECONFIG
 DESCRIPTOR.message_types_by_name['TensorNormalizer'] = _TENSORNORMALIZER
 DESCRIPTOR.message_types_by_name['Request'] = _REQUEST
 DESCRIPTOR.message_types_by_name['InferenceResult'] = _INFERENCERESULT
 DESCRIPTOR.message_types_by_name['CameraState'] = _CAMERASTATE
 DESCRIPTOR.message_types_by_name['FirmwareInfo'] = _FIRMWAREINFO
+DESCRIPTOR.message_types_by_name['SystemInfo'] = _SYSTEMINFO
 DESCRIPTOR.message_types_by_name['Response'] = _RESPONSE
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Rectangle = _reflection.GeneratedProtocolMessageType('Rectangle', (_message.Message,), dict(
   DESCRIPTOR = _RECTANGLE,
@@ -1153,12 +1566,50 @@ ByteTensor = _reflection.GeneratedProtocolMessageType('ByteTensor', (_message.Me
   ))
 _sym_db.RegisterMessage(ByteTensor)
 
+Tuple = _reflection.GeneratedProtocolMessageType('Tuple', (_message.Message,), dict(
+  DESCRIPTOR = _TUPLE,
+  __module__ = 'protocol_pb2'
+  # @@protoc_insertion_point(class_scope:spacepark.vision.Tuple)
+  ))
+_sym_db.RegisterMessage(Tuple)
+
 FloatTensor = _reflection.GeneratedProtocolMessageType('FloatTensor', (_message.Message,), dict(
   DESCRIPTOR = _FLOATTENSOR,
   __module__ = 'protocol_pb2'
   # @@protoc_insertion_point(class_scope:spacepark.vision.FloatTensor)
   ))
 _sym_db.RegisterMessage(FloatTensor)
+
+SparseConfig = _reflection.GeneratedProtocolMessageType('SparseConfig', (_message.Message,), dict(
+
+  Thresholding = _reflection.GeneratedProtocolMessageType('Thresholding', (_message.Message,), dict(
+
+    ToIgnore = _reflection.GeneratedProtocolMessageType('ToIgnore', (_message.Message,), dict(
+      DESCRIPTOR = _SPARSECONFIG_THRESHOLDING_TOIGNORE,
+      __module__ = 'protocol_pb2'
+      # @@protoc_insertion_point(class_scope:spacepark.vision.SparseConfig.Thresholding.ToIgnore)
+      ))
+    ,
+    DESCRIPTOR = _SPARSECONFIG_THRESHOLDING,
+    __module__ = 'protocol_pb2'
+    # @@protoc_insertion_point(class_scope:spacepark.vision.SparseConfig.Thresholding)
+    ))
+  ,
+
+  FromSparseTensor = _reflection.GeneratedProtocolMessageType('FromSparseTensor', (_message.Message,), dict(
+    DESCRIPTOR = _SPARSECONFIG_FROMSPARSETENSOR,
+    __module__ = 'protocol_pb2'
+    # @@protoc_insertion_point(class_scope:spacepark.vision.SparseConfig.FromSparseTensor)
+    ))
+  ,
+  DESCRIPTOR = _SPARSECONFIG,
+  __module__ = 'protocol_pb2'
+  # @@protoc_insertion_point(class_scope:spacepark.vision.SparseConfig)
+  ))
+_sym_db.RegisterMessage(SparseConfig)
+_sym_db.RegisterMessage(SparseConfig.Thresholding)
+_sym_db.RegisterMessage(SparseConfig.Thresholding.ToIgnore)
+_sym_db.RegisterMessage(SparseConfig.FromSparseTensor)
 
 TensorNormalizer = _reflection.GeneratedProtocolMessageType('TensorNormalizer', (_message.Message,), dict(
   DESCRIPTOR = _TENSORNORMALIZER,
@@ -1191,6 +1642,13 @@ Request = _reflection.GeneratedProtocolMessageType('Request', (_message.Message,
       # @@protoc_insertion_point(class_scope:spacepark.vision.Request.ImageInference.ParamsEntry)
       ))
     ,
+
+    SparseConfigsEntry = _reflection.GeneratedProtocolMessageType('SparseConfigsEntry', (_message.Message,), dict(
+      DESCRIPTOR = _REQUEST_IMAGEINFERENCE_SPARSECONFIGSENTRY,
+      __module__ = 'protocol_pb2'
+      # @@protoc_insertion_point(class_scope:spacepark.vision.Request.ImageInference.SparseConfigsEntry)
+      ))
+    ,
     DESCRIPTOR = _REQUEST_IMAGEINFERENCE,
     __module__ = 'protocol_pb2'
     # @@protoc_insertion_point(class_scope:spacepark.vision.Request.ImageInference)
@@ -1203,6 +1661,13 @@ Request = _reflection.GeneratedProtocolMessageType('Request', (_message.Message,
       DESCRIPTOR = _REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY,
       __module__ = 'protocol_pb2'
       # @@protoc_insertion_point(class_scope:spacepark.vision.Request.StartCameraInference.ParamsEntry)
+      ))
+    ,
+
+    SparseConfigsEntry = _reflection.GeneratedProtocolMessageType('SparseConfigsEntry', (_message.Message,), dict(
+      DESCRIPTOR = _REQUEST_STARTCAMERAINFERENCE_SPARSECONFIGSENTRY,
+      __module__ = 'protocol_pb2'
+      # @@protoc_insertion_point(class_scope:spacepark.vision.Request.StartCameraInference.SparseConfigsEntry)
       ))
     ,
     DESCRIPTOR = _REQUEST_STARTCAMERAINFERENCE,
@@ -1245,6 +1710,13 @@ Request = _reflection.GeneratedProtocolMessageType('Request', (_message.Message,
     # @@protoc_insertion_point(class_scope:spacepark.vision.Request.GetFirmwareInfo)
     ))
   ,
+
+  GetSystemInfo = _reflection.GeneratedProtocolMessageType('GetSystemInfo', (_message.Message,), dict(
+    DESCRIPTOR = _REQUEST_GETSYSTEMINFO,
+    __module__ = 'protocol_pb2'
+    # @@protoc_insertion_point(class_scope:spacepark.vision.Request.GetSystemInfo)
+    ))
+  ,
   DESCRIPTOR = _REQUEST,
   __module__ = 'protocol_pb2'
   # @@protoc_insertion_point(class_scope:spacepark.vision.Request)
@@ -1254,13 +1726,16 @@ _sym_db.RegisterMessage(Request.LoadModel)
 _sym_db.RegisterMessage(Request.UnloadModel)
 _sym_db.RegisterMessage(Request.ImageInference)
 _sym_db.RegisterMessage(Request.ImageInference.ParamsEntry)
+_sym_db.RegisterMessage(Request.ImageInference.SparseConfigsEntry)
 _sym_db.RegisterMessage(Request.StartCameraInference)
 _sym_db.RegisterMessage(Request.StartCameraInference.ParamsEntry)
+_sym_db.RegisterMessage(Request.StartCameraInference.SparseConfigsEntry)
 _sym_db.RegisterMessage(Request.CameraInference)
 _sym_db.RegisterMessage(Request.StopCameraInference)
 _sym_db.RegisterMessage(Request.GetCameraState)
 _sym_db.RegisterMessage(Request.ImuSelfTest)
 _sym_db.RegisterMessage(Request.GetFirmwareInfo)
+_sym_db.RegisterMessage(Request.GetSystemInfo)
 
 InferenceResult = _reflection.GeneratedProtocolMessageType('InferenceResult', (_message.Message,), dict(
 
@@ -1299,6 +1774,13 @@ FirmwareInfo = _reflection.GeneratedProtocolMessageType('FirmwareInfo', (_messag
   ))
 _sym_db.RegisterMessage(FirmwareInfo)
 
+SystemInfo = _reflection.GeneratedProtocolMessageType('SystemInfo', (_message.Message,), dict(
+  DESCRIPTOR = _SYSTEMINFO,
+  __module__ = 'protocol_pb2'
+  # @@protoc_insertion_point(class_scope:spacepark.vision.SystemInfo)
+  ))
+_sym_db.RegisterMessage(SystemInfo)
+
 Response = _reflection.GeneratedProtocolMessageType('Response', (_message.Message,), dict(
 
   Status = _reflection.GeneratedProtocolMessageType('Status', (_message.Message,), dict(
@@ -1317,8 +1799,12 @@ _sym_db.RegisterMessage(Response.Status)
 
 _REQUEST_IMAGEINFERENCE_PARAMSENTRY.has_options = True
 _REQUEST_IMAGEINFERENCE_PARAMSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
+_REQUEST_IMAGEINFERENCE_SPARSECONFIGSENTRY.has_options = True
+_REQUEST_IMAGEINFERENCE_SPARSECONFIGSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
 _REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY.has_options = True
 _REQUEST_STARTCAMERAINFERENCE_PARAMSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
+_REQUEST_STARTCAMERAINFERENCE_SPARSECONFIGSENTRY.has_options = True
+_REQUEST_STARTCAMERAINFERENCE_SPARSECONFIGSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
 _INFERENCERESULT_TENSORSENTRY.has_options = True
 _INFERENCERESULT_TENSORSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
 # @@protoc_insertion_point(module_scope)
