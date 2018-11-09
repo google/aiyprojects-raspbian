@@ -17,10 +17,10 @@ from collections import namedtuple
 
 from aiy.vision.inference import ModelDescriptor
 from aiy.vision.models import utils
-from aiy.vision.models.dish_classification_classes import CLASSES
 
 
 _COMPUTE_GRAPH_NAME = 'dish_detection.binaryproto'
+_CLASSES = utils.load_labels('mobilenet_v1_192res_1.0_seefood_labels.txt')
 
 # sorted_scores: sorted list of (label, score) tuples.
 # bounding_box: (x, y, width, height) tuple.
@@ -36,7 +36,7 @@ def model():
 
 
 def _get_sorted_scores(scores, top_k, threshold):
-    pairs = [('/'.join(CLASSES[i]), prob) for i, prob in enumerate(scores) if prob > threshold]
+    pairs = [('/'.join(_CLASSES[i]), prob) for i, prob in enumerate(scores) if prob > threshold]
     pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
     return pairs[0:top_k]
 
@@ -45,7 +45,7 @@ def get_dishes(result, top_k=3, threshold=0.1):
     """Returns list of Dish objects decoded from the inference result."""
     assert len(result.tensors) == 2
     bboxes = utils.reshape(result.tensors['bounding_boxes'].data, 4)
-    dish_scores = utils.reshape(result.tensors['dish_scores'].data, len(CLASSES))
+    dish_scores = utils.reshape(result.tensors['dish_scores'].data, len(_CLASSES))
     assert len(bboxes) == len(dish_scores)
 
     return [Dish(_get_sorted_scores(scores, top_k, threshold), tuple(bbox))

@@ -33,7 +33,8 @@ test-vision-models: test-vision-images
 		src/tests/dish_detection_test.py \
 		src/tests/face_detection_test.py \
 		src/tests/image_classification_test.py \
-		src/tests/object_detection_test.py
+		src/tests/object_detection_test.py \
+		src/tests/inaturalist_classification_test.py
 
 test-vision-examples: test-vision-images
 	$(PYTHON) -m unittest \

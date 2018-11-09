@@ -1,5 +1,5 @@
 # Open Images Dataset V4
-all: cat.jpg dog.jpg hotdog.jpg faces.jpg
+all: cat.jpg dog.jpg hotdog.jpg faces.jpg sparrow.jpg bee.jpg lily.jpg
 
 # License: https://creativecommons.org/licenses/by/2.0/
 # URL: https://storage.googleapis.com/openimages/web/visualizer/index.html?set=train&c=%2Fm%2F01yrx&id=818c36d0b603e096
@@ -24,6 +24,24 @@ hotdog.jpg:
 faces.jpg:
 	wget -O $@ "https://farm3.staticflickr.com/4109/5031905069_cd67b182e3_o.jpg"
 	echo e23cef02664a28c9c8523a7889b6ff9b $@ | md5sum --check -
+
+# License: https://creativecommons.org/licenses/by/2.0/
+# https://storage.googleapis.com/openimages/web/visualizer/index.html?set=train&c=%2Fm%2F0h23m&id=d7b9e42392fc7998
+sparrow.jpg:
+	wget -O $@ "https://c1.staticflickr.com/1/542/19730052293_4e9bede5d0_o.jpg"
+	echo 3c0a157b55daaf87dbab7145072226f0 $@ | md5sum --check -
+
+# License: https://creativecommons.org/licenses/by/2.0/
+# https://storage.googleapis.com/openimages/web/visualizer/index.html?set=train&c=%2Fm%2F01h3n&id=618074321d59d0d8
+bee.jpg:
+	wget -O $@ "https://c1.staticflickr.com/3/2911/13993945720_95a938e5cf_o.jpg"
+	echo 13b855c8f32727929393ed0eb2a89525 $@ | md5sum --check -
+
+# License: https://creativecommons.org/licenses/by/2.0/
+# https://storage.googleapis.com/openimages/web/visualizer/index.html?set=train&c=%2Fm%2F0jqgx&id=7bf5c5c8b0f4f293
+lily.jpg:
+	wget -O $@ "https://farm4.staticflickr.com/4110/5099896296_2e2617a0a8_o.jpg"
+	echo b3b94395f631f2f5ded9299bc46c39a4 $@ | md5sum --check -
 
 clean:
 	rm -f *.jpg

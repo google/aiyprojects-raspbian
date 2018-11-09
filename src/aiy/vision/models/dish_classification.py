@@ -15,10 +15,9 @@
 
 from aiy.vision.inference import ModelDescriptor
 from aiy.vision.models import utils
-from aiy.vision.models.dish_classification_classes import CLASSES
 
 _COMPUTE_GRAPH_NAME = 'mobilenet_v1_192res_1.0_seefood.binaryproto'
-
+_CLASSES = utils.load_labels('mobilenet_v1_192res_1.0_seefood_labels.txt')
 
 def model():
     return ModelDescriptor(
@@ -56,4 +55,4 @@ def get_classes(result, max_num_objects=None, object_prob_threshold=0.0):
     pairs = [pair for pair in enumerate(probs) if pair[1] > object_prob_threshold]
     pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
     pairs = pairs[0:max_num_objects]
-    return [('/'.join(CLASSES[index]), prob) for index, prob in pairs]
+    return [('/'.join(_CLASSES[index]), prob) for index, prob in pairs]

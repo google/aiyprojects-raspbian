@@ -19,14 +19,14 @@ from collections import defaultdict
 
 from aiy.vision.inference import ModelDescriptor, ThresholdingConfig, FromSparseTensorConfig
 from aiy.vision.models import utils
-from aiy.vision.models.object_detection_anchors import ANCHORS
 
 _COMPUTE_GRAPH_NAME = 'mobilenet_ssd_256res_0.125_person_cat_dog.binaryproto'
-_NUM_ANCHORS = len(ANCHORS)
 _MACHINE_EPS = sys.float_info.epsilon
 _SCORE_TENSOR_NAME = 'concat_1'
 _ANCHOR_TENSOR_NAME = 'concat'
 _DEFAULT_THRESHOLD = 0.3
+_ANCHORS = utils.load_ssd_anchors('mobilenet_ssd_256res_0.125_person_cat_dog_anchors.txt')
+_NUM_ANCHORS = len(_ANCHORS)
 
 def _logit(x):
     return math.log(x / (1.0 - x))
@@ -94,7 +94,7 @@ def _decode_detection_result(logit_scores, box_encodings, threshold,
         if max_logit_index == 0 or max_logit <= logit_threshold:
             continue  # Skip 'background' and below threshold.
 
-        bbox = _decode_bbox(box_encodings[4 * i: 4 * (i + 1)], ANCHORS[i],
+        bbox = _decode_bbox(box_encodings[4 * i: 4 * (i + 1)], _ANCHORS[i],
                             image_size, image_offset)
         objs.append(Object(bbox, max_logit_index, _logistic(max_logit)))
 
@@ -121,7 +121,7 @@ def _decode_sparse_detection_result(logit_scores_indices, logit_scores,
         max_logit_index = max(range(4), key=logits.__getitem__)
         max_logit = logits[max_logit_index]
 
-        bbox = _decode_bbox(box_encodings[4 * j: 4 * (j + 1)], ANCHORS[i],
+        bbox = _decode_bbox(box_encodings[4 * j: 4 * (j + 1)], _ANCHORS[i],
                             image_size, image_offset)
         objs.append(Object(bbox, max_logit_index, _logistic(max_logit)))
 

@@ -15,7 +15,6 @@
 
 from aiy.vision.inference import ModelDescriptor, ThresholdingConfig
 from aiy.vision.models import utils
-from aiy.vision.models.image_classification_classes import CLASSES
 
 # There are two models in our repository that can do image classification. One
 # based on MobileNet model structure, the other based on SqueezeNet model
@@ -36,10 +35,12 @@ _OUTPUT_TENSOR_NAME_MAP = {
     SQUEEZENET: 'Prediction',
 }
 
-def sparse_configs(top_k=len(CLASSES), threshold=0.0, model_type=MOBILENET):
+_CLASSES = utils.load_labels('mobilenet_v1_160res_0.5_imagenet_labels.txt')
+
+def sparse_configs(top_k=len(_CLASSES), threshold=0.0, model_type=MOBILENET):
     name = _OUTPUT_TENSOR_NAME_MAP[model_type]
     return {
-        name: ThresholdingConfig(logical_shape=[len(CLASSES)],
+        name: ThresholdingConfig(logical_shape=[len(_CLASSES)],
                                  threshold=threshold,
                                  top_k=top_k,
                                  to_ignore=[])
@@ -56,7 +57,7 @@ def model(model_type=MOBILENET):
 def _get_probs(result):
     assert len(result.tensors) == 1
     tensor = result.tensors[_OUTPUT_TENSOR_NAME_MAP[result.model_name]]
-    assert utils.shape_tuple(tensor.shape) == (1, 1, 1, len(CLASSES))
+    assert utils.shape_tuple(tensor.shape) == (1, 1, 1, len(_CLASSES))
     return tuple(tensor.data)
 
 
@@ -82,7 +83,7 @@ def get_classes(result, top_k=None, threshold=0.0):
     pairs = [pair for pair in enumerate(probs) if pair[1] > threshold]
     pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
     pairs = pairs[0:top_k]
-    return [('/'.join(CLASSES[index]), prob) for index, prob in pairs]
+    return [('/'.join(_CLASSES[index]), prob) for index, prob in pairs]
 
 
 def _get_pairs(result):
@@ -109,4 +110,4 @@ def get_classes_sparse(result):
     """
     pairs = _get_pairs(result)
     pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
-    return [('/'.join(CLASSES[index]), prob) for index, prob in pairs]
+    return [('/'.join(_CLASSES[index]), prob) for index, prob in pairs]
