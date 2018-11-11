@@ -28,9 +28,8 @@ class _SpiTransport(object):
     def __init__(self):
         self._spicomm = _spicomm.Spicomm()
 
-    # TODO(dkovalev): add timeout when implemented in Spicomm
-    def send(self, request):
-        return self._spicomm.transact(request)
+    def send(self, request, timeout=None):
+        return self._spicomm.transact(request, timeout=timeout)
 
     def close(self):
         self._spicomm.close()
@@ -71,8 +70,7 @@ class _SocketTransport(object):
         port = int(os.environ.get('VISION_BONNET_PORT', '35000'))
         self._client.connect((host, port))
 
-    # TODO(dkovalev,weiranzhao): add timeout parameter
-    def send(self, request):
+    def send(self, request, timeout=None):
         _socket_send_message(self._client, request)
         return _socket_receive_message(self._client)
 
