@@ -18,6 +18,7 @@
 import argparse
 import locale
 import logging
+import signal
 
 from aiy.assistant.grpc import AssistantServiceClientWithLed
 from aiy.board import Board
@@ -34,6 +35,7 @@ def locale_language():
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
+    signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(0))
 
     parser = argparse.ArgumentParser(description='Assistant service example.')
     parser.add_argument('--language', default=locale_language())
