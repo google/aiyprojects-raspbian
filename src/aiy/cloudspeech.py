@@ -17,7 +17,7 @@
 import os
 import logging
 
-os.environ['GRPC_POLL_STRATEGY'] = 'poll'
+os.environ['GRPC_POLL_STRATEGY'] = 'epoll1'
 from google.cloud import speech
 from google.oauth2 import service_account
 

@@ -20,7 +20,7 @@ import math
 import os
 import sys
 
-os.environ['GRPC_POLL_STRATEGY'] = 'poll'
+os.environ['GRPC_POLL_STRATEGY'] = 'epoll1'
 import google.auth.transport.grpc
 import google.auth.transport.requests
 import google.oauth2.credentials
