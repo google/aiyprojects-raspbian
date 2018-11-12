@@ -100,17 +100,16 @@ class CameraInference:
         self._engine = self._stack.enter_context(InferenceEngine())
 
         try:
-            model_name = self._engine.load_model(descriptor)
-            self._stack.callback(lambda: self._engine.unload_model(model_name))
+            model_name = descriptor.name
+            if model_name not in self._engine.get_inference_state().loaded_models:
+                self._engine.load_model(descriptor)
+                self._stack.callback(lambda: self._engine.unload_model(model_name))
 
             self._engine.start_camera_inference(model_name, params, sparse_configs)
             self._stack.callback(lambda: self._engine.stop_camera_inference())
         except Exception:
             _close_stack_silently(self._stack)
             raise
-
-    def camera_state(self):
-        return self._engine.get_camera_state()
 
     def run(self, count=None):
         before = None
@@ -121,6 +120,10 @@ class CameraInference:
             before = now
             self._count += 1
             yield result
+
+    @property
+    def engine(self):
+        return self._engine
 
     @property
     def rate(self):
@@ -148,14 +151,20 @@ class ImageInference(object):
         self._engine = self._stack.enter_context(InferenceEngine())
 
         try:
-            self._model_name = self._engine.load_model(descriptor)
-            self._stack.callback(lambda: self._engine.unload_model(self._model_name))
+            self._model_name = descriptor.name
+            if self._model_name not in self._engine.get_inference_state().loaded_models:
+                self._model_name = self._engine.load_model(descriptor)
+                self._stack.callback(lambda: self._engine.unload_model(self._model_name))
         except Exception:
             _close_stack_silently(self._stack)
             raise
 
     def run(self, image, params=None, sparse_configs=None):
         return self._engine.image_inference(self._model_name, image, params, sparse_configs)
+
+    @property
+    def engine(self):
+        return self._engine
 
     def close(self):
         self._stack.close()
@@ -196,18 +205,24 @@ def _get_sparse_configs(configs):
 
 
 def _image_to_tensor(image):
-    width, height = image.size
-    if image.mode == 'RGB':
-        r, g, b = image.split()
+    if isinstance(image, (bytes, bytearray)):
+        # Only JPEG is supported on the bonnet side.
         return pb2.ByteTensor(
-            shape=pb2.TensorShape(batch=1, height=height, width=width, depth=3),
-            data=r.tobytes() + g.tobytes() + b.tobytes())
-    elif image.mode == 'L':
-        return pb2.ByteTensor(
-            shape=pb2.TensorShape(batch=1, height=height, width=width, depth=1),
-            data=image.tobytes())
+            shape=pb2.TensorShape(batch=1, height=0, width=0, depth=0),
+            data=image)
     else:
-        raise InferenceException('Unsupported image format: %s. Must be L or RGB.' % image.mode)
+        width, height = image.size
+        if image.mode == 'RGB':
+            r, g, b = image.split()
+            return pb2.ByteTensor(
+                shape=pb2.TensorShape(batch=1, height=height, width=width, depth=3),
+                data=r.tobytes() + g.tobytes() + b.tobytes())
+        elif image.mode == 'L':
+            return pb2.ByteTensor(
+                shape=pb2.TensorShape(batch=1, height=height, width=width, depth=1),
+                data=image.tobytes())
+        else:
+            raise InferenceException('Unsupported image format: %s. Must be L or RGB.' % image.mode)
 
 
 def _get_params(params):
@@ -227,8 +242,9 @@ _REQ_GET_FIRMWARE_INFO = _request_bytes(get_firmware_info=pb2.Request.GetFirmwar
 _REQ_GET_SYSTEM_INFO = _request_bytes(get_system_info=pb2.Request.GetSystemInfo())
 _REQ_CAMERA_INFERENCE = _request_bytes(camera_inference=pb2.Request.CameraInference())
 _REQ_STOP_CAMERA_INFERENCE = _request_bytes(stop_camera_inference=pb2.Request.StopCameraInference())
+_REQ_GET_INFERENCE_STATE = _request_bytes(get_inference_state=pb2.Request.GetInferenceState())
 _REQ_GET_CAMERA_STATE = _request_bytes(get_camera_state=pb2.Request.GetCameraState())
-
+_REQ_RESET = _request_bytes(reset=pb2.Request.Reset())
 
 class InferenceEngine(object):
     """Class to access InferenceEngine on VisionBonnet board.
@@ -265,12 +281,12 @@ class InferenceEngine(object):
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.close()
 
-    def _communicate(self, request):
-        return self._communicate_bytes(request.SerializeToString())
+    def _communicate(self, request, timeout=None):
+        return self._communicate_bytes(request.SerializeToString(), timeout=timeout)
 
-    def _communicate_bytes(self, request_bytes):
+    def _communicate_bytes(self, request_bytes, timeout=None):
         response = pb2.Response()
-        response.ParseFromString(self._transport.send(request_bytes))
+        response.ParseFromString(self._transport.send(request_bytes, timeout=timeout))
         if response.status.code != pb2.Response.Status.OK:
             raise InferenceException(response.status.message)
         return response
@@ -344,6 +360,10 @@ class InferenceEngine(object):
         logger.info('Stop camera inference.')
         self._communicate_bytes(_REQ_STOP_CAMERA_INFERENCE)
 
+    def get_inference_state(self):
+        """Returns inference state."""
+        return self._communicate_bytes(_REQ_GET_INFERENCE_STATE).inference_state
+
     def get_camera_state(self):
         """Returns current camera state."""
         return self._communicate_bytes(_REQ_GET_CAMERA_STATE).camera_state
@@ -359,7 +379,6 @@ class InferenceEngine(object):
     def get_system_info(self):
         """Returns system information: uptime, memory usage, temperature."""
         return self._communicate_bytes(_REQ_GET_SYSTEM_INFO).system_info
-
 
     def image_inference(self, model_name, image, params=None, sparse_configs=None):
         """Runs inference on image using model identified by model_name.
@@ -381,3 +400,6 @@ class InferenceEngine(object):
                 tensor=_image_to_tensor(image),
                 params=_get_params(params),
                 sparse_configs=_get_sparse_configs(sparse_configs)))).inference_result
+
+    def reset(self):
+        self._communicate_bytes(_REQ_RESET)

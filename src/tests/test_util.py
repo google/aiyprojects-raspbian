@@ -21,14 +21,22 @@ def test_image_path(name):
     p = os.path.join(os.path.dirname(__file__), 'images', name)
     return os.path.abspath(p)
 
+
+@contextlib.contextmanager
+def TestImageFile(name):
+    with open(test_image_path(name), 'rb') as f:
+        yield f
+
+
 @contextlib.contextmanager
 def TestImage(name):
-    with open(test_image_path(name), 'rb') as f:
+    with TestImageFile(name) as f:
         image = Image.open(f)
         try:
             yield image
         finally:
             image.close()
+
 
 def define_test_case(scope, test_class, *test_args):
     def init(self, *args, **kwargs):
