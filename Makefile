@@ -20,15 +20,16 @@ test-vision-images:
 	$(MAKE) -C src/tests/images
 
 test-vision-driver:
-	$(PYTHON) -m unittest \
+	$(PYTHON) -m unittest -v \
 		src/tests/spicomm_test.py
 
 test-vision-latency:
-	$(PYTHON) -m unittest \
+	$(PYTHON) -m unittest -v \
 		src/tests/camera_inference_latency_test.py
 
 test-vision-models: test-vision-images
-	$(PYTHON) -m unittest \
+	$(PYTHON) -m unittest -v \
+		src/tests/engine_test.py \
 		src/tests/dish_classification_test.py \
 		src/tests/dish_detection_test.py \
 		src/tests/face_detection_test.py \
@@ -37,7 +38,7 @@ test-vision-models: test-vision-images
 		src/tests/inaturalist_classification_test.py
 
 test-vision-examples: test-vision-images
-	$(PYTHON) -m unittest \
+	$(PYTHON) -m unittest -v \
 		src/tests/vision_examples_test.py
 
 test-vision: \
