@@ -12,7 +12,7 @@ To update your system image, download the latest `.img.xz` file
 
 If you prefer to setup Raspbian yourself, follow the steps below.
 
-## AIY Package Repo
+## AIY Debian Package Repo
 
 Add AIY package repo:
 ```
@@ -35,99 +35,120 @@ Reboot after update:
 sudo reboot
 ```
 
-## AIY Packages
+## AIY Debian Packages
 
-Package `aiy-dkms` contains MCU and Myriad drivers:
+### Vision and Voice Bonnets
 
-* `aiy-io-i2c`
-* `pwm-aiy-io`
-* `gpio-aiy-io`
-* `aiy-adc`
-* `aiy-vision`
+* `aiy-dkms` contains MCU drivers:
 
-Package `aiy-vision-firmware` contains Myriad firmware for Vision Bonnet.
+  * `aiy-io-i2c` &mdash; firmware update support
+  * `pwm-aiy-io` &mdash; [PWM][kernel-pwm] sysfs interface
+  * `gpio-aiy-io` &mdash; [GPIO][kernel-gpio] sysfs interface
+  * `aiy-adc`  &mdash; [Industrial I/O][kernel-iio] ADC interface
 
-Package `aiy-io-mcu-firmware` contains MCU firmware update service.
+* `aiy-io-mcu-firmware` contains MCU firmware update service
+* `leds-ktd202x-dkms` contains `leds-ktd202x` LED driver
+* `pwm-soft-dkms` contains `pwm-soft` software PWM driver
 
-Package `leds-ktd202x-dkms` contains LED driver:
+* `aiy-python-wheels` contains optimized `protobuf` python
+wheel (until [this issue][protobuf-issue] is fixed) along with [Google Assistant Library][assistant-library] for different Raspberry Pi boards.
 
-* `leds-ktd202x`
+### Vision Bonnet
 
-Package `pwm-soft-dkms` contains Software PWM driver:
+* `aiy-vision-dkms` contains `aiy-vision` Myriad driver
+* `aiy-vision-firmware` contains Myriad firmware
+* `aiy-models` contains [models][aiy-models] for on-device inference:
 
-* `pwm-soft`
+  * Face Detection
+  * Object Detection
+  * Dish Detection
+  * Dish Classification
+  * Image Classification
+  * iNaturalist Classification (plants, insects, birds)
 
-Package `aiy-voicebonnet-soundcard-dkms` contains sound drivers:
+### Voice Bonnet
 
-* `rl6231`
-* `rt5645`
-* `snd_aiy_voicebonnet`
+* `aiy-voicebonnet-soundcard-dkms` contains sound drivers:
 
-Package `aiy-voicebonnet-routes` contains ALSA UCM files for Voice Bonnet.
+  * `rl6231`
+  * `rt5645`
+  * `snd_aiy_voicebonnet`
 
-Package `aiy-models` contains [models][aiy-models] for Vision Bonnet.
+## AIY Setup
 
-Package `aiy-python-wheels` contains optimized `protobuf` and `grpcio` python
-wheels along with `google_assistant_library` optimized for Pi Zero.
+### Vision Bonnet (minimal)
 
-### Vision Bonnet Minimal Setup
-
+Install drivers:
+```bash
+sudo apt-get install aiy-vision-dkms aiy-vision-firmware aiy-dkms
 ```
-sudo apt-get install aiy-dkms
-sudo reboot
-```
 
-Run `dmesg` and check it contains `Myriad ready` message.
-
-In additional you can install package with [models][aiy-models]:
-```
+Install package with [models][aiy-models]:
+```bash
 sudo apt-get install aiy-models
 ```
-and `aiy-python-wheels` for better performance:
-```
+
+Install optimized `protobuf` library for better performance:
+```bash
 sudo apt-get install aiy-python-wheels
 ```
 
-### Voice Bonnet Minimal Setup
-
-```
-sudo apt-get install pulseaudio
-mkdir -p ~/.config/pulse/
-echo "default-sample-rate = 48000" > ~/.config/pulse/daemon.conf
-```
-
-```
-sudo apt-get install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
+Reboot:
+```bash
 sudo reboot
 ```
-
-In addition you can install package `aiy-python-wheels` for better performance:
+and verify that `dmesg` output contains `Myriad ready` message:
+```bash
+dmesg | grep -i "Myriad ready"
 ```
+
+### Voice Bonnet (minimal)
+
+Install drivers:
+```
+sudo apt-get install aiy-voicebonnet-soundcard-dkms aiy-dkms
+```
+
+Install PulseAudio:
+```
+sudo apt-get install pulseaudio
+sudo mkdir -p /etc/pulse/daemon.conf.d/
+echo "default-sample-rate = 48000" | sudo tee /etc/pulse/daemon.conf.d/aiy.conf
+```
+
+Install optimized `protobuf` and `google-assistant-library`:
+```bash
 sudo apt-get install aiy-python-wheels
 ```
 
-You should be able to record
+Reboot:
+```bash
+sudo reboot
 ```
+and verify that you can record
+```bash
 arecord -f cd test.wav
 ```
-and play
-```
+and play a sound:
+```bash
 aplay test.wav
 ```
-sound right now.
 
-### Vision/Voice Bonnet Additional Setup
+### Vision and Voice Bonnet (additional)
 
 Install LED driver to control button RGB LED:
-```
+```bash
 sudo apt-get install leds-ktd202x-dkms
 ```
 
-Install Software PWM driver to control buzzer:
-```
+Install software PWM driver to control buzzer:
+```bash
 sudo apt-get install pwm-soft-dkms
-echo "pwm-soft" | sudo tee -a /etc/modules
-sudo modprobe pwm-soft
+```
+
+Reboot:
+```bash
+sudo reboot
 ```
 
 ## Python Library
@@ -160,3 +181,8 @@ credentials for cloud APIs. This is documented in the
 [aiy-models]: https://aiyprojects.withgoogle.com/models/
 [github-releases]: https://github.com/google/aiyprojects-raspbian/releases
 [aiy-voice-setup]: https://aiyprojects.withgoogle.com/voice#google-assistant--get-credentials
+[assistant-library]: https://pypi.org/project/google-assistant-library/
+[protobuf-issue]: https://github.com/bennuttall/piwheels/issues/97
+[kernel-pwm]: https://www.kernel.org/doc/Documentation/pwm.txt
+[kernel-gpio]: https://www.kernel.org/doc/Documentation/gpio/sysfs.txt
+[kernel-iio]: https://www.kernel.org/doc/Documentation/driver-api/iio/core.rst
