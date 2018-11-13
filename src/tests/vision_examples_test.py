@@ -5,6 +5,8 @@ import sys
 import time
 import unittest
 
+from aiy.vision.inference import InferenceEngine
+
 from .test_util import test_image_path
 
 ENV = {
@@ -28,6 +30,9 @@ def wait_terminated(process, timeout):
     return None
 
 class VisionExamplesTest(unittest.TestCase):
+    def setUp(self):
+        with InferenceEngine() as engine:
+            engine.reset()
 
     def execute(self, args, timeout):
         file, *rest = args
@@ -57,7 +62,7 @@ class VisionExamplesTest(unittest.TestCase):
 
     def test_dish_detection(self):
         image = test_image_path('hotdog.jpg')
-        self.execute(['dish_detection.py', '--input', image], timeout=60.0)
+        self.execute(['dish_detection.py', '--input', image], timeout=65.0)
 
     def test_face_detection(self):
         image = test_image_path('faces.jpg')
@@ -71,14 +76,31 @@ class VisionExamplesTest(unittest.TestCase):
 
     def test_image_classification_mobilenet(self):
         image = test_image_path('dog.jpg')
-        self.execute(['image_classification.py', '--input', image], timeout=45.0)
+        self.execute(['image_classification.py', '--model', 'mobilenet', '--input', image],
+                     timeout=45.0)
 
     def test_image_classification_squeezenet(self):
         image = test_image_path('dog.jpg')
-        self.execute(['image_classification.py', '--use_squeezenet', '--input', image], timeout=45.0)
+        self.execute(['image_classification.py', '--model', 'squeezenet', '--input', image],
+                     timeout=45.0)
 
     def test_image_classification_camera(self):
         self.execute(['image_classification_camera.py', '--num_frames', '100'], timeout=45.0)
+
+    def test_inaturalist_classification_plants(self):
+        image = test_image_path('lily.jpg')
+        self.execute(['inaturalist_classification.py', '--model', 'plants', '--input', image],
+                     timeout=45.0)
+
+    def test_inaturalist_classification_insects(self):
+        image = test_image_path('bee.jpg')
+        self.execute(['inaturalist_classification.py', '--model', 'insects', '--input', image],
+                     timeout=45.0)
+
+    def test_inaturalist_classification_birds(self):
+        image = test_image_path('sparrow.jpg')
+        self.execute(['inaturalist_classification.py', '--model', 'birds', '--input', image],
+                     timeout=45.0)
 
     def test_mobilenet_based_classifier(self):
         self.execute(['mobilenet_based_classifier.py',

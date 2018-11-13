@@ -34,25 +34,25 @@ def _get_probs(result):
     return tuple(tensor.data)
 
 
-def get_classes(result, max_num_objects=None, object_prob_threshold=0.0):
+def get_classes(result, top_k=None, threshold=0.0):
     """Converts dish classification model output to list of detected objects.
 
     Args:
       result: output tensor from dish classification model.
-      max_num_objects: int; max number of objects to return.
-      object_prob_threshold: float; min probability of each returned object.
+      top_k: int; max number of objects to return.
+      threshold: float; min probability of each returned object.
 
     Returns:
       A list of (class_name: string, probability: float) pairs ordered by
       probability from highest to lowest. The number of pairs is not greater than
-      max_num_objects. Each probability is greater than object_prob_threshold. For
+      top_k. Each probability is greater than threshold. For
       example:
 
       [('Ramen', 0.981934)
        ('Yaka mein, 0.005497)]
     """
     probs = _get_probs(result)
-    pairs = [pair for pair in enumerate(probs) if pair[1] > object_prob_threshold]
+    pairs = [pair for pair in enumerate(probs) if pair[1] > threshold]
     pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
-    pairs = pairs[0:max_num_objects]
+    pairs = pairs[0:top_k]
     return [('/'.join(_CLASSES[index]), prob) for index, prob in pairs]

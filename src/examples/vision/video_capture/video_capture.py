@@ -118,7 +118,7 @@ def detect_object(inference, camera, classes, threshold, out_dir, range_x=[0, 1]
         im_crop = image.crop(p)
         accumulator = 0.
         infer_classes = image_classification.get_classes(
-            inference.run(im_crop), max_num_objects=5, object_prob_threshold=0.05)
+            inference.run(im_crop), top_k=5, threshold=0.05)
         corner = [p[0], p[1]]
         print(corner)
         for idx, (label, score) in enumerate(infer_classes):

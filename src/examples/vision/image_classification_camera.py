@@ -53,7 +53,7 @@ def main():
          CameraPreview(camera, enabled=args.preview), \
          CameraInference(image_classification.model()) as inference:
         for result in inference.run(args.num_frames):
-            classes = image_classification.get_classes(result, max_num_objects=args.num_objects)
+            classes = image_classification.get_classes(result, top_k=args.num_objects)
             print(classes_info(classes))
             if classes:
                 camera.annotate_text = '%s (%.2f)' % classes[0]

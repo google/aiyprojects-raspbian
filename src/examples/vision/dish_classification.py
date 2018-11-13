@@ -34,7 +34,7 @@ def main():
     with ImageInference(dish_classification.model()) as inference:
         image = Image.open(read_stdin() if args.input == '-' else args.input)
         classes = dish_classification.get_classes(
-            inference.run(image), max_num_objects=5, object_prob_threshold=0.1)
+            inference.run(image), top_k=5, threshold=0.1)
         for i, (label, score) in enumerate(classes):
             print('Result %d: %s (prob=%f)' % (i, label, score))
 

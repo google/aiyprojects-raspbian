@@ -89,8 +89,8 @@ def _decode_detection_result(logit_scores, box_encodings, threshold,
 
     for i in range(_NUM_ANCHORS):
         logits = logit_scores[4 * i: 4 * (i + 1)]
-        max_logit_index = max(range(4), key=logits.__getitem__)
-        max_logit = logits[max_logit_index]
+        max_logit = max(logits)
+        max_logit_index = logits.index(max_logit)
         if max_logit_index == 0 or max_logit <= logit_threshold:
             continue  # Skip 'background' and below threshold.
 
@@ -118,8 +118,8 @@ def _decode_sparse_detection_result(logit_scores_indices, logit_scores,
         i, = index.values
 
         logits = logits_dict[i]
-        max_logit_index = max(range(4), key=logits.__getitem__)
-        max_logit = logits[max_logit_index]
+        max_logit = max(logits)
+        max_logit_index = logits.index(max_logit)
 
         bbox = _decode_bbox(box_encodings[4 * j: 4 * (j + 1)], _ANCHORS[i],
                             image_size, image_offset)
