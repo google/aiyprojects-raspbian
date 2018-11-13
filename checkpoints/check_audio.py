@@ -18,9 +18,10 @@
 
 import os
 import tempfile
+import time
 import traceback
 
-import aiy.audio
+from aiy.voice.audio import AudioFormat, play_wav, record_file
 
 AIY_CARDS = {
     'sndrpigooglevoi': 'Voice HAT (v1)',
@@ -107,7 +108,7 @@ def check_sound_card_present():
 
 def check_speaker_works():
     print('Playing a test sound...')
-    aiy.audio.play_wave(TEST_SOUND_PATH)
+    play_wav(TEST_SOUND_PATH)
 
     if not ask('Did you hear the test sound?'):
         error(ERROR_NO_SPEAKER_SOUND)
@@ -117,12 +118,13 @@ def check_speaker_works():
 
 def check_microphone_works():
     with tempfile.NamedTemporaryFile() as f:
-        f.close()
         input('When you are ready, press Enter and say "Testing, 1 2 3"...')
         print('Recording for %d seconds...' % RECORD_DURATION_SECONDS)
-        aiy.audio.record_to_wave(f.name, RECORD_DURATION_SECONDS)
+
+        record_file(AudioFormat.CD, filename=f.name, filetype='wav',
+                    wait=lambda: time.sleep(RECORD_DURATION_SECONDS))
         print('Playing back recorded audio...')
-        aiy.audio.play_wave(f.name)
+        play_wav(f.name)
 
     if not ask('Did you hear your own voice?'):
         error(ERROR_NO_RECORDED_SOUND)

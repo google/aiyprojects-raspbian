@@ -6,6 +6,8 @@ import wave
 
 from collections import namedtuple
 
+SUPPORTED_FILETYPES = ('wav', 'raw', 'voc', 'au')
+
 
 class AudioFormat(namedtuple('AudioFormat',
                              ['sample_rate_hz', 'num_channels', 'bytes_per_sample'])):
@@ -29,16 +31,16 @@ def wave_get_format(wav_file):
 
 
 def arecord(fmt, filetype='raw', filename=None, device='default'):
-    """ Microphone -> File | Stdout."""
+    """Returns arecord command line."""
     if fmt is None:
-        raise ValueError('Format must be specified.')
+        raise ValueError('Format must be specified for recording.')
 
-    if filetype not in ('wav', 'raw', 'voc', 'au'):
-        raise ValueError('File type must be wav, raw, voc, or au.')
+    if filetype not in SUPPORTED_FILETYPES:
+        raise ValueError('File type must be %s.' % ', '.join(SUPPORTED_FILETYPES))
 
     cmd = ['arecord', '-q',
-           '-t', filetype,
            '-D', device,
+           '-t', filetype,
            '-c', str(fmt.num_channels),
            '-f', 's%d' % (8 * fmt.bytes_per_sample),
            '-r', str(fmt.sample_rate_hz)]
@@ -50,20 +52,31 @@ def arecord(fmt, filetype='raw', filename=None, device='default'):
 
 
 def aplay(fmt, filetype='raw', filename=None, device='default'):
-    """File | Stdin -> Speaker."""
+    """Returns aplay command line."""
     if filetype == 'raw' and fmt is None:
         raise ValueError('Format must be specified for raw data.')
 
-    cmd = ['aplay', '-q', '-t', filetype, '-D', device]
+    cmd = ['aplay', '-q',
+           '-D', device,
+           '-t', filetype]
+
     if fmt is not None:
         cmd.extend(['-c', str(fmt.num_channels),
                     '-f', 's%d' % (8 * fmt.bytes_per_sample),
                     '-r', str(fmt.sample_rate_hz)])
+
     if filename is not None:
         cmd.append(filename)
+
     return cmd
 
 def record_file_async(fmt, filename, filetype, device='default'):
+    if filename is None:
+        raise ValueError('Filename must be specified.')
+
+    if filetype is None:
+        raise ValueError('Filetype must be specified.')
+
     cmd = arecord(fmt, filetype=filetype, filename=filename, device=device)
     return subprocess.Popen(cmd)
 
@@ -73,50 +86,53 @@ def record_file(fmt, filename, filetype, wait, device='default'):
         raise ValueError('Wait callback must be specified.')
 
     process = record_file_async(fmt, filename, filetype, device)
-    wait()
-    process.terminate()
-    process.wait()
+    try:
+        wait()
+    finally:
+        process.terminate()
+        process.wait()
 
 
-def play_wav_async(filename_or_bytes):
-    if isinstance(filename_or_bytes, (bytes, bytearray)):
+def play_wav_async(filename_or_data):
+    if isinstance(filename_or_data, (bytes, bytearray)):
         cmd = aplay(fmt=None, filetype='wav', filename=None)
         process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-        process.stdin.write(filename_or_bytes)
+        process.stdin.write(filename_or_data)
         return process
 
-    if isinstance(filename_or_bytes, str):
-        cmd = aplay(fmt=None, filetype='wav', filename=filename_or_bytes)
+    if isinstance(filename_or_data, str):
+        cmd = aplay(fmt=None, filetype='wav', filename=filename_or_data)
         return subprocess.Popen(cmd)
 
     raise ValueError('Must be filename or byte-like object')
 
 
-def play_wav(filename_or_bytes):
-    play_wav_async(filename_or_bytes).wait()
+def play_wav(filename_or_data):
+    play_wav_async(filename_or_data).wait()
 
 
-def play_raw_async(fmt, filename_or_bytes):
-    if isinstance(filename_or_bytes, (bytes, bytearray)):
+def play_raw_async(fmt, filename_or_data):
+    if isinstance(filename_or_data, (bytes, bytearray)):
         cmd = aplay(fmt=fmt, filetype='raw')
         process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-        process.stdin.write(filename_or_bytes)
+        process.stdin.write(filename_or_data)
         return process
 
-    if isinstance(filename_or_bytes, str):
+    if isinstance(filename_or_data, str):
         cmd = aplay(fmt=fmt, filetype='raw', filename=filename)
         return subprocess.Popen(cmd)
 
     raise ValueError('Must be filename or byte-like object')
 
 
-def play_raw(fmt, filename_or_bytes):
+def play_raw(fmt, filename_or_data):
     play_raw_async(fmt, filename).wait()
 
 
 class Recorder:
 
     def __init__(self, ):
+        self._process = None
         self._done = threading.Event()
         self._started = threading.Event()
 
@@ -171,6 +187,7 @@ class Recorder:
 class Player:
 
     def __init__(self):
+        self._process = None
         self._started = threading.Event()
 
     def __enter__(self):
@@ -179,7 +196,7 @@ class Player:
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.join()
 
-    def popen(self, cmd, **kwargs):
+    def _popen(self, cmd, **kwargs):
         self._process = subprocess.Popen(cmd, **kwargs)
         self._started.set()
         return self._process
@@ -195,11 +212,11 @@ class FilePlayer(Player):
         super().__init__()
 
     def play_raw(fmt, filename, device='default'):
-        self.popen(aplay(fmt=fmt, filetype='raw', filename=filename, device=device))
+        self._popen(aplay(fmt=fmt, filetype='raw', filename=filename, device=device))
 
 
     def play_wav(filename, device='default'):
-        self.popen(aplay(fmt=None, filetype='wav', filename=filename, device=device))
+        self._popen(aplay(fmt=None, filetype='wav', filename=filename, device=device))
 
 class BytesPlayer(Player):
 
@@ -207,7 +224,7 @@ class BytesPlayer(Player):
         super().__init__()
 
     def play(self, fmt, device='default'):
-        process = self.popen(aplay(fmt=fmt, filetype='raw', device=device), stdin=subprocess.PIPE)
+        process = self._popen(aplay(fmt=fmt, filetype='raw', device=device), stdin=subprocess.PIPE)
 
         def push(data):
             if data:
