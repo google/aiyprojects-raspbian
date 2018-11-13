@@ -42,7 +42,7 @@ class Button:
         pressed = False
         while not self._done.is_set():
             now = time.monotonic()
-            if now - pressed > self._debounce_time:
+            if now - when_pressed > self._debounce_time:
                 if GPIO.input(self._channel) == self._expected:
                     if not pressed:
                         pressed = True
@@ -176,7 +176,7 @@ class SingleColorLed:
     ON          = Config(duty_cycles=lambda: [100], pause=1.0)
     BLINK       = Config(duty_cycles=lambda: [0, 100], pause=0.5)
     BLINK_3     = Config(duty_cycles=lambda: [0, 100] * 3 + [0, 0],
-                         pause=0.25),
+                         pause=0.25)
     BEACON      = Config(duty_cycles=lambda: itertools.chain([30] * 100,
                                                              [100] * 8,
                                                              range(100, 30, -5)),
@@ -186,7 +186,7 @@ class SingleColorLed:
                                                              range(30, 0, -3)),
                          pause=0.05)
     DECAY       = Config(duty_cycles=lambda: range(100, 0, -2),
-                         pause=0.05),
+                         pause=0.05)
     PULSE_SLOW  = Config(duty_cycles=lambda: itertools.chain(range(0, 100, 2),
                                                              range(100, 0, -2)),
                          pause=0.1)

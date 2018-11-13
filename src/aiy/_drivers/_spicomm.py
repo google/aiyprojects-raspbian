@@ -234,8 +234,8 @@ class SyncSpicommBase:
         with self._lock:
             return self.transact_impl(request, timeout)
 
-    def transact_impl(request, timeout):
-        pass
+    def transact_impl(self, request, timeout):
+        raise NotImplementedError
 
 
 class SyncSpicomm(SyncSpicommBase):

@@ -85,5 +85,4 @@ def _is_arm():
 def make_transport():
     if _is_arm():
         return _SpiTransport()
-    else:
-        return _SocketTransport()
+    return _SocketTransport()
