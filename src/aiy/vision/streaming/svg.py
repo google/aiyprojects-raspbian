@@ -22,14 +22,14 @@ class Tag:
     NAME = None
     REQUIRED_ATTRS = ()
 
-    def __init__(self, attrs=None):
+    def __init__(self, **kwargs):
         self._attrs = OrderedDict()
 
         for attr in self.REQUIRED_ATTRS:
-            if attr not in attrs:
+            if attr not in kwargs:
                 raise ValueError('Missing attribute "%s" from tag <%s/>' % (attr, self.NAME))
 
-        for key, value in attrs.items():
+        for key, value in kwargs.items():
           self._attrs[key.replace('_', '-')] = value
 
     @property
@@ -48,8 +48,8 @@ class Tag:
 
 
 class TagContainer(Tag):
-    def __init__(self, attrs=None):
-        super().__init__(attrs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._children = []
 
     def add(self, child):
@@ -64,46 +64,31 @@ class Svg(TagContainer):
     NAME = 'svg'
 
     def __init__(self, **kwargs):
-        super().__init__({'xmlns':'http://www.w3.org/2000/svg', **kwargs})
+        super().__init__(**{'xmlns':'http://www.w3.org/2000/svg', **kwargs})
 
 
 class Group(TagContainer):
     NAME = 'g'
-
-    def __init__(self, **kwargs):
-        super().__init__(kwargs)
 
 
 class Line(Tag):
     NAME = 'line'
     REQUIRED_ATTRS = ('x1', 'y1', 'x2', 'y2')
 
-    def __init__(self, **kwargs):
-        super().__init__(kwargs)
-
 
 class Rect(Tag):
     NAME = 'rect'
     REQUIRED_ATTRS = ('x', 'y', 'width', 'height')
-
-    def __init__(self, **kwargs):
-        super().__init__(kwargs)
 
 
 class Circle(Tag):
     NAME = 'circle'
     REQUIRED_ATTRS = ('cx', 'cy', 'r')
 
-    def __init__(self, **kwargs):
-        super().__init__(kwargs)
-
 
 class Ellipse(Tag):
     NAME = 'ellipse'
     REQUIRED_ATTRS = ('cx', 'cy', 'rx', 'ry')
-
-    def __init__(self, **kwargs):
-        super().__init__(kwargs)
 
 
 class Text(Tag):
@@ -111,9 +96,13 @@ class Text(Tag):
     REQUIRED_ATTRS = ('x', 'y')
 
     def __init__(self, text, **kwargs):
-        super().__init__(kwargs)
+        super().__init__(**kwargs)
         self._text = text
 
     @property
     def value(self):
         return self._text
+
+class Path(Tag):
+    NAME = 'path'
+    REQUIRED_ATTRS = ('d',)

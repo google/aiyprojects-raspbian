@@ -39,8 +39,6 @@ from aiy.vision.streaming import svg
 
 logger = logging.getLogger(__name__)
 
-RED_COLOR = (255, 0, 0)
-
 JOY_COLOR = (255, 70, 0)
 SAD_COLOR = (0, 0, 64)
 
@@ -116,21 +114,21 @@ def scale_bounding_box(bounding_box, scale_x, scale_y):
     return (x * scale_x, y * scale_y, w * scale_x, h * scale_y)
 
 
-def generate_overlay(faces, frame_size, joy_score):
+def svg_overlay(faces, frame_size, joy_score):
     width, height = frame_size
     doc = svg.Svg(width=width, height=height)
 
     for face in faces:
         x, y, w, h = face.bounding_box
-        doc.add(svg.Rect(x=int(x), y=int(y), width=int(w), height=int(h),
-                         stroke=svg.rgb(RED_COLOR),
-                         stroke_width=int(face.joy_score * 5) + 2,
-                         fill_opacity=0.0))
-        doc.add(svg.Text('%.2f' % face.joy_score, x=x, y=y - 5,
-                         fill=svg.rgb(RED_COLOR), font_size=40))
+        doc.add(svg.Rect(x=int(x), y=int(y), width=int(w), height=int(h), rx=10, ry=10,
+                         fill_opacity=0.3 * face.face_score,
+                         style='fill:red;stroke:white;stroke-width:4px'))
 
-    doc.add(svg.Text('Faces: %d\n Avg. score: %.2f' % (len(faces), joy_score),
-            x=10, y=70, fill=svg.rgb(RED_COLOR), font_size=60))
+        doc.add(svg.Text('Joy: %.2f' % face.joy_score, x=x, y=y - 10,
+                         fill='red', font_size=30))
+
+    doc.add(svg.Text('Faces: %d Avg. joy: %.2f' % (len(faces), joy_score),
+            x=10, y=50, fill='red', font_size=40))
     return str(doc)
 
 
@@ -276,8 +274,8 @@ def joy_detector(num_frames, preview_alpha, image_format, image_folder,
         logger.info('Stopping...')
         done.set()
 
-    signal.signal(signal.SIGINT, lambda signal, frame: stop())
-    signal.signal(signal.SIGTERM, lambda signal, frame: stop())
+    signal.signal(signal.SIGINT, lambda signum, frame: stop())
+    signal.signal(signal.SIGTERM, lambda signum, frame: stop())
 
     logger.info('Starting...')
     with contextlib.ExitStack() as stack:
@@ -329,10 +327,16 @@ def joy_detector(num_frames, preview_alpha, image_format, image_folder,
                 player.play(SAD_SOUND)
 
             if server:
-                server.send_overlay(generate_overlay(faces, frame_size, joy_score))
+                server.send_overlay(svg_overlay(faces, frame_size, joy_score))
 
             if done.is_set():
                 break
+
+def preview_alpha(string):
+    value = int(string)
+    if value < 0 or value > 255:
+        raise argparse.ArgumentTypeError('Must be in [0...255] range.')
+    return value
 
 
 def main():
@@ -341,7 +345,7 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--num_frames', '-n', type=int, default=None,
                         help='Number of frames to run for')
-    parser.add_argument('--preview_alpha', '-pa', type=int, default=0,
+    parser.add_argument('--preview_alpha', '-pa', type=preview_alpha, default=0,
                         help='Video preview overlay transparency (0-255)')
     parser.add_argument('--image_format', default='jpeg',
                         choices=('jpeg', 'bmp', 'png'),
@@ -358,9 +362,6 @@ def main():
                         help='Streaming server mDNS name')
     args = parser.parse_args()
 
-    if args.preview_alpha < 0 or args.preview_alpha > 255:
-        parser.error('Invalid preview_alpha value: %d' % args.preview_alpha)
-
     try:
         joy_detector(args.num_frames, args.preview_alpha, args.image_format, args.image_folder,
                      args.enable_streaming, args.streaming_bitrate, args.mdns_name)
@@ -371,7 +372,7 @@ def main():
         if args.blink_on_error:
             with Leds() as leds:
                 leds.pattern = Pattern.blink(100)  # 10 Hz
-                leds.update(Leds.rgb_pattern(RED_COLOR))
+                leds.update(Leds.rgb_pattern(Color.RED))
                 time.sleep(1.0)
 
     return 0
