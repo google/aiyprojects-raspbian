@@ -25,11 +25,11 @@ import logging
 import platform
 import sys
 
-import aiy.assistant.auth_helpers
+from google.assistant.library.event import EventType
 
+from aiy.assistant import auth_helpers
 from aiy.assistant.library import Assistant
 from aiy.board import Board, Led
-from google.assistant.library.event import EventType
 
 def process_event(led, event):
     logging.info(event)
@@ -56,7 +56,7 @@ def process_event(led, event):
 def main():
     logging.basicConfig(level=logging.INFO)
 
-    credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
+    credentials = auth_helpers.get_assistant_credentials()
     with Board() as board, Assistant(credentials) as assistant:
         for event in assistant.start():
             process_event(board.led, event)

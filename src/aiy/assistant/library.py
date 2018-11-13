@@ -18,8 +18,7 @@ Handles model and device registration."""
 
 import google.assistant.library
 
-import aiy.assistant.device_helpers as device_helpers
-
+from aiy.assistant import device_helpers
 
 class Assistant(google.assistant.library.Assistant):
     """Client for the Google Assistant Library.

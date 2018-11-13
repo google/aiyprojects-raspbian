@@ -31,8 +31,8 @@ def read_labels(label_path):
 def get_message(result, threshold, top_k):
     if result:
         return 'Detecting:\n %s' % '\n'.join(result)
-    else:
-        return 'Nothing detected when threshold=%.2f, top_k=%d' % (threshold, top_k)
+
+    return 'Nothing detected when threshold=%.2f, top_k=%d' % (threshold, top_k)
 
 
 def process(result, labels, tensor_name, threshold, top_k):

@@ -96,7 +96,7 @@ def _get_exception(flags, timeout_ms, payload_size):
     if flags & FLAG_ERROR:
         if flags & FLAG_TIMEOUT:
             return SpicommTimeoutError(timeout_ms / 1000.0)
-        elif flags & FLAG_OVERFLOW:
+        if flags & FLAG_OVERFLOW:
             return SpicommOverflowError(payload_size)
         return SpicommError()
     return None
@@ -285,8 +285,8 @@ class SyncSpicomm(SyncSpicommBase):
 
         if use_allocated_buf:
             return bytearray(_read_payload(buf, payload_size))
-        else:
-            return _read_payload(buf, payload_size)
+
+        return _read_payload(buf, payload_size)
 
 
 def _transact_mmap(dev, mm, offset, request, timeout):
@@ -327,11 +327,11 @@ class SyncSpicommMmap(SyncSpicommBase):
         if len(request) < len(self._mm):
             # Default buffer
             return _transact_mmap(self._dev, self._mm, 0, request, timeout)
-        else:
-            # Temporary bigger buffer
-            offset = (len(self._mm) + (mmap.PAGESIZE - 1)) // mmap.PAGESIZE
-            with mmap.mmap(self._dev, length=len(request), offset=mmap.PAGESIZE * offset) as mm:
-                return _transact_mmap(self._dev, mm, offset, request, timeout)
+
+        # Temporary bigger buffer
+        offset = (len(self._mm) + (mmap.PAGESIZE - 1)) // mmap.PAGESIZE
+        with mmap.mmap(self._dev, length=len(request), offset=mmap.PAGESIZE * offset) as mm:
+            return _transact_mmap(self._dev, mm, offset, request, timeout)
 
 
 # Scicomm class provides the ability to send and receive data as a transaction.

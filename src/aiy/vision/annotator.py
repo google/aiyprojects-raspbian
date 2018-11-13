@@ -23,12 +23,11 @@ which will then not cover up overlay content drawn under the region.
 Note: Overlays do not persist through to the storage layer so images saved from
 the camera, will not contain overlays.
 """
+import time
 
 import picamera
-import time
-from PIL import Image
-from PIL import ImageDraw
 
+from PIL import Image, ImageDraw
 
 def _round_to_bit(value, power):
     """Rounds the given value to the next multiple of 2^power.
@@ -51,7 +50,7 @@ def _round_buffer_dims(dims):
 
 
 # TODO(namiller): Add an annotator for images.
-class Annotator(object):
+class Annotator:
     """Utility for managing annotations on the camera preview.
 
     Args:

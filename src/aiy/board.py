@@ -20,7 +20,7 @@ import time
 
 from collections import namedtuple
 
-import RPi.GPIO as GPIO
+from RPi import GPIO
 
 from aiy.leds import Color, Leds, Pattern
 

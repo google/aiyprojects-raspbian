@@ -26,7 +26,8 @@ import sys
 import threading
 import time
 
-import aiy.vision.streaming.svg as svg
+from PIL import Image, ImageDraw, ImageFont
+from picamera import PiCamera
 
 from aiy.board import Board
 from aiy.leds import Color, Leds, Pattern, PrivacyLed
@@ -34,12 +35,7 @@ from aiy.toneplayer import TonePlayer
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import face_detection
 from aiy.vision.streaming.server import StreamingServer
-
-from picamera import PiCamera
-
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFont
+from aiy.vision.streaming import svg
 
 logger = logging.getLogger(__name__)
 

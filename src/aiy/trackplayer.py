@@ -23,7 +23,7 @@ from aiy._drivers._buzzer import PWMController
 from aiy.toneplayer import Note
 
 
-class Command(object):
+class Command:
     """Base class for all commands."""
 
     def apply(self, player, controller, note, tick_delta):
@@ -244,7 +244,7 @@ class StopPlaying(Command):
         return klass(), 0
 
 
-class TrackPlayer(object):
+class TrackPlayer:
     """Plays a tracker-like song."""
 
     def __init__(self, gpio, speed=3, debug=False):
@@ -359,7 +359,7 @@ class TrackPlayer(object):
             controller.set_frequency(0)
 
 
-class TrackLoader(object):
+class TrackLoader:
     """Simple track module loader.
 
     This class, given a filename and a gpio will load and parse in the given

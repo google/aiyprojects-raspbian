@@ -20,10 +20,9 @@ _DEVICE_PATH = '/sys/class/leds/ktd202x:led1/device/'
 def _tflash_reg(duration_ms):
     if duration_ms <= 128:
         return 0
-    elif duration_ms <= 384:
+    if duration_ms <= 384:
         return 1
-    else:
-        return min((int(round(duration_ms / 128))) - 2, 126)
+    return min((int(round(duration_ms / 128))) - 2, 126)
 
 
 def _pwm1_reg(percent):
@@ -33,8 +32,7 @@ def _pwm1_reg(percent):
 def _trise_tfall_reg(duration_ms):
     if duration_ms <= 1.5:
         return 0
-    else:
-        return min(int(round(duration_ms / 96)), 15)
+    return min(int(round(duration_ms / 96)), 15)
 
 
 def _write(path, data):
@@ -124,8 +122,8 @@ class Leds:
         """Returns configuration for channel 4 (privacy)."""
         if enabled:
             return {4: Leds.Channel(Leds.Channel.ON, brightness)}
-        else:
-            return {4: Leds.Channel(Leds.Channel.OFF, 0)}
+
+        return {4: Leds.Channel(Leds.Channel.OFF, 0)}
 
     @staticmethod
     def privacy_on(brightness=255):

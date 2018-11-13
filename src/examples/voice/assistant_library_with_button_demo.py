@@ -33,7 +33,7 @@ from aiy.board import Board, Led
 from google.assistant.library.event import EventType
 
 
-class MyAssistant(object):
+class MyAssistant:
     """An assistant that runs in the background.
 
     The Google Assistant Library event loop blocks the running thread entirely.

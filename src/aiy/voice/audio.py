@@ -84,11 +84,12 @@ def play_wav_async(filename_or_bytes):
         process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         process.stdin.write(filename_or_bytes)
         return process
-    elif isinstance(filename_or_bytes, str):
+
+    if isinstance(filename_or_bytes, str):
         cmd = aplay(fmt=None, filetype='wav', filename=filename_or_bytes)
         return subprocess.Popen(cmd)
-    else:
-        raise ValueError('Must be filename or byte-like object')
+
+    raise ValueError('Must be filename or byte-like object')
 
 
 def play_wav(filename_or_bytes):
@@ -101,11 +102,12 @@ def play_raw_async(fmt, filename_or_bytes):
         process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         process.stdin.write(filename_or_bytes)
         return process
-    elif isinstance(filename_or_bytes, str):
+
+    if isinstance(filename_or_bytes, str):
         cmd = aplay(fmt=fmt, filetype='raw', filename=filename)
         return subprocess.Popen(cmd)
-    else:
-        raise ValueError('Must be filename or byte-like object')
+
+    raise ValueError('Must be filename or byte-like object')
 
 
 def play_raw(fmt, filename_or_bytes):

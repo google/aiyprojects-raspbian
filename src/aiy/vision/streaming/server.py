@@ -13,13 +13,14 @@ import sys
 import threading
 import time
 
-import aiy.vision.streaming.proto.messages_pb2 as pb2
-
 from collections import namedtuple
 from enum import Enum
 from http.server import BaseHTTPRequestHandler
 from itertools import cycle
+
 from picamera import PiVideoFrameType
+
+import aiy.vision.streaming.proto.messages_pb2 as pb2
 
 logger = logging.getLogger(__name__)
 

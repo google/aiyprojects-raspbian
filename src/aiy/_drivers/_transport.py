@@ -22,7 +22,7 @@ import struct
 from aiy._drivers import _spicomm
 
 
-class _SpiTransport(object):
+class _SpiTransport:
     """Communicate with VisionBonnet over SPI bus."""
 
     def __init__(self):
@@ -59,7 +59,7 @@ def _socket_send_message(s, msg):
     s.sendall(msg)  # len(msg) bytes
 
 
-class _SocketTransport(object):
+class _SocketTransport:
     """Communicate with VisionBonnet over socket."""
 
     def __init__(self):

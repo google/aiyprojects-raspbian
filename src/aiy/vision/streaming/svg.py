@@ -43,8 +43,8 @@ class Tag:
         v = self.value
         if v is None:
             return '<%s%s/>' % (self.NAME, sattrs)
-        else:
-            return '<%s%s>%s</%s>' % (self.NAME, sattrs, v, self.NAME)
+
+        return '<%s%s>%s</%s>' % (self.NAME, sattrs, v, self.NAME)
 
 
 class TagContainer(Tag):

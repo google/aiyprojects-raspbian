@@ -143,7 +143,7 @@ class CameraInference:
         self.close()
 
 
-class ImageInference(object):
+class ImageInference:
     """Helper class to run image inference."""
 
     def __init__(self, descriptor):
@@ -189,14 +189,15 @@ def _get_sparse_config(config):
                 threshold=config.threshold,
                 top_k=config.top_k,
                 to_ignore=[pb2.SparseConfig.Thresholding.ToIgnore(dim=d, label=l) for d, l in config.to_ignore]))
-    elif type(config) == FromSparseTensorConfig:
+
+    if type(config) == FromSparseTensorConfig:
         return pb2.SparseConfig(
             logical_shape=pb2.Tuple(values=config.logical_shape),
             from_sparse_tensor=pb2.SparseConfig.FromSparseTensor(
                 tensor_name=config.tensor_name,
                 squeeze_dims=config.squeeze_dims))
-    else:
-        raise ValueError('Invalid sparse config type.')
+
+    raise ValueError('Invalid sparse config type.')
 
 def _get_sparse_configs(configs):
     if configs:
@@ -210,19 +211,20 @@ def _image_to_tensor(image):
         return pb2.ByteTensor(
             shape=pb2.TensorShape(batch=1, height=0, width=0, depth=0),
             data=image)
-    else:
-        width, height = image.size
-        if image.mode == 'RGB':
-            r, g, b = image.split()
-            return pb2.ByteTensor(
-                shape=pb2.TensorShape(batch=1, height=height, width=width, depth=3),
-                data=r.tobytes() + g.tobytes() + b.tobytes())
-        elif image.mode == 'L':
-            return pb2.ByteTensor(
-                shape=pb2.TensorShape(batch=1, height=height, width=width, depth=1),
-                data=image.tobytes())
-        else:
-            raise InferenceException('Unsupported image format: %s. Must be L or RGB.' % image.mode)
+
+    width, height = image.size
+    if image.mode == 'RGB':
+        r, g, b = image.split()
+        return pb2.ByteTensor(
+            shape=pb2.TensorShape(batch=1, height=height, width=width, depth=3),
+            data=r.tobytes() + g.tobytes() + b.tobytes())
+
+    if image.mode == 'L':
+        return pb2.ByteTensor(
+            shape=pb2.TensorShape(batch=1, height=height, width=width, depth=1),
+            data=image.tobytes())
+
+    raise InferenceException('Unsupported image format: %s. Must be L or RGB.' % image.mode)
 
 
 def _get_params(params):
@@ -246,7 +248,7 @@ _REQ_GET_INFERENCE_STATE = _request_bytes(get_inference_state=pb2.Request.GetInf
 _REQ_GET_CAMERA_STATE = _request_bytes(get_camera_state=pb2.Request.GetCameraState())
 _REQ_RESET = _request_bytes(reset=pb2.Request.Reset())
 
-class InferenceEngine(object):
+class InferenceEngine:
     """Class to access InferenceEngine on VisionBonnet board.
 
     Inference result has the following format:

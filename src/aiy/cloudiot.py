@@ -34,7 +34,7 @@ from aiy._drivers._ecc608 import ecc608_jwt_with_hw_alg
 logger = logging.getLogger(__name__)
 
 
-class CloudIot(object):
+class CloudIot:
     def __init__(self, config_file, config_section='DEFAULT'):
         self._config = configparser.ConfigParser()
         self._config.read(config_file)

@@ -55,7 +55,7 @@ def ecc608_find_chip():
         if _ecc608_check_address(addr):
             logger.info('Found crypto chip at 0x%x.', addr)
             return addr
-    logger.warn('No crypto detected, using SW.')
+    logger.warning('No crypto detected, using SW.')
     return None
 
 def ecc608_hw_sign(msg):
@@ -140,4 +140,4 @@ try:
         ecc608_jwt_with_hw_alg = jwt.PyJWT(algorithms=[])
         ecc608_jwt_with_hw_alg.register_algorithm('ES256', HwEcAlgorithm())
 except Exception:
-    logger.warn('Unable to load HW crypto library, using SW.')
+    logger.warning('Unable to load HW crypto library, using SW.')

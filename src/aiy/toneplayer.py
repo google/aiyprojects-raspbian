@@ -21,7 +21,7 @@ import re
 from aiy._drivers._buzzer import PWMController
 
 
-class Rest(object):
+class Rest:
     """Simple internal class to represent a musical rest note.
 
     Used in part with the TonePlayer class, this object represents a period of
@@ -84,7 +84,7 @@ class Note(Rest):
         return self.name + str(self.octave)
 
 
-class TonePlayer(object):
+class TonePlayer:
     """Class to play a simplified music notation via a PWMController.
 
     This class makes use of a very simple music notation to play simple musical

@@ -27,7 +27,7 @@ from gpiozero import AngularServo
 from wordnet_grouping import category_mapper
 
 
-class AutoButton(object):
+class AutoButton:
     """Button utility that handles the io and state tracking."""
 
     def __init__(self, start_enabled=False, use_hardware=True):
@@ -48,7 +48,7 @@ class AutoButton(object):
         return self._button.is_pressed
 
 
-class OverlayManager(object):
+class OverlayManager:
     """Overlay utility for managing state and drawing of overlay."""
     LINE_HEIGHT = 12
     ROW_HEIGHT = 50
@@ -82,7 +82,7 @@ class OverlayManager(object):
         self._annotator.update()
 
 
-class DummyOverlayManager(object):
+class DummyOverlayManager:
     """Dummy implementation of overlay manager used when overlay is disabled."""
 
     def clear(self):

@@ -87,7 +87,7 @@ BUTTON_GPIO_PIN = 23
 _NS_PER_SECOND = 1000000000
 
 
-class SysFsPin(object):
+class SysFsPin:
     """Generic SysFsPin which implements generic SysFs driver functionality."""
 
     def __init__(self, spec, fs_root):
@@ -241,7 +241,7 @@ class SysFsPwmPin(SysFsPin):
     """
     _FS_ROOT = '/sys/class/pwm/pwmchip0'
 
-    class PwmState(object):
+    class PwmState:
         """Container for the state of the pwm.
 
         Used to recover after disable/enable and ensure consistency.
@@ -346,7 +346,7 @@ class SysFsPwmPin(SysFsPin):
 
 # Debounce by making sure the last change wasn't less than d_time in the past ->
 # should be agnostic to direction.
-class DebouncingPoller(object):
+class DebouncingPoller:
     """Manages debouncing and polling a function periodically in the background.
 
     Calls a given getter periodically and when the debounced value changes such

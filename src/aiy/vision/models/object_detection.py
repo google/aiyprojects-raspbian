@@ -48,7 +48,7 @@ def sparse_configs(threshold=_DEFAULT_THRESHOLD):
                                                     squeeze_dims=[1])
     }
 
-class Object(object):
+class Object:
     """Object detection result."""
     BACKGROUND = 0
     PERSON = 1
