@@ -17,13 +17,14 @@ import os
 import subprocess
 import tempfile
 
-TMP_DIR = '/run/user/%d' % os.getuid()
+RUN_DIR = '/run/user/%d' % os.getuid()
 
 def say(text, lang='en-US', volume=60, pitch=130, speed=100, device='default'):
     data = "<volume level='%d'><pitch level='%d'><speed level='%d'>%s</speed></pitch></volume>" % \
-        (volume, pitch, speed, text)
-    with tempfile.NamedTemporaryFile(suffix='.wav', dir=TMP_DIR) as file:
-       cmd = 'pico2wave --wave %s --lang %s "%s" && aplay -q -D %s %s' % (file.name, lang, data, device, file.name)
+           (volume, pitch, speed, text)
+    with tempfile.NamedTemporaryFile(suffix='.wav', dir=RUN_DIR) as f:
+       cmd = 'pico2wave --wave %s --lang %s "%s" && aplay -q -D %s %s' % \
+             (f.name, lang, data, device, f.name)
        subprocess.check_call(cmd, shell=True)
 
 

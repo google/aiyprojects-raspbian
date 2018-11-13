@@ -19,6 +19,7 @@ import argparse
 import locale
 import logging
 import signal
+import sys
 
 from aiy.assistant.grpc import AssistantServiceClientWithLed
 from aiy.board import Board

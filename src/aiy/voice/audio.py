@@ -119,14 +119,14 @@ def play_raw_async(fmt, filename_or_data):
         return process
 
     if isinstance(filename_or_data, str):
-        cmd = aplay(fmt=fmt, filetype='raw', filename=filename)
+        cmd = aplay(fmt=fmt, filetype='raw', filename=filename_or_data)
         return subprocess.Popen(cmd)
 
     raise ValueError('Must be filename or byte-like object')
 
 
 def play_raw(fmt, filename_or_data):
-    play_raw_async(fmt, filename).wait()
+    play_raw_async(fmt, filename_or_data).wait()
 
 
 class Recorder:
@@ -208,20 +208,14 @@ class Player:
 
 class FilePlayer(Player):
 
-    def __init__(self):
-        super().__init__()
-
-    def play_raw(fmt, filename, device='default'):
+    def play_raw(self, fmt, filename, device='default'):
         self._popen(aplay(fmt=fmt, filetype='raw', filename=filename, device=device))
 
 
-    def play_wav(filename, device='default'):
+    def play_wav(self, filename, device='default'):
         self._popen(aplay(fmt=None, filetype='wav', filename=filename, device=device))
 
 class BytesPlayer(Player):
-
-    def __init__(self):
-        super().__init__()
 
     def play(self, fmt, device='default'):
         process = self._popen(aplay(fmt=fmt, filetype='raw', device=device), stdin=subprocess.PIPE)

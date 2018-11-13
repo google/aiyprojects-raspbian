@@ -26,27 +26,26 @@ import platform
 import subprocess
 import sys
 
-import aiy.assistant.auth_helpers
-import aiy.audio
-
-from aiy.assistant.library import Assistant
-from aiy.board import Board, Led
-
 from google.assistant.library.event import EventType
 
+from aiy.assistant import auth_helpers
+from aiy.assistant.library import Assistant
+from aiy.board import Board, Led
+from aiy.voice import tts
+
 def power_off_pi():
-    aiy.audio.say('Good bye!')
+    tts.say('Good bye!')
     subprocess.call('sudo shutdown now', shell=True)
 
 
 def reboot_pi():
-    aiy.audio.say('See you in a bit!')
+    tts.say('See you in a bit!')
     subprocess.call('sudo reboot', shell=True)
 
 
 def say_ip():
     ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
-    aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
+    tts.say('My IP address is %s' % ip_address.decode('utf-8'))
 
 
 def process_event(assistant, led, event):
@@ -81,7 +80,7 @@ def process_event(assistant, led, event):
 def main():
     logging.basicConfig(level=logging.INFO)
 
-    credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
+    credentials = auth_helpers.get_assistant_credentials()
     with Board() as board, Assistant(credentials) as assistant:
         for event in assistant.start():
             process_event(assistant, board.led, event)

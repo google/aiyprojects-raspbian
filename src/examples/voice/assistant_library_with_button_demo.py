@@ -26,11 +26,11 @@ import platform
 import sys
 import threading
 
-import aiy.assistant.auth_helpers
+from google.assistant.library.event import EventType
 
+from aiy.assistant import auth_helpers
 from aiy.assistant.library import Assistant
 from aiy.board import Board, Led
-from google.assistant.library.event import EventType
 
 
 class MyAssistant:
@@ -57,7 +57,7 @@ class MyAssistant:
         self._task.start()
 
     def _run_task(self):
-        credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
+        credentials = auth_helpers.get_assistant_credentials()
         with Assistant(credentials) as assistant:
             self._assistant = assistant
             for event in assistant.start():
