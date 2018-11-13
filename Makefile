@@ -19,33 +19,36 @@ all:
 test-vision-images:
 	$(MAKE) -C src/tests/images
 
+VISION_DRIVER_TESTS:=src/tests/spicomm_test.py
+VISION_LATENCY_TESTS:=src/tests/camera_inference_latency_test.py
+VISION_EXAMPLE_TESTS:=src/tests/vision_examples_test.py
+VISION_MODEL_TESTS:=\
+	src/tests/engine_test.py \
+	src/tests/dish_classification_test.py \
+	src/tests/dish_detection_test.py \
+	src/tests/face_detection_test.py \
+	src/tests/image_classification_test.py \
+	src/tests/object_detection_test.py \
+	src/tests/inaturalist_classification_test.py
+
 test-vision-driver:
-	$(PYTHON) -m unittest -v \
-		src/tests/spicomm_test.py
+	$(PYTHON) -m unittest -v $(VISION_DRIVER_TESTS)
 
 test-vision-latency:
-	$(PYTHON) -m unittest -v \
-		src/tests/camera_inference_latency_test.py
+	$(PYTHON) -m unittest -v $(VISION_LATENCY_TESTS)
 
 test-vision-models: test-vision-images
-	$(PYTHON) -m unittest -v \
-		src/tests/engine_test.py \
-		src/tests/dish_classification_test.py \
-		src/tests/dish_detection_test.py \
-		src/tests/face_detection_test.py \
-		src/tests/image_classification_test.py \
-		src/tests/object_detection_test.py \
-		src/tests/inaturalist_classification_test.py
+	$(PYTHON) -m unittest -v $(VISION_MODEL_TESTS)
 
 test-vision-examples: test-vision-images
-	$(PYTHON) -m unittest -v \
-		src/tests/vision_examples_test.py
+	$(PYTHON) -m unittest -v $(VISION_EXAMPLE_TESTS)
 
-test-vision: \
-	test-vision-driver \
-	test-vision-latency \
-	test-vision-models \
-	test-vision-examples
+test-vision: test-vision-images
+	$(PYTHON) -m unittest -v \
+		$(VISION_DRIVER_TESTS) \
+		$(VISION_LATENCY_TESTS) \
+		$(VISION_MODEL_TESTS) \
+		$(VISION_EXAMPLE_TESTS)
 
 deb:
 	dpkg-buildpackage -b -rfakeroot -us -uc -tc
