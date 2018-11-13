@@ -22,10 +22,12 @@ face_detection_camera.py --num_frames 10
 """
 import argparse
 
+from picamera import PiCamera
+
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import face_detection
 from aiy.vision.annotator import Annotator
-from picamera import PiCamera
+
 
 def avg_joy_score(faces):
     if faces:

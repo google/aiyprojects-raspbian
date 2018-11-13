@@ -19,17 +19,11 @@
  - Saves an image with bounding boxes around detected dishes.
 """
 import argparse
-import io
-import sys
-from PIL import Image
-from PIL import ImageDraw
+
+from PIL import Image, ImageDraw
 
 from aiy.vision.inference import ImageInference
 from aiy.vision.models import dish_detection
-
-def read_stdin():
-    return io.BytesIO(sys.stdin.buffer.read())
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -38,7 +32,7 @@ def main():
     args = parser.parse_args()
 
     with ImageInference(dish_detection.model()) as inference:
-        image = Image.open(read_stdin() if args.input == '-' else args.input)
+        image = Image.open(args.input)
         draw = ImageDraw.Draw(image)
         dishes = dish_detection.get_dishes(inference.run(image))
         for i, dish in enumerate(dishes):

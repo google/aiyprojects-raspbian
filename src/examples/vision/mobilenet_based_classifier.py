@@ -16,8 +16,7 @@
 """Script to run generic MobileNet based classification model."""
 import argparse
 
-from picamera import Color
-from picamera import PiCamera
+from picamera import PiCamera, Color
 
 from aiy.vision import inference
 from aiy.vision.models import utils

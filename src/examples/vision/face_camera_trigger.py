@@ -16,6 +16,7 @@
 
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import face_detection
+
 from picamera import PiCamera
 
 

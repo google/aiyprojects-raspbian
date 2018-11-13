@@ -19,13 +19,12 @@
  - Saves an image with bounding boxes around detected objects.
 """
 import argparse
-import io
-import sys
-from PIL import Image
-from PIL import ImageDraw
+
+from PIL import Image, ImageDraw
 
 from aiy.vision.inference import ImageInference
 from aiy.vision.models import object_detection
+
 
 def crop_center(image):
     width, height = image.size

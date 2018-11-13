@@ -15,8 +15,6 @@
 """Image classification library demo."""
 
 import argparse
-import io
-import sys
 
 from PIL import Image
 
