@@ -17,6 +17,7 @@
 import argparse
 import io
 import sys
+
 from PIL import Image
 
 from aiy.vision.inference import ImageInference

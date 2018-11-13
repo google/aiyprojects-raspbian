@@ -182,7 +182,7 @@ class InferenceException(Exception):
         Exception.__init__(self, *args, **kwargs)
 
 def _get_sparse_config(config):
-    if type(config) == ThresholdingConfig:
+    if isinstance(config, ThresholdingConfig):
         return pb2.SparseConfig(
             logical_shape=pb2.Tuple(values=config.logical_shape),
             thresholding=pb2.SparseConfig.Thresholding(
@@ -190,7 +190,7 @@ def _get_sparse_config(config):
                 top_k=config.top_k,
                 to_ignore=[pb2.SparseConfig.Thresholding.ToIgnore(dim=d, label=l) for d, l in config.to_ignore]))
 
-    if type(config) == FromSparseTensorConfig:
+    if isinstance(config, FromSparseTensorConfig):
         return pb2.SparseConfig(
             logical_shape=pb2.Tuple(values=config.logical_shape),
             from_sparse_tensor=pb2.SparseConfig.FromSparseTensor(

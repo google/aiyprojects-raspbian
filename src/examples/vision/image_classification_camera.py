@@ -33,11 +33,13 @@ def classes_info(classes):
 
 @contextlib.contextmanager
 def CameraPreview(camera, enabled):
-    enabled and camera.start_preview()
+    if enabled:
+        camera.start_preview()
     try:
         yield
     finally:
-        enabled and camera.stop_preview()
+        if enabled:
+            camera.stop_preview()
 
 def main():
     parser = argparse.ArgumentParser('Image classification camera inference example.')

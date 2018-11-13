@@ -59,12 +59,12 @@ class DroppingQueue:
                 if was_empty:
                     self._cond.notify()
                 return False  # Not dropped.
-            else:
-                if replace_last:
-                    self._items[len(self._items) - 1] = item
-                    return False  # Not dropped.
-                else:
-                    return True  # Dropped.
+
+            if replace_last:
+                self._items[len(self._items) - 1] = item
+                return False  # Not dropped.
+
+            return True  # Dropped.
 
     def get(self):
         with self._cond:
@@ -187,7 +187,7 @@ class StreamingServer:
                 web_socket = stack.enter_context(Socket(web_port))
                 annexb_socket = stack.enter_context(Socket(annexb_port))
                 if mdns_name:
-                    presence = stack.enter_context(PresenceServer(mdns_name, tcp_port))
+                    stack.enter_context(PresenceServer(mdns_name, tcp_port))
 
                 socks = (tcp_socket, web_socket, annexb_socket)
                 while not self._done.is_set():
@@ -247,15 +247,15 @@ class ClientCommand(Enum):
     DISABLE = 3
 
 class _Client:
-    def __init__(self, name, socket, command_queue):
+    def __init__(self, name, sock, command_queue):
         self._lock = threading.Lock()  # Protects _state.
         self._state = ClientState.DISABLED
         self._logger = ClientLogger(logger, {'name': name})
-        self._socket = socket
+        self._socket = sock
         self._commands = command_queue
         self._tx_q = DroppingQueue(15)
-        self._rx_thread = threading.Thread(target=self._rx_thread)
-        self._tx_thread = threading.Thread(target=self._tx_thread)
+        self._rx_thread = threading.Thread(target=self._rx_thread_run)
+        self._tx_thread = threading.Thread(target=self._tx_thread_run)
 
     def start(self):
         self._rx_thread.start()
@@ -301,7 +301,7 @@ class _Client:
             self._logger.warning('Running behind, dropping messages')
         return dropped
 
-    def _tx_thread(self):
+    def _tx_thread_run(self):
         try:
             while True:
                 message = self._tx_q.get()
@@ -314,7 +314,7 @@ class _Client:
 
         self._send_command(ClientCommand.STOP)
 
-    def _rx_thread(self):
+    def _rx_thread_run(self):
         try:
             while True:
                 message = self._receive_message()
@@ -327,11 +327,26 @@ class _Client:
 
         self._send_command(ClientCommand.STOP)
 
+    def _queue_video(self, data):
+        raise NotImplementedError
+
+    def _queue_overlay(self, svg):
+        raise NotImplementedError
+
+    def _receive_message(self):
+        raise NotImplementedError
+
+    def _send_message(self, message):
+        raise NotImplementedError
+
+    def _handle_message(self, message):
+        raise NotImplementedError
+
 class _ProtoClient(_Client):
     TYPE = 'tcp'
 
-    def __init__(self, name, socket, command_queue, resolution):
-        super().__init__(name, socket, command_queue)
+    def __init__(self, name, sock, command_queue, resolution):
+        super().__init__(name, sock, command_queue)
         self._resolution = resolution
 
     def _queue_start(self, resolution):
@@ -449,8 +464,8 @@ class _WsProtoClient(_ProtoClient):
                 buf.extend(self.payload)
             return bytes(buf)
 
-    def __init__(self, name, socket, command_queue, resolution):
-        super().__init__(name, socket, command_queue, resolution)
+    def __init__(self, name, sock, command_queue, resolution):
+        super().__init__(name, sock, command_queue, resolution)
         self._upgraded = False
 
     def _receive_message(self):
@@ -458,8 +473,7 @@ class _WsProtoClient(_ProtoClient):
             if not self._upgraded:
                 if self._process_web_request():
                     return None
-                else:
-                    self._upgraded = True
+                self._upgraded = True
 
             packets = []
             while True:
@@ -500,7 +514,7 @@ class _WsProtoClient(_ProtoClient):
                     self._logger.info('Dropping pong')
                 else:
                     self._logger.info('Dropping opcode %d', packet.opcode)
-        except:
+        except Exception:
             return None
 
     def _receive_packet(self):
@@ -559,7 +573,8 @@ class _WsProtoClient(_ProtoClient):
         if 'Upgrade' in connection and upgrade == 'websocket':
             self._handshake(request)
             return False
-        elif request.command == 'GET':
+
+        if request.command == 'GET':
             content = self._get_asset(request.path)
             response_hdr = response_template % {'content_length': len(content)}
             response = bytearray(response_hdr.encode('ascii'))
@@ -567,8 +582,8 @@ class _WsProtoClient(_ProtoClient):
             self._queue_message(response)
             self._queue_message(None)
             return True
-        else:
-            raise Exception('Unsupported request')
+
+        raise Exception('Unsupported request')
 
     def _handshake(self, request):
         magic = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
@@ -597,15 +612,15 @@ class _WsProtoClient(_ProtoClient):
         try:
             with open(path, 'rb') as asset:
                 return asset.read()
-        except:
+        except Exception:
             return b''
 
 
 class _AnnexbClient(_Client):
     TYPE = 'annexb'
 
-    def __init__(self, name, socket, command_queue):
-        super().__init__(name, socket, command_queue)
+    def __init__(self, name, sock, command_queue):
+        super().__init__(name, sock, command_queue)
         self._state = ClientState.ENABLED_NEEDS_SPS
         self._send_command(ClientCommand.ENABLE)
 

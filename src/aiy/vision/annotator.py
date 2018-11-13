@@ -25,9 +25,9 @@ the camera, will not contain overlays.
 """
 import time
 
-import picamera
-
 from PIL import Image, ImageDraw
+
+import picamera
 
 def _round_to_bit(value, power):
     """Rounds the given value to the next multiple of 2^power.
