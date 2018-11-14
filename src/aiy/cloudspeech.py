@@ -40,15 +40,32 @@ class CloudSpeechClient:
         credentials = service_account.Credentials.from_service_account_file(service_accout_file)
         self._client = speech.SpeechClient(credentials=credentials)
 
-    def recognize(self, language_code='en-US', hint_phrases=None):
-        config = speech.types.RecognitionConfig(
+    def _make_config(self, language_code, hint_phrases):
+        return speech.types.RecognitionConfig(
             encoding=speech.types.RecognitionConfig.LINEAR16,
             sample_rate_hertz=AUDIO_SAMPLE_RATE_HZ,
             language_code=language_code,
             speech_contexts=[speech.types.SpeechContext(phrases=hint_phrases)])
 
+    def recognize_bytes(self, data, language_code='en-US', hint_phrases=None):
+        """Data must be encoded according to the AUDIO_FORMAT."""
         streaming_config=speech.types.StreamingRecognitionConfig(
-            config=config,
+            config=self._make_config(language_code, hint_phrases),
+            single_utterance=True)
+        responses = self._client.streaming_recognize(
+            config=streaming_config,
+            requests=[speech.types.StreamingRecognizeRequest(audio_content=data)])
+
+        for response in responses:
+            for result in response.results:
+                if result.is_final:
+                    return result.alternatives[0].transcript
+
+        return None
+
+    def recognize(self, language_code='en-US', hint_phrases=None):
+        streaming_config=speech.types.StreamingRecognitionConfig(
+            config=self._make_config(language_code, hint_phrases),
             single_utterance=True)
 
         with Recorder() as recorder:
