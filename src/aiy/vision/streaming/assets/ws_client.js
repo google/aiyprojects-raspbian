@@ -1,140 +1,131 @@
-var g_socket = null;
-var g_container = null;
-var g_player = null;
-var g_canvas = null;
-var g_frame_count = 0;
-
-var ClientBound = null;
-var ServerBound = null;
-
-protobuf.load("messages.proto", function(err, root) {
-  if (err)
-    throw err;
-
-  ClientBound = root.lookupType("ClientBound");
-  ServerBound = root.lookupType("ServerBound")
-
-  g_container = document.getElementById("container");
-  g_socket = new WebSocket("ws://" + window.location.host);
-  g_socket.binaryType = "arraybuffer";
-  g_socket.onopen = ws_opened;
-  g_socket.onclose = ws_closed;
-  g_socket.onmessage = ws_message;
-})
-
-function ws_opened(event) {
-  console.log("Socket connected");
-  stream_control(true);
-};
-
-function ws_closed(event) {
-  console.log("Socket closed");
-};
-
-function ws_message(event) {
-  var clientBound = ClientBound.decode(new Uint8Array(event.data))
-  switch (clientBound.message) {
-    case 'start':
-      handle_start(clientBound.start);
-      break;
-    case 'video':
-      handle_video(clientBound.video);
-      break;
-    case 'overlay':
-      handle_overlay(clientBound.overlay);
-      break;
-    case 'stop':
-      handle_stop(clientBound.stop);
-      break;
-  }
-};
-
-function stream_control(enabled) {
-  serverBound = ServerBound.create({streamControl: {enabled:enabled}});
-  g_socket.send(ServerBound.encode(serverBound).finish());
-};
-
-function handle_start(start) {
-  console.log('Starting...')
-
-  if (g_player != null) {
-    return
-  }
-
-  g_player = new Player({
+function createPlayer(width, height, streamControl) {
+  var player = new Player({
     useWorker: true,
     workerFile: "broadway/Decoder.js",
     reuseMemory: true,
     webgl: "auto",
     size: {
-      width: start.width,
-      height: start.height,
+      width: width,
+      height: height,
     }
   });
 
-  g_player.onPictureDecoded = function(data) {
-    if (!g_frame_count) {
+  var frameCount = 0
+  player.onPictureDecoded = function(data) {
+    if (frameCount == 0) {
       console.log("First frame decoded");
     }
-    g_frame_count++;
+    frameCount++;
   };
 
-  var crop_div = document.createElement("div");
-  crop_div.style.overflow = "hidden";
-  crop_div.style.position = "absolute";
-  crop_div.style.width = start.width + "px";
-  crop_div.style.height = start.height + "px";
-  crop_div.appendChild(g_player.canvas);
-  g_container.appendChild(crop_div);
+  var container = document.getElementById("container");
 
-  g_canvas = document.createElement("canvas");
-  g_canvas.style.position = "absolute";
-  g_canvas.width = start.width;
-  g_canvas.height = start.height;
-  g_container.appendChild(g_canvas);
+  var cropDiv = document.createElement("div");
+  cropDiv.style.overflow = "hidden";
+  cropDiv.style.position = "absolute";
+  cropDiv.style.width = width + "px";
+  cropDiv.style.height = height + "px";
+  cropDiv.appendChild(player.canvas);
+  container.appendChild(cropDiv);
 
-  var license_link = document.createElement("a");
-  license_link.appendChild(document.createTextNode("Open source licenses"));
-  license_link.title = "LICENSE";
-  license_link.href = "broadway/LICENSE";
-  license_link.target= "_blank";
-  license_link.style.position = "relative";
-  license_link.style.top = start.height + "px";
-  g_container.appendChild(license_link);
+  var canvas = document.createElement("canvas");
+  canvas.id = "overlay"
+  canvas.style.position = "absolute";
+  canvas.width = width;
+  canvas.height = height;
+  container.appendChild(canvas);
 
-  var startButton = document.getElementById("start");
+  var top = (height + 10) + "px";
+
+  var startButton = document.createElement("button");
+  startButton.style.position = "relative";
+  startButton.style.top = top;
+  startButton.style.marginRight = "10px"
+  startButton.innerHTML = "Start"
   startButton.onclick = function() {
     console.log('Start clicked!')
-    stream_control(true);
+    streamControl(true);
   }
+  container.appendChild(startButton);
 
-  var stopButton = document.getElementById("stop");
+  var stopButton = document.createElement("button");
+  stopButton.style.position = "relative";
+  stopButton.style.top = top;
+  stopButton.style.marginRight = "10px"
+  stopButton.innerHTML = "Stop"
   stopButton.onclick = function() {
     console.log('Stop clicked!')
-    stream_control(false);
+    streamControl(false);
   }
+  container.appendChild(stopButton);
 
-  console.log("Started: " + start.width + "x" + start.height);
+  var licenseLink = document.createElement("a");
+  licenseLink.appendChild(document.createTextNode("Open source licenses"));
+  licenseLink.title = "LICENSE";
+  licenseLink.href = "broadway/LICENSE";
+  licenseLink.target= "_blank";
+  licenseLink.style.position = "relative";
+  licenseLink.style.top = top;
+  container.appendChild(licenseLink);
+
+  return player
 }
 
-function handle_stop(stop) {
-  console.log("Stopped.");
-}
+window.onload = function() {
+  protobuf.load("messages.proto", function(err, root) {
+    if (err)
+      throw err;
 
-function handle_video(video) {
-  g_player.decode(video.data);
-}
+    var ClientBound = root.lookupType("ClientBound");
+    var ServerBound = root.lookupType("ServerBound")
 
-function handle_overlay(overlay) {
-  if (!g_canvas || !g_frame_count) {
-    return;
-  }
+    function streamControl(enabled) {
+        serverBound = ServerBound.create({streamControl: {enabled:enabled}});
+        socket.send(ServerBound.encode(serverBound).finish());
+    }
 
-  var ctx = g_canvas.getContext("2d");
-  var img = new Image();
-  img.onload = function() {
-    ctx.clearRect(0, 0, g_canvas.width, g_canvas.height);
-    ctx.drawImage(img, 0, 0, g_canvas.width, g_canvas.height);
-  }
-  img.src = "data:image/svg+xml;charset=utf-8," + overlay.svg;
-}
+    var player = null;
+    var socket = new WebSocket("ws://" + window.location.host + "/stream");
+    socket.binaryType = "arraybuffer";
+
+    socket.onopen = function(event) {
+      console.log("Socket connected.");
+      streamControl(true);
+    };
+
+    socket.onclose = function(event) {
+      console.log("Socket closed.");
+    };
+
+    socket.onmessage = function(event) {
+      var clientBound = ClientBound.decode(new Uint8Array(event.data))
+      switch (clientBound.message) {
+        case 'start':
+          console.log('Starting...')
+          start = clientBound.start;
+          if (player == null) {
+            console.log('Starting...')
+            player = createPlayer(start.width, start.height, streamControl);
+            console.log("Started: " + start.width + "x" + start.height);
+          }
+          break;
+        case 'video':
+          player.decode(clientBound.video.data);
+          break;
+        case 'overlay':
+          var canvas = document.getElementById("overlay");
+          var ctx = canvas.getContext("2d");
+          var img = new Image();
+          img.onload = function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          }
+          img.src = "data:image/svg+xml;charset=utf-8," + clientBound.overlay.svg;
+          break;
+        case 'stop':
+          console.log("Stopped.");
+          break;
+      }
+    };
+  });
+};
