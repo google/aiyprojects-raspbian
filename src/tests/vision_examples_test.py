@@ -21,12 +21,13 @@ def example_path(name):
     p = os.path.join(os.path.dirname(__file__), '..', 'examples', 'vision', name)
     return os.path.abspath(p)
 
-def wait_terminated(process, timeout):
+def wait_terminated(process, timeout, poll_interval=1.0):
     start = time.monotonic()
     while time.monotonic() - start < timeout:
         code = process.poll()
         if code is not None:
             return code
+        time.sleep(poll_interval)
     return None
 
 class VisionExamplesTest(unittest.TestCase):
