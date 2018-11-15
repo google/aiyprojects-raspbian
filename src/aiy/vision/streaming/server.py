@@ -312,6 +312,7 @@ class _Client:
         except Exception as e:
             self._logger.warning('Tx thread failed: %s', e)
 
+        # Tx thread stops the client in any situation.
         self._send_command(ClientCommand.STOP)
 
     def _rx_thread_run(self):
@@ -324,8 +325,8 @@ class _Client:
             self._logger.info('Rx thread finished')
         except Exception as e:
             self._logger.warning('Rx thread failed: %s', e)
-
-        self._send_command(ClientCommand.STOP)
+            # Rx thread stops the client only if error happened.
+            self._send_command(ClientCommand.STOP)
 
     def _queue_video(self, data):
         raise NotImplementedError
