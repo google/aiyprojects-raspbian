@@ -2,6 +2,28 @@
 
 All SD card images can be found at [releases][github-releases] page.
 
+## AIY Kits Release 2018-11-16
+
+Compatible with Voice HAT, Voice Bonnet, and Vision Bonnet.
+
+**Fixes**
+
+* Fix tts engine click sound
+* Fix `assistant_grpc_demo.service`: add DISPLAY environment variable and proper
+systemd dependencies
+* Fix various linter findings: python3 compatibility, wrong variable names, etc.
+
+**Improvements**
+
+* New `board.py` to access button and LED on all boards
+* New audio API in `voice/audio.py`
+* Direct python support for iNaturalist models
+* Load anchors/labels directly from text files
+* Add `get_inference_state()` and `resest()` to Vision Bonnet protocol
+* Add Voice HAT schematic in `docs` folder
+* Add sparse representation for output tensors to increase data transfer rate
+* SVG-image overlay for video streaming (experimental)
+
 ## AIY Kits Release 2018-08-03
 
 Compatible with Voice HAT, Voice Bonnet, and Vision Bonnet.
