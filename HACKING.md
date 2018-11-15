@@ -16,7 +16,7 @@ If you prefer to setup Raspbian yourself, follow the steps below.
 
 Add AIY package repo:
 ```
-echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee -a /etc/apt/sources.list.d/aiyprojects.list
+echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee /etc/apt/sources.list.d/aiyprojects.list
 ```
 
 Add Google package keys from https://www.google.com/linuxrepositories/:
@@ -61,9 +61,9 @@ wheel (until [this issue][protobuf-issue] is fixed) along with [Google Assistant
 
   * Face Detection
   * Object Detection
+  * Image Classification
   * Dish Detection
   * Dish Classification
-  * Image Classification
   * iNaturalist Classification (plants, insects, birds)
 
 ### Voice Bonnet
@@ -80,17 +80,17 @@ wheel (until [this issue][protobuf-issue] is fixed) along with [Google Assistant
 
 Install drivers:
 ```bash
-sudo apt-get install aiy-vision-dkms aiy-vision-firmware aiy-dkms
+sudo apt-get install -y aiy-vision-dkms
 ```
 
 Install package with [models][aiy-models]:
 ```bash
-sudo apt-get install aiy-models
+sudo apt-get install -y aiy-models
 ```
 
 Install optimized `protobuf` library for better performance:
 ```bash
-sudo apt-get install aiy-python-wheels
+sudo apt-get install -y aiy-python-wheels
 ```
 
 Reboot:
@@ -105,20 +105,20 @@ dmesg | grep -i "Myriad ready"
 ### Voice Bonnet (minimal)
 
 Install drivers:
-```
-sudo apt-get install aiy-voicebonnet-soundcard-dkms aiy-dkms
+```bash
+sudo apt-get install -y aiy-voicebonnet-soundcard-dkms aiy-dkms
 ```
 
 Install PulseAudio:
-```
-sudo apt-get install pulseaudio
+```bash
+sudo apt-get install -y pulseaudio
 sudo mkdir -p /etc/pulse/daemon.conf.d/
 echo "default-sample-rate = 48000" | sudo tee /etc/pulse/daemon.conf.d/aiy.conf
 ```
 
 Install optimized `protobuf` and `google-assistant-library`:
 ```bash
-sudo apt-get install aiy-python-wheels
+sudo apt-get install -y aiy-python-wheels
 ```
 
 Reboot:
@@ -138,12 +138,12 @@ aplay test.wav
 
 Install LED driver to control button RGB LED:
 ```bash
-sudo apt-get install leds-ktd202x-dkms
+sudo apt-get install -y leds-ktd202x-dkms
 ```
 
 Install software PWM driver to control buzzer:
 ```bash
-sudo apt-get install pwm-soft-dkms
+sudo apt-get install -y pwm-soft-dkms
 ```
 
 Reboot:
@@ -155,18 +155,23 @@ sudo reboot
 
 ### Installation
 
-Install `git` first:
+Make sure you already installed `aiy-python-wheels`:
+```bash
+sudo apt-get install -y aiy-python-wheels
 ```
-sudo apt-get install git
+
+Install `git` first:
+```bash
+sudo apt-get install -y git
 ```
 
 Then clone `aiyprojects-raspbian` repo from GitHub:
-```
+```bash
 git clone https://github.com/google/aiyprojects-raspbian.git AIY-projects-python
 ```
 
 And install library in editable mode:
-```
+```bash
 sudo pip3 install -e AIY-projects-python/src
 ```
 
