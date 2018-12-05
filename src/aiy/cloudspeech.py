@@ -12,7 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An API to access Google Speech recognition service."""
+"""
+APIs to simplify interaction with the `Google Cloud Speech-to-Text
+service <https://cloud.google.com/speech-to-text/>`_.
+
+Before calling these APIs, be sure you've saved your Google Cloud credentials
+at ``~/cloud_speech.json``. For more information, see `these setup instructions
+<https://aiyprojects.withgoogle.com/voice/#makers-guide--custom-voice-user-interface>`_.
+
+This API is designed for the Voice Kit, but it has no dependency on the Voice
+HAT/Bonnet, so may be used without it.
+"""
 
 import os
 import logging

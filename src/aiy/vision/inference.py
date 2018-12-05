@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""VisionBonnet InferenceEngine API.
 
-Python API to communicate with the VisionBonnet from the Raspberry Pi side.
+"""
+An inference engine that communicates with the Vision Bonnet from the
+Raspberry Pi side.
 
 It can be used to load a model, analyze local image or image from camera
 shot. It automatically unload the model once the associated object is
@@ -251,23 +252,23 @@ _REQ_RESET = _request_bytes(reset=pb2.Request.Reset())
 class InferenceEngine:
     """Class to access InferenceEngine on VisionBonnet board.
 
-    Inference result has the following format:
+    Inference result has the following format::
 
-    message InferenceResult {
-      string model_name;  // Name of the model to run inference on.
-      int32 width;        // Input image/frame width.
-      int32 height;       // Input image/frame height.
-      Rectangle window;   // Window inside width x height image/frame.
-      int32 duration_ms;  // Inference duration.
-      map<string, FloatTensor> tensors;  // Output tensors.
+      message InferenceResult {
+        string model_name;  // Name of the model to run inference on.
+        int32 width;        // Input image/frame width.
+        int32 height;       // Input image/frame height.
+        Rectangle window;   // Window inside width x height image/frame.
+        int32 duration_ms;  // Inference duration.
+        map<string, FloatTensor> tensors;  // Output tensors.
 
-      message Frame {
-        int32 index;        // Frame number.
-        int64 timestamp_us; // Frame timestamp.
+        message Frame {
+          int32 index;        // Frame number.
+          int64 timestamp_us; // Frame timestamp.
+        }
+
+        Frame frame;          // Frame-specific inference data.
       }
-
-      Frame frame;          // Frame-specific inference data.
-    }
     """
 
     def __init__(self):

@@ -1,3 +1,7 @@
+"""
+APIs to record and play audio files.
+"""
+
 import contextlib
 import subprocess
 import threading

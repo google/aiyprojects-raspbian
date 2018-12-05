@@ -1,0 +1,35 @@
+/* Custom styles for AIY Projects reference */
+
+/* code font more like aiyprojects.withgoogle.com */
+code,
+.rst-content tt,
+.rst-content code {
+	background: #f6f6f6;
+    border: none;
+    padding: .1em .3em;
+    font-size: 80%;
+    color: #263238;
+}
+
+.rst-content tt.literal,
+.rst-content tt.literal,
+.rst-content code.literal {
+    color: inherit;
+}
+
+/* floating elements (images) */
+.attempt-right {
+    float: right;
+    margin: 0 0 40px 40px;
+    max-width: calc((100% - 40px)/2);
+}
+
+/* Smallish screens */
+@media screen and (max-width: 1000px) {
+	.attempt-right {
+	    display: block;
+	    float: none;
+	    margin: 16px 0;
+	    max-width: 100%;
+	}
+}

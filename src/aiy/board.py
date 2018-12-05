@@ -12,6 +12,56 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+APIs to use the button (and button LED) that's attached to the Vision Bonnet
+and Voice Bonnet/HAT's button connector. For example:
+
+.. literalinclude:: ../src/examples/button_led.py
+   :language: python
+
+.. module:: aiy.board
+
+.. autoclass:: Board
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: Button
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. py:class:: Led
+
+    Controls the LED in the button. Get an instance from :attr:`Board.led`.
+
+    This class is primarily intended for compatibility with the Voice HAT
+    (V1 Voice Kit), and it also works on the Voice/Vision Bonnet. However, if
+    you're using *only* the Voice/Vision Bonnet, then you should instead use
+    :mod:`aiy.leds`, which provides more controls for the button's LEDs.
+
+   .. py:method:: brightness(value)
+
+      Sets the button LED brightness
+
+      :param float value: The brighness, between 0.0 and 1.0
+
+   .. py:attribute:: state
+
+      Sets the button LED state. Can be one of the values below.
+
+   .. py:attribute:: OFF
+   .. py:attribute:: ON
+   .. py:attribute:: BLINK
+   .. py:attribute:: BLINK_3
+   .. py:attribute:: BEACON
+   .. py:attribute:: BEACON_DARK
+   .. py:attribute:: DECAY
+   .. py:attribute:: PULSE_SLOW
+   .. py:attribute:: PULSE_QUICK
+
+"""
+
 import contextlib
 import itertools
 import queue
@@ -285,6 +335,7 @@ class Board:
 
     @property
     def button(self):
+        """Returns a :class:`Button`"""
         with self._lock:
             if not self._button:
                 self._button = self._stack.enter_context(Button(self._button_pin))
@@ -292,6 +343,7 @@ class Board:
 
     @property
     def led(self):
+        """Returns an :class:`Led`"""
         with self._lock:
             if not self._led:
                 self._led = self._stack.enter_context(Led(self._led_pin))

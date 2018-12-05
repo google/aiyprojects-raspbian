@@ -12,7 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Annotation library for drawing overlays on the raspberry pi's camera preview.
+
+"""
+An annotation library that draws overlays on the Raspberry Pi's camera preview.
 
 Annotations include bounding boxes, text overlays, and points.
 Annotations support partial opacity, however only with respect to the content in
@@ -23,6 +25,7 @@ which will then not cover up overlay content drawn under the region.
 Note: Overlays do not persist through to the storage layer so images saved from
 the camera, will not contain overlays.
 """
+
 import time
 
 from PIL import Image, ImageDraw

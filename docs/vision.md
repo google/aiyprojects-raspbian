@@ -1,6 +1,47 @@
-# Vision Bonnet
+# Vision Kit overview
 
-## Hardware
+<img src="_static/images/vision-kit.png" class="attempt-right" alt=""
+width="200"/>
+
+The AIY Vision Kit is a do-it-yourself intelligent camera built with a
+Raspberry Pi and the Vision Bonnet.
+
+After you assemble the kit and run the included demos,
+you can extend the kit with your own software and hardware.
+
+Also see the [Vision Kit assembly guide](
+https://aiyprojects.withgoogle.com/vision/).
+
+## API modules
+
+To execute ML models and perform other actions with the Vision Kit, the
+system image includes the ``aiy`` Python library with the following modules
+designed for the Vision Kit:
+
+* [`aiy.toneplayer`](aiy.toneplayer.html):
+A simple melodic music player for the piezo buzzer.
+* [`aiy.trackplayer`](aiy.trackplayer.html):
+A tracker-based music player for the piezo buzzer.
+* [`aiy.vision.annotator`](aiy.vision.annotator.html):
+An annotation library that draws overlays on the Raspberry Pi’s camera preview.
+* [`aiy.vision.inference`](aiy.vision.inference.html):
+An inference engine that communicates with the Vision Bonnet from the Raspberry
+Pi side.
+* [`aiy.vision.models`](aiy.vision.models.html):
+A collection of modules that perform ML inferences with specific types of image
+classification and object detection models.
+* [`aiy.board`](aiy.board.html):
+APIs to use the button that’s attached to the Vision Bonnet’s button connector.
+* [`aiy.leds`](aiy.leds.html):
+APIs to control certain LEDs, such as the LEDs in the button and the privacy
+LED.
+* [`aiy.pins`](aiy.pins.html):
+GPIO pin definitions for use with gpiozero APIs.
+
+
+## Bonnet hardware
+
+The Voice Kit includes the following Voice Bonnet hardware.
 
 * SOC: Myriad 2450
 * MCU: ATSAMD09D14 [I2C address: 0x51]
@@ -8,7 +49,7 @@
 * Crypto (optional): ATECC608A [I2C address: 0x60]
 * IMU: BMI160
 
-## Drivers
+### Drivers
 
 * MCU driver: `modinfo aiy-io-i2c`
 * MCU PWM driver: `modinfo pwm-aiy-io`
@@ -28,7 +69,7 @@ To get MCU status message (including firmware version) and last error code:
 cat /sys/bus/i2c/devices/1-0051/{status_message,error_code}
 ```
 
-## Pinout (40-pin header)
+### Pinout (40-pin header)
 
 ```
                    3.3V --> 1    2 <-- 5V
@@ -53,13 +94,8 @@ cat /sys/bus/i2c/devices/1-0051/{status_message,error_code}
                     GND --> 39  40
 ```
 
+Also see the [Vision Bonnet on pinout.xyz](https://pinout.xyz/pinout/aiy_vision_bonnet).
+
 ## Troubleshooting
 
-Sometimes Pi Zero doesn't work stable and fails with different kernel errors,
-e.g. [Issue #346]. Run
-```
-echo "over_voltage=4" | sudo tee -a /boot/config.txt
-```
-and then reboot.
-
-[Issue #346]: https://github.com/google/aiyprojects-raspbian/issues/346
+See the [Vision Kit help](https://aiyprojects.withgoogle.com/help#vision-kit).

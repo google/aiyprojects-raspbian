@@ -12,7 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Simple melodic music player for the piezo buzzer."""
+"""
+A simple melodic music player for the piezo buzzer.
+
+This API is designed for the Vision Kit, but has no dependency on the Vision
+Bonnet, so may be used without it. It only requires a piezo buzzer connected to
+:any:`aiy.pins.BUZZER_GPIO_PIN`.
+"""
 
 
 import time

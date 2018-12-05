@@ -1,7 +1,54 @@
-"""Pin definitions for use with gpiozero devices.
+"""
+GPIO pin definitions for the Vision Bonnet and Voice Bonnet, for use with
+`gpiozero APIs <https://gpiozero.readthedocs.io/en/stable/>`_.
+These APIs are **not compatible** with the Voice HAT (V1 Voice Kit).
 
-Defines pin objects, and overrides the pin factory used by gpiozero devices to
-support the pins routed through the hat. Should not disrupt usage of other pins.
+For example, here's how to create a :class:`gpiozero.Servo` with ``PIN_B``::
+
+    from gpiozero import Servo
+    from aiy.pins import PIN_B
+
+    # Create a servo with the custom values to give the full dynamic range.
+    tuned_servo = Servo(PIN_B, min_pulse_width=.0005, max_pulse_width=.0019)
+
+Or here's how to light up the board's LED when you press the kit's button:
+
+.. literalinclude:: ../src/examples/gpiozero/simple_button_example.py
+   :language: python
+   :lines: 10-
+
+For more examples, see `src/examples/gpiozero/
+<https://github.com/google/aiyprojects-raspbian/tree/aiyprojects/src/examples/gpiozero>`_.
+
+.. py:module:: aiy.pins
+
+.. py:attribute:: aiy.pins.PIN_A
+
+.. py:attribute:: aiy.pins.PIN_B
+
+.. py:attribute:: aiy.pins.PIN_C
+
+.. py:attribute:: aiy.pins.PIN_D
+
+.. py:attribute:: aiy.pins.LED_1
+
+   Use this with :class:`gpiozero.LED` to control LED_1 on the Vision/Voice
+   Bonnet.
+
+.. py:attribute:: aiy.pins.LED_2
+
+   Use this with :class:`gpiozero.LED` to control LED_2 on the Vision/Voice
+   Bonnet.
+
+.. py:attribute:: aiy.pins.BUZZER_GPIO_PIN
+
+   The pin on the Raspberry Pi where the Vision Kit's piezo buzzer is connected
+   (BCM 22). This should be used with :class:`aiy.toneplayer.TonePlayer`.
+
+.. py:attribute:: aiy.pins.BUTTON_GPIO_PIN
+
+   The pin on the Raspberry Pi where the Vision/Voice Kit's button is connected
+   (BCM 23). This should be used with :class:`gpiozero.Button`.
 """
 
 import os

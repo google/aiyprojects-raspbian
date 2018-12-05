@@ -12,6 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+APIs to control certain LEDs connected to the Vision/Voice Bonnet:
+the RGB LED in the button and the privacy LED in the Vision Kit.
+These APIs are **not compatible** with the Voice HAT (V1 Voice Kit).
+
+For examples, see `leds_example.py
+<https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/src/examples/leds_example.py>`_.
+
+To control LEDs attached to the bonnet's GPIO pins or those on the Vision/Voice
+Bonnet board, instead use :mod:`aiy.pins`.
+"""
+
 import math
 import os
 

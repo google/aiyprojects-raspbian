@@ -1,3 +1,7 @@
+"""
+API for detecting plants, insects, and birds from the iNaturalist dataset.
+"""
+
 from collections import namedtuple
 
 from aiy.vision.inference import ModelDescriptor, ThresholdingConfig
