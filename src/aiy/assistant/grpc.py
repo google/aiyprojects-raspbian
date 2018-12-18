@@ -195,8 +195,13 @@ class AssistantServiceClient:
             if playing:
                 self._playing_stopped()
 
-
 class AssistantServiceClientWithLed(AssistantServiceClient):
+    """ 
+    Same API as :class:`AssistantServiceClient` but it also turns the
+    Voice Kit's button LED on and off in response to the conversation.
+
+    :inherited-members:
+    """
     def _update_led(self, state, brightness):
         self._board.led.state = state
         self._board.led.brightness = brightness

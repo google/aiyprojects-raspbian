@@ -13,15 +13,31 @@
 # limitations under the License.
 
 """
-APIs to control certain LEDs connected to the Vision/Voice Bonnet:
-the RGB LED in the button and the privacy LED in the Vision Kit.
-These APIs are **not compatible** with the Voice HAT (V1 Voice Kit).
+APIs to control the RGB LED in the button that connects to the
+Vision/Voice Bonnet, and the privacy LED with the Vision Kit.
 
-For examples, see `leds_example.py
+These APIs are **not compatible** with the Voice HAT (V1 Voice Kit).
+To control the Voice HAT's button LED, instead use :class:`aiy.board.Led`.
+
+For example, here's how to blink the button's red light::
+
+    import time
+    from aiy.leds import Leds, Color
+
+    with Leds() as leds:
+        for _ in range(4):
+            leds.update(Leds.rgb_on(Color.RED))
+            time.sleep(1)
+            leds.update(Leds.rgb_off())
+            time.sleep(1)
+
+For more examples, see `leds_example.py
 <https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/src/examples/leds_example.py>`_.
 
-To control LEDs attached to the bonnet's GPIO pins or those on the Vision/Voice
-Bonnet board, instead use :mod:`aiy.pins`.
+These APIs are only for the RGB LED in the button and the Vision Kit's privacy LED.
+To control LEDs you've attached to the bonnet's GPIO pins or the LEDs named
+``LED_1`` and ``LED_2`` on the Vision/Voice Bonnet, instead use
+:mod:`aiy.pins`.
 """
 
 import math
@@ -56,8 +72,24 @@ def _device_file(prop):
     return os.path.join(_DEVICE_PATH, prop)
 
 class Color:
+    """Defines colors as RGB tuples that can be used as color values with
+    :class:`Leds`.
+    """
     @staticmethod
     def blend(color_a, color_b, alpha):
+        """Creates a color that is a blend between two colors.
+
+        Args:
+            color_a: One of two colors to blend.
+            color_b: One of two colors to blend.
+            alpha: The alpha blend to apply between ``color_a`` and
+                ``color_b``, from 0.0 to 1.0, respectively. That is,
+                0.0 makes ``color_a`` transparent so only ``color_b`` is
+                visible; 0.5 blends the two colors evenly; 1.0 makes
+                ``color_b`` transparent so  only ``color_a`` is visible.
+        Returns:
+            An RGB tuple.
+        """
         return tuple([math.ceil(alpha * color_a[i] + (1.0 - alpha) * color_b[i]) for i in range(3)])
 
     BLACK  = (0x00, 0x00, 0x00)
@@ -71,7 +103,28 @@ class Color:
 
 
 class Pattern:
-    """Class to define blinking pattern."""
+    """Defines an LED blinking pattern. Pass an instance of this to
+    :attr:`Leds.pattern`.
+
+    Args:
+        period_ms: The period of time (in milliseconds) for each on/off
+            sequence.
+        on_percent: Percent of time during the period to turn on the LED
+            (the LED turns on at the beginning of the period).
+        rise_ms: Duration of time to fade the light on.
+        fall_ms: Duration of time to fade the light off.
+
+    The parameters behave as illustrated below.
+
+    .. code-block:: text
+
+        rise_ms /----------\ fall_ms
+               /            \ 
+              /  on_percent  \ 
+             #--------------------------------#
+                          period_ms
+
+    """
 
     def __init__(self, period_ms, on_percent=0.5, rise_ms=0, fall_ms=0):
         if on_percent < 0 or on_percent > 0.996:
@@ -87,17 +140,46 @@ class Pattern:
 
     @staticmethod
     def blink(period_ms):
+        """Convenience method to create a blinking pattern.
+
+        Args:
+            period_ms: The period of time (in milliseconds) for each on/off
+                sequence.
+        Returns:
+            A :class:`Pattern`.
+        """
         return Pattern(period_ms, 0.5)
 
     @staticmethod
     def breathe(period_ms):
+        """Convenience method to create a breathing pattern (a blink that fades
+        in and out).
+
+        Args:
+            period_ms: The period of time (in milliseconds) for each on/off
+                sequence.
+        Returns:
+            A :class:`Pattern`.
+        """
         return Pattern(period_ms, 0.3, period_ms * 0.3, period_ms * 0.3)
 
 
 class Leds:
-    """Class to control KTD LED driver chip."""
+    """Class to control the KTD LED driver chip in the button used with the
+    Vision and Voice Bonnet.
+    """
     class Channel:
-        """Configuration of each channel on KTD LED driver."""
+        """Defines the configuration for each channel in the KTD LED driver.
+
+        You should not instantiate this class directly; instead create a
+        dictionary of ``Channel`` objects with the other methods below,
+        which you can then pass to :meth:`~Leds.update`.
+
+        Args:
+            state: Either :attr:`ON`, :attr:`OFF`, or
+                :attr:`PATTERN`.
+            brightness: A value between 0 and 255.
+        """
         OFF = 0
         ON = 1
         PATTERN = 2
@@ -114,24 +196,78 @@ class Leds:
 
     @staticmethod
     def rgb(state, rgb):
-        """Returns configuration for channels: 1 (red), 2 (green), 3 (blue)."""
+        """Creates a configuration for the RGB channels: 1 (red), 2 (green), 3 (blue).
+
+        Generally, you should instead use convenience constructors such as
+        :func:`rgb_on` and :func:`rgb_pattern`.
+
+        Args:
+            state: Either :attr:`Channel.ON`, :attr:`Channel.OFF`, or
+                :attr:`Channel.PATTERN`.
+            rgb: Either one of the :class:`Color` constants or your own tuple
+                of RGB values.
+        Returns:
+            A dictionary of 3 :class:`Channel` objects, representing red, green,
+            and blue values.
+        """
         return {i + 1 : Leds.Channel(state, rgb[i]) for i in range(3)}
 
     @staticmethod
     def rgb_off():
+        """Creates an "off" configuration for the button's RGB LED.
+
+        Returns:
+            A dictionary of 3 :class:`Channel` objects, representing red,
+            green, and blue values, all turned off.
+        """
         return Leds.rgb(Leds.Channel.OFF, Color.BLACK)
 
     @staticmethod
     def rgb_on(rgb):
+        """Creates an "on" configuration for the button's RGB LED.
+
+        Args:
+            rgb: Either one of the :class:`Color` constants or your own tuple
+                of RGB values.
+        Returns:
+            A dictionary of 3 :class:`Channel` objects, representing red,
+            green, and blue values.
+        """
         return Leds.rgb(Leds.Channel.ON, rgb)
 
     @staticmethod
     def rgb_pattern(rgb):
+        """Creates a "pattern" configuration for the button's RGB LED, using
+        the light pattern set with :attr:`pattern` and the color set here.
+        For example::
+
+            with Leds() as leds:
+                leds.pattern = Pattern.blink(500)
+                leds.update(Leds.rgb_pattern(Color.RED))
+                time.sleep(5)
+
+        Args:
+            rgb: Either one of the :class:`Color` constants or your own tuple
+                of RGB values.
+        Returns:
+            A dictionary of 3 :class:`Channel` objects, representing red,
+            green, and blue values.
+        """
         return Leds.rgb(Leds.Channel.PATTERN, rgb)
 
     @staticmethod
     def privacy(enabled, brightness=255):
-        """Returns configuration for channel 4 (privacy)."""
+        """Creates a configuration for the privacy LED (channel 4).
+
+        You can instead use :meth:`privacy_on` and :meth:`privacy_off`.
+
+        Args:
+            enabled: ``True`` to turn on the light; ``False`` to turn it off.
+            brightness: A value from 0 to 255.
+        Returns:
+            A dictionary with one :class:`Channel` for the privacy LED
+            (channel 4).
+        """
         if enabled:
             return {4: Leds.Channel(Leds.Channel.ON, brightness)}
 
@@ -139,14 +275,31 @@ class Leds:
 
     @staticmethod
     def privacy_on(brightness=255):
+        """Creates an "on" configuration for the privacy LED
+        (the front LED on the Vision Kit).
+
+        Args:
+            brightness: A value from 0 to 255.
+        Returns:
+            A dictionary with one :class:`Channel` for the privacy LED
+            (channel 4).
+        """
         return Leds.privacy(True, brightness)
 
     @staticmethod
     def privacy_off():
+        """Creates an "off" configuration for the privacy LED
+        (the front LED on the Vision Kit).
+
+        Returns:
+            A dictionary with one :class:`Channel` for the privacy LED
+            (channel 4).
+        """
         return Leds.privacy(False, 0)
 
     @staticmethod
     def installed():
+        """Internal method to verify the ``Leds`` class is available."""
         return os.path.exists(_DEVICE_PATH)
 
     def __init__(self, reset=True):
@@ -158,10 +311,20 @@ class Leds:
             self.reset()
 
     def reset(self):
+        """Resets the LED driver to a clean state."""
         _write(_device_file('reset'), 1)
 
     @property
     def pattern(self):
+        """Defines a blink pattern for the button's LED. Must be set with a
+        :class:`Pattern` object. For example::
+
+            with Leds() as leds:
+                leds.pattern = Pattern.blink(500)
+                leds.update(Leds.rgb_pattern(Color.RED))
+                time.sleep(5)
+
+        """
         return self._pattern
 
     @pattern.setter
@@ -175,6 +338,29 @@ class Leds:
         _write(_device_file('registers'), command)
 
     def update(self, channels):
+        """Changes the state of an LED. Takes a dictionary of LED channel
+        configurations, provided by various methods such as
+        :meth:`rgb_on`, :meth:`rgb_off`, and :meth:`rgb_pattern`.
+
+        For example, turn on the red light::
+
+            with Leds() as leds:
+                leds.update(Leds.rgb_on(Color.RED))
+                time.sleep(2)
+                leds.update(Leds.rgb_off())
+
+        Or turn on the privacy LED (Vision Kit only)::
+
+            with Leds() as leds:
+                leds.update(Leds.privacy_on())
+                time.sleep(2)
+                leds.update(Leds.privacy_off())
+
+        Args:
+            channels: A dictionary of one or more :class:`Channel` objects.
+                Use the ``rgb_`` and ``privacy_`` methods to create a
+                dictionary.
+        """
         command = ''
         for index, channel in channels.items():
             if channel.brightness is not None:
@@ -192,7 +378,19 @@ class Leds:
 
 
 class PrivacyLed:
-    """Helper class to turn Privacy LED off automatically."""
+    """Helper class to turn Privacy LED off automatically.
+
+    When instantiated, the privacy LED turns on. It turns off whenever
+    the code exits the scope in which this was created. For example::
+
+        # Turn the privacy LED on for 2 seconds
+        with PrivacyLed(Leds()):
+            time.sleep(2)
+
+    Args:
+        leds: An instance of :class:`Leds`.
+        brightness: A value between 0 and 255.
+    """
 
     def __init__(self, leds, brightness=32):
         self._leds = leds
@@ -206,7 +404,22 @@ class PrivacyLed:
 
 
 class RgbLeds:
-    """Helper class to turn RGB LEDs off automatically."""
+    """Helper class to turn RGB LEDs off automatically.
+
+    When instantiated, the privacy LED turns on. It turns off whenever
+    the code exits the scope in which this was created. For example::
+
+        # Turn on the green LED for 2 seconds
+        with RgbLeds(Leds(), Leds.rgb_on(Color.GREEN)):
+            time.sleep(2)
+
+    Args:
+        leds: An instance of :class:`Leds`.
+        channels: A dictionary of one or more :class:`Channel` objects.
+            Use the ``Leds.rgb_`` and ``Leds.privacy_`` methods to create a
+            dictionary.
+
+    """
 
     def __init__(self, leds, channels):
         self._leds = leds

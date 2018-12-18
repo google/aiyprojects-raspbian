@@ -36,7 +36,7 @@ APIs to use the button that’s attached to the Vision Bonnet’s button connect
 APIs to control certain LEDs, such as the LEDs in the button and the privacy
 LED.
 * [`aiy.pins`](aiy.pins.html):
-GPIO pin definitions for use with gpiozero APIs.
+Pin definitions for the bonnet's extra GPIO pins, for use with gpiozero.
 
 
 ## Bonnet hardware

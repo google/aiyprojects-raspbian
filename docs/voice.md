@@ -24,19 +24,17 @@ A collection of modules that simplify interaction with the
 Google Assistant API.
 * [`aiy.cloudspeech`](aiy.cloudspeech.html):
 APIs to simplify interaction with the Google Cloud Speech-to-Text service.
-* [`aiy.vision.annotator`](aiy.vision.annotator.html):
-An annotation library that draws overlays on the Raspberry Pi’s camera preview.
 * [`aiy.voice.audio`](aiy.voice.audio.html):
 APIs to record and play audio files.
 * [`aiy.voice.tts`](aiy.voice.tts.html):
 An API that performs text-to-speech.
 * [`aiy.board`](aiy.board.html):
-APIs to use the button that’s attached to the Vision Bonnet’s button connector.
+APIs to use the button that’s attached to the Voice Bonnet’s button connector.
 * [`aiy.leds`](aiy.leds.html):
 APIs to control certain LEDs, such as the LEDs in the button and the privacy
 LED.
 * [`aiy.pins`](aiy.pins.html):
-GPIO pin definitions for use with gpiozero APIs.
+Pin definitions for the bonnet's extra GPIO pins, for use with gpiozero.
 
 
 ## V2 Bonnet hardware

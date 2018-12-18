@@ -1,6 +1,7 @@
 """
 GPIO pin definitions for the Vision Bonnet and Voice Bonnet, for use with
 `gpiozero APIs <https://gpiozero.readthedocs.io/en/stable/>`_.
+
 These APIs are **not compatible** with the Voice HAT (V1 Voice Kit).
 
 For example, here's how to create a :class:`gpiozero.Servo` with ``PIN_B``::
@@ -11,7 +12,7 @@ For example, here's how to create a :class:`gpiozero.Servo` with ``PIN_B``::
     # Create a servo with the custom values to give the full dynamic range.
     tuned_servo = Servo(PIN_B, min_pulse_width=.0005, max_pulse_width=.0019)
 
-Or here's how to light up the board's LED when you press the kit's button:
+Or here's how to light up ``LED_1`` on the bonnet when you press the button:
 
 .. literalinclude:: ../src/examples/gpiozero/simple_button_example.py
    :language: python
@@ -19,6 +20,12 @@ Or here's how to light up the board's LED when you press the kit's button:
 
 For more examples, see `src/examples/gpiozero/
 <https://github.com/google/aiyprojects-raspbian/tree/aiyprojects/src/examples/gpiozero>`_.
+
+.. figure:: _static/images/bonnet-pins_2x.png
+   :width: 550px
+
+   **Figure 1.** Pin and LED positions on the Vision and Voice Bonnet.
+
 
 .. py:module:: aiy.pins
 

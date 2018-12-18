@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """
-APIs to use the button (and button LED) that's attached to the Vision Bonnet
-and Voice Bonnet/HAT's button connector. For example:
+APIs to control the button (and button LED) that's attached to the Vision
+Bonnet and Voice Bonnet/HAT's button connector. For example:
 
 .. literalinclude:: ../src/examples/button_led.py
    :language: python
@@ -38,13 +38,14 @@ and Voice Bonnet/HAT's button connector. For example:
     This class is primarily intended for compatibility with the Voice HAT
     (V1 Voice Kit), and it also works on the Voice/Vision Bonnet. However, if
     you're using *only* the Voice/Vision Bonnet, then you should instead use
-    :mod:`aiy.leds`, which provides more controls for the button's LEDs.
+    :mod:`aiy.leds`, which provides more controls for the button's unique
+    RGB LED.
 
    .. py:method:: brightness(value)
 
       Sets the button LED brightness
 
-      :param float value: The brighness, between 0.0 and 1.0
+      :param value: The brighness, between 0.0 and 1.0
 
    .. py:attribute:: state
 
@@ -75,7 +76,8 @@ from RPi import GPIO
 from aiy.leds import Color, Leds, Pattern
 
 class Button:
-
+    """ An interface for the button connected to the AIY board's
+    button connector."""
     @staticmethod
     def _trigger(event_queue, callback):
         try:
@@ -130,6 +132,7 @@ class Button:
         self._thread.start()
 
     def close(self):
+        """Internal method to clean up the object when done."""
         self._done.set()
         self._thread.join()
         GPIO.cleanup(self._channel)
@@ -143,17 +146,29 @@ class Button:
     def _when_pressed(self, callback):
         self._pressed_callback = callback
     when_pressed = property(None, _when_pressed)
+    """A function to run when the button is pressed."""
 
     def _when_released(self, callback):
         self._released_callback = callback
     when_released = property(None, _when_released)
+    """A function to run when the button is released."""
 
     def wait_for_press(self, timeout=None):
+        """Pauses the script until the button is pressed or the timeout is reached.
+
+        Args:
+            timeout: Seconds to wait before proceeding. By default, this is ``None``,
+                which means wait indefinitely."""
         event = threading.Event()
         self._pressed_queue.put(event)
         return event.wait(timeout)
 
     def wait_for_release(self, timeout=None):
+        """Pauses the script until the button is released or the timeout is reached.
+
+        Args:
+            timeout: Seconds to wait before proceeding. By default, this is ``None``,
+                which means wait indefinitely."""
         event = threading.Event()
         self._released_queue.put(event)
         return event.wait(timeout)
@@ -195,6 +210,7 @@ class MultiColorLed:
         self._leds = Leds()
 
     def close(self):
+        """Internal method to clean up the object when done."""
         self._leds.reset()
 
     def __enter__(self):
@@ -310,7 +326,7 @@ BUTTON_PIN = 23
 LED_PIN = 25
 
 class Board:
-
+    """An interface for the connected AIY board."""
     def __init__(self, button_pin=BUTTON_PIN, led_pin=LED_PIN):
         self._stack = contextlib.ExitStack()
         self._lock = threading.Lock()
@@ -335,7 +351,8 @@ class Board:
 
     @property
     def button(self):
-        """Returns a :class:`Button`"""
+        """Returns a :class:`Button` representing the button connected to
+        the button connector."""
         with self._lock:
             if not self._button:
                 self._button = self._stack.enter_context(Button(self._button_pin))
@@ -343,7 +360,7 @@ class Board:
 
     @property
     def led(self):
-        """Returns an :class:`Led`"""
+        """Returns an :class:`Led` representing the LED in the button."""
         with self._lock:
             if not self._led:
                 self._led = self._stack.enter_context(Led(self._led_pin))

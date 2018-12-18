@@ -17,6 +17,16 @@ code,
     color: inherit;
 }
 
+/* Force-remove bottom-margin from parameter list */
+.rst-content table.field-list td ul.last {
+    margin-bottom: 0 !important;
+}
+
+/* Remove bottom padding from table around parameter list */
+.rst-content table.field-list td {
+    padding-bottom: 0;
+}
+
 /* floating elements (images) */
 .attempt-right {
     float: right;
