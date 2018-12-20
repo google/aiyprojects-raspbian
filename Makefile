@@ -1,6 +1,6 @@
 PYTHON=python3
 
-.PHONY: all test-download test deb clean
+.PHONY: all test-download test deb docs clean
 
 all:
 	@echo "make lint                 - Run python code linter"
@@ -56,6 +56,9 @@ deb:
 lint:
 	find src -iname "*.py" | grep -v pb2 | xargs $(PYTHON) -m pylint --rcfile .pylintrc
 
+docs:
+	sphinx-build -b html docs docs/_build/html
+
 # enable, disable, start, stop, restart, status
 joy-demo-%:
 	sudo systemctl $* joy_detection_demo.service
@@ -65,3 +68,4 @@ joy-demo-log:
 
 clean:
 	rm -f $(CURDIR)/src/tests/images/*.jpg
+	rm -rf $(CURDIR)/docs/_build
