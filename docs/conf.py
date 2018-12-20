@@ -14,8 +14,45 @@
 #
 import os
 import sys
+
+from unittest.mock import MagicMock
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+sys.modules.update((module, Mock()) for module in (
+    'auth_helpers',
+    'google',
+    'google.assistant',
+    'google.assistant.embedded',
+    'google.assistant.embedded.v1alpha2',
+    'google.assistant.library',
+    'google.auth',
+    'google.auth.transport',
+    'google.auth.transport.grpc',
+    'google.auth.transport.requests',
+    'google.cloud',
+    'google.protobuf',
+    'google_auth_oauthlib',
+    'google_auth_oauthlib.flow',
+    'google.oauth2',
+    'google.oauth2.credentials',
+    'gpiozero',
+    'gpiozero.exc',
+    'gpiozero.threads',
+    'grpc',
+    'picamera',
+    'RPi'))
+
+utils = MagicMock()
+utils.load_labels = MagicMock(return_value=())
+utils.load_ssd_anchors = MagicMock(return_value=())
+utils.__all__ = ('load_labels', 'load_ssd_anchors')
+sys.modules.update([('aiy.vision.models.utils', utils)])
 
 # -- Project information -----------------------------------------------------
 

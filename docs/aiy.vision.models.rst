@@ -57,11 +57,3 @@ aiy.vision.models.object\_detection
     :members:
     :undoc-members:
     :show-inheritance:
-
-aiy.vision.models.utils
------------------------
-
-.. automodule:: aiy.vision.models.utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
