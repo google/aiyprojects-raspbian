@@ -12,27 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Wrapper around google.assistant.library.
+"""This is a wrapper for ``google.assistant.library`` that handles model and device
+registration based on the project name in your `assistant.json` file.
 
-Handles model and device registration."""
+All APIs from ``google.assistant.library`` are available through this module, such as
+``Assistant.start()`` to start the assistant, and ``Assistant.start_conversation()`` to start
+a conversation, but they are not documented here. Instead refer to the
+`Google Assistant Library for Python documentation
+<https://developers.google.com/assistant/sdk/reference/library/python/>`_.
+
+For example code, see :github:`src/examples/voice/assistant_library_demo.py`.
+"""
 
 import google.assistant.library
 
 from aiy.assistant import device_helpers
 
 class Assistant(google.assistant.library.Assistant):
-    """Client for the Google Assistant Library. Provides basic control
-    functionality and lifecycle handling for the Google Assistant.
+    """Client for the Google Assistant Library.
 
-    This is a wrapper for ``google.assistant.library.Assistant``
-    that handles device registration based on the project name in your
-    `assistant.json` file.
-
-    All other APIs from ``google.assistant.library.Assistant``
-    are available through this class, such as ``start_conversation()`` and
-    ``stop_conversation()``, but they are not documented here. So for more API
-    details, refer to the `Google Assistant Library for Python documentation
-    <https://developers.google.com/assistant/sdk/reference/library/python/>`_.
+    Similar to google.assistant.library.Assistant, but handles device
+    registration.
     """
 
     def __init__(self, credentials):
