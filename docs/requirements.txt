@@ -1,0 +1,5 @@
+# Python packages required to build the docs
+sphinx
+sphinx_rtd_theme
+recommonmark
+Pillow
