@@ -38,6 +38,11 @@ AUDIO_SAMPLE_RATE_HZ = 16000
 AUDIO_FORMAT=AudioFormat(sample_rate_hz=AUDIO_SAMPLE_RATE_HZ,
                          num_channels=1,
                          bytes_per_sample=2)
+_CLOUD_SPEECH_OAUTH_SCOPE = (
+    'https://www.googleapis.com/auth/cloud-platform'
+)
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +52,7 @@ class CloudSpeechClient:
         if service_accout_file is None:
             service_accout_file = os.path.expanduser('~/cloud_speech.json')
 
-        credentials = service_account.Credentials.from_service_account_file(service_accout_file)
+        credentials = service_account.Credentials.from_service_account_file(service_accout_file, scopes=[_CLOUD_SPEECH_OAUTH_SCOPE])
         self._client = speech.SpeechClient(credentials=credentials)
 
     def _make_config(self, language_code, hint_phrases):
