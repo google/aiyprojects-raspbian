@@ -3,12 +3,12 @@ python:
 - 3.6
 
 install:
-- pip install coverage flake8 google numpy Pillow scipy
+- pip install flake8  # coverage google numpy Pillow scipy
 
 script:
 - flake8 --exclude=*_pb2.py --exit-zero --max-line-length=100 --statistics .
 - make all
-- nosetests --with-coverage
+# - nosetests --with-coverage
 
-after_success:
-- bash <(curl -s https://codecov.io/bash)
+# after_success:
+# - bash <(curl -s https://codecov.io/bash)
