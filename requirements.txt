@@ -1,3 +1,0 @@
-google
-# picamera  # Only installs on Pi hardware
-Pillow
