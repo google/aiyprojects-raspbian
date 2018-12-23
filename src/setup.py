@@ -14,6 +14,7 @@ setup(
     license='Apache 2',
     packages=find_packages(),
     install_requires=[
+        'google',
         'google-assistant-library==1.0.1',
         'google-assistant-grpc==0.2.0',
         'google-auth==1.5.1',
@@ -23,7 +24,7 @@ setup(
         'paho-mqtt',
         'protobuf==3.6.1',
         'picamera',
-        'pillow',
+        'Pillow',
         'RPi.GPIO',
     ],
     python_requires='>=3.5.3',
