@@ -303,7 +303,7 @@ class TrackPlayer:
         """Sets the position inside of the current pattern."""
         if self.debug:
             print('Jumping position to %d' % (new_position))
-        self.current_position = new_Position
+        self.current_position = new_position
 
     def stop(self):
         """Stops playing any currently playing track."""
