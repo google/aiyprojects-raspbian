@@ -3,11 +3,10 @@ python:
 - 3.6
 
 install:
-- pip install coverage flake8 numpy scipy
-# - pip install -r requirements.txt
+- pip install coverage flake8 numpy scipy -r requirements.txt
 
 script:
-- flake8 --max-line-length=100 --exclude=*_pb2.py .
+- flake8 --max-line-length=100 --exclude=*_pb2.py --statistics .
 - nosetests --with-coverage
 
 after_success:
