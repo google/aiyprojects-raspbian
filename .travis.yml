@@ -1,19 +1,14 @@
 language: python
 python:
-- 3.4
-
-before_install:
-- sudo apt-get update -qq
-- sudo apt-get install -y python3-numpy python3-scipy
+- 3.6
 
 install:
-- pip3 install pyflakes coverage pycodestyle
-- pip3 install -r requirements.txt
+- pip install coverage flake8 numpy scipy
+# - pip install -r requirements.txt
 
 script:
-- pycodestyle --max-line-length=100 --exclude=*_pb2.py .
+- flake8 --max-line-length=100 --exclude=*_pb2.py .
 - nosetests --with-coverage
 
 after_success:
 - bash <(curl -s https://codecov.io/bash)
-
