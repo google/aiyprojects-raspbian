@@ -3,10 +3,11 @@ python:
 - 3.6
 
 install:
-- pip install coverage flake8 numpy scipy -r requirements.txt
+- pip install coverage flake8 google numpy Pillow scipy
 
 script:
-- flake8 --max-line-length=100 --exclude=*_pb2.py --statistics .
+- flake8 --exclude=*_pb2.py --exit-zero --max-line-length=100 --statistics .
+- make all
 - nosetests --with-coverage
 
 after_success:
