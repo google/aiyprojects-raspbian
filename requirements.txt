@@ -1,0 +1,3 @@
+google
+picamera
+Pillow
