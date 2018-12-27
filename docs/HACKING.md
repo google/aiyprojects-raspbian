@@ -1,16 +1,18 @@
-# Setting up the image
-
-## Overview
+# System updates
 
 We periodically update the SD card image that supports both the Vision Kit and
 Voice Kit. Each release is based on [Raspbian][raspbian], with a few
 customizations, and they are tested on various Raspberry Pi models.
 
-To update your system image, download the latest `.img.xz` file
-[from our releases page][github-releases]. Once downloaded,
-[write the image to your SD card][image-flash], and you're good to go!
+You can flash the latest system image for your kit as follows:
 
-If you prefer to setup Raspbian yourself, follow the steps below.
+1. Download the latest `.img.xz` file from the [releases page on GitHub][github-releases]. (For release details, see the [Change log][changelog].)
+1. Use an adapter to connect your MicroSD card to your computer.
+1. Use a program such as [balenaEtcher](https://www.balena.io/etcher/) to flash the `.img.xy` file onto your MicroSD card. (balenaEtcher is free and works on Windows, Mac OS, and Linux.)
+
+When flashing is done, put the MicroSD card back in your kit and you're good to go!
+
+If you prefer to update an existing Raspbian image yourself, follow the steps below.
 
 ## AIY Debian Package Repo
 
@@ -181,6 +183,7 @@ To access the cloud services you need to register a project and generate
 credentials for cloud APIs. This is documented in the
 [setup instructions][aiy-voice-setup] on the webpage.
 
+[changelog]: CHANGES.html
 [raspbian]: https://www.raspberrypi.org/downloads/raspbian/
 [image-flash]: https://www.raspberrypi.org/documentation/installation/installing-images/
 [aiy-models]: https://aiyprojects.withgoogle.com/models/

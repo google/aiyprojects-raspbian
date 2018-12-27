@@ -1,6 +1,9 @@
-# Changelog
+# Change log
 
-All SD card images can be found at [releases][github-releases] page.
+This page describes the changes in each release.
+
+To update your kit, see the [system updates guide][system-updates].
+All system images can be downloaded from the [GitHub releases page][github-releases].
 
 ## AIY Kits Release 2018-11-16
 
@@ -67,3 +70,4 @@ Compatible with Voice HAT and Vision Bonnet.
 Compatible with Voice HAT.
 
 [github-releases]: https://github.com/google/aiyprojects-raspbian/releases
+[system-updates]: HACKING.html

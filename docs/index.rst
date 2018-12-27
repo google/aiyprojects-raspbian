@@ -37,11 +37,16 @@ assembly guides and makers guides, go to
    aiy.voice.audio
    aiy.voice.tts
 
+.. toctree::
+   :caption: Other docs
+   :maxdepth: 2
+
+   Change log <CHANGES>
+   System updates <HACKING>
+   Source code (GitHub) <https://github.com/google/aiyprojects-raspbian>
+
 API indices
 --------------
 
 * :ref:`Full index <genindex>`
 * :ref:`Module index <modindex>`
-
-Source code is
-`on GitHub <https://github.com/google/aiyprojects-raspbian>`_.
