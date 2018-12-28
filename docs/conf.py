@@ -83,8 +83,13 @@ extensions = [
     'sphinx.ext.extlinks', # Enables arbitrary link shorthand like 'github'
 ]
 
+# Config for the extlinks extension
 extlinks = {'github': ('https://github.com/google/aiyprojects-raspbian/tree/aiyprojects/%s',
-                      '')}
+                       ''),
+            'assistant': ('https://developers.google.com/assistant/sdk/reference/library/python/#%s',
+                          ''),
+            'assistant-rpc': ('https://developers.google.com/assistant/sdk/reference/rpc/#%s',
+                          '')}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

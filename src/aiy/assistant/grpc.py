@@ -12,7 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An API to access the Google Assistant Service."""
+"""
+Enables a conversation with the Google Assistant, using the `Google Assistant Service`_, which
+connects to the Google Assistant using a streaming endpoint over gRPC.
+
+This gRPC service is typically more complicated to set up, compared to the Google Assistant
+Library, but this API takes care of all the complexity for you. So you simply create an instance
+of :class:`AssistantServiceClient`, then start the Google Assistant by calling
+:meth:`~AssistantServiceClient.conversation`.
+
+This API provides only an interface to initiate a conversation with the Google Assistant. It
+speaks and prints all responses for you—it does not allow you to handle the response events or
+create custom commands.
+For an example, see :github:`src/examples/voice/assistant_grpc_demo.py`.
+
+If you want to integrate custom device commands with the Google Assistant using the gRPC interface,
+instead use the `Google Assistant Service`_ directly. For an example, see `this gRPC sample
+<https://github.com/googlesamples/assistant-sdk-python/blob/master/google-assistant-sdk/googlesamples/assistant/grpc/pushtotalk.py>`_.
+Or instead of interacting with the Google Assistant, you can use :mod:`aiy.cloudspeech`
+to convert your voice commands into text that triggers your actions.
+"""
 
 import array
 import logging
@@ -55,6 +74,17 @@ def _normalize_audio_buffer(buf, volume_percentage, sample_width=2):
 
 # https://developers.google.com/assistant/sdk/reference/rpc/
 class AssistantServiceClient:
+    """
+    Provides a simplified interface for the `EmbeddedAssistant
+    <https://developers.google.com/assistant/sdk/reference/rpc/google.assistant.embedded.v1alpha2#google.assistant.embedded.v1alpha2.EmbeddedAssistant>`_.
+    
+    Args:
+        language_code: Language expected from the user, in IETF BCP 47 syntax (default is "en-US").
+            See the `list of supported languages
+            <https://developers.google.com/assistant/sdk/reference/rpc/languages>`_.
+        volume_percentage: Volume level of the audio output. Valid values are 1 to 100
+            (corresponding to 1% to 100%).
+    """
     def __init__(self, language_code='en-US', volume_percentage=100):
         self._volume_percentage = volume_percentage  # Mutable state.
         self._conversation_state = None              # Mutable state.
@@ -86,6 +116,9 @@ class AssistantServiceClient:
 
     @property
     def volume_percentage(self):
+        """
+        Volume level of the audio output. Valid values are 1 to 100 (corresponding to 1% to 100%).
+        """
         return self._volume_percentage
 
     def _recording_started(self):
@@ -173,6 +206,16 @@ class AssistantServiceClient:
         return continue_conversation
 
     def conversation(self, deadline=DEFAULT_GRPC_DEADLINE):
+        """
+        Starts a conversation with the Google Assistant.
+
+        The device begins listening for your query or command and will wait indefinitely.
+        Once it completes a query/command, it returns to listening for another.
+
+        Args:
+            deadline: The amount of time (in milliseconds) to wait for each gRPC request to
+                complete before terminating.
+        """
         keep_talking = True
         while keep_talking:
             playing = False
@@ -197,10 +240,15 @@ class AssistantServiceClient:
 
 class AssistantServiceClientWithLed(AssistantServiceClient):
     """ 
-    Same API as :class:`AssistantServiceClient` but it also turns the
+    Same as :class:`AssistantServiceClient` but this also turns the
     Voice Kit's button LED on and off in response to the conversation.
 
-    :inherited-members:
+    Args:
+        board: An instance of :class:`~aiy.board.Board`.
+        language_code: Language expected from the user, in IETF BCP 47 syntax (default is "en-US").
+            See the `list of supported languages`_.
+        volume_percentage: Volume level of the audio output. Valid values are 1 to 100
+            (corresponding to 1% to 100%).
     """
     def _update_led(self, state, brightness):
         self._board.led.state = state

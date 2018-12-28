@@ -1,0 +1,7 @@
+.. |code| raw:: html
+
+    <code>
+
+.. |endcode| raw:: html
+
+    </code>

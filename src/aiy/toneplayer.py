@@ -106,7 +106,7 @@ class TonePlayer:
         w: whole note
         h: half note
         q: quarter note (the default -- if you don't specify the length, we
-           assume quarter)
+        assume quarter)
         e: eighth note
         s: sixteenth note
 

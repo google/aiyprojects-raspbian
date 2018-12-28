@@ -13,15 +13,19 @@
 # limitations under the License.
 
 """
-APIs to simplify interaction with the `Google Cloud Speech-to-Text
-service <https://cloud.google.com/speech-to-text/>`_.
-
-Before calling these APIs, be sure you've saved your Google Cloud credentials
-at ``~/cloud_speech.json``. For more information, see `these setup instructions
+APIs that simplify interaction with the `Google Cloud Speech-to-Text service
+<https://cloud.google.com/speech-to-text/docs/>`_ so you can convert voice commands into actions.
+To use this service, you must have a Google Cloud account and a corresponding credentials file.
+For more information, see `these setup instructions
 <https://aiyprojects.withgoogle.com/voice/#makers-guide--custom-voice-user-interface>`_.
 
-This API is designed for the Voice Kit, but it has no dependency on the Voice
-HAT/Bonnet, so may be used without it.
+For an example, see :github:`src/examples/voice/cloudspeech_demo.py`.
+
+.. note::
+
+    These APIs are designed for the Voice Kit, but have no dependency on the Voice
+    HAT/Bonnet specifically. However, they do require some type of sound card
+    attached to the Raspberry Pi that can be detected by the ALSA subsystem.
 """
 
 import os
@@ -43,6 +47,14 @@ logger = logging.getLogger(__name__)
 
 # https://cloud.google.com/speech-to-text/docs/reference/rpc/google.cloud.speech.v1
 class CloudSpeechClient:
+    """
+    A simplified version of the Google Cloud ``SpeechClient`` class.
+
+    Args:
+        service_accout_file: Absolute path to your JSON account credentials file.
+            If None, it looks for the file at ``~/cloud_speech.json``.
+            To get a credentials file, `these setup instructions`_.
+    """
     def __init__(self, service_accout_file=None):
         if service_accout_file is None:
             service_accout_file = os.path.expanduser('~/cloud_speech.json')
@@ -58,7 +70,23 @@ class CloudSpeechClient:
             speech_contexts=[speech.types.SpeechContext(phrases=hint_phrases)])
 
     def recognize_bytes(self, data, language_code='en-US', hint_phrases=None):
-        """Data must be encoded according to the AUDIO_FORMAT."""
+        """
+        Performs speech-to-text for a single utterance using the given data source.
+        Once it detects the user is done speaking, it stops listening and delivers the top
+        result as text.
+
+        Args:
+            data: The audio data source. Must be encoded with a sample rate of 16000Hz.
+            language_code:  Language expected from the user, in IETF BCP 47 syntax (default is
+                "en-US"). See the `list of Cloud's supported languages
+                <https://cloud.google.com/speech-to-text/docs/languages>`_.
+            hint_phrase: A list of strings containing words and phrases that may be expected from
+                the user. These hints help the speech recognizer identify them in the dialog and
+                improve the accuracy of your results.
+
+        Returns:
+            The text transcription of the user's dialog.
+        """
         streaming_config=speech.types.StreamingRecognitionConfig(
             config=self._make_config(language_code, hint_phrases),
             single_utterance=True)
@@ -74,6 +102,24 @@ class CloudSpeechClient:
         return None
 
     def recognize(self, language_code='en-US', hint_phrases=None):
+        """
+        Performs speech-to-text for a single utterance using the default ALSA soundcard driver.
+        Once it detects the user is done speaking, it stops listening and delivers the top
+        result as text.
+
+        By default, this method calls :meth:`start_listening` and :meth:`stop_listening` as the
+        recording begins and ends, respectively.
+
+        Args:
+            language_code:  Language expected from the user, in IETF BCP 47 syntax (default is
+                "en-US"). See the `list of Cloud's supported languages`_.
+            hint_phrase: A list of strings containing words and phrases that may be expected from
+                the user. These hints help the speech recognizer identify them in the dialog and
+                improve the accuracy of your results.
+
+        Returns:
+            The text transcription of the user's dialog.
+        """
         streaming_config=speech.types.StreamingRecognitionConfig(
             config=self._make_config(language_code, hint_phrases),
             single_utterance=True)
@@ -98,7 +144,23 @@ class CloudSpeechClient:
         return None
 
     def start_listening(self):
+        """
+        By default, this simply prints "Start listening" to the log.
+
+        This method is provided as a convenience method that you can override in a derived class to
+        do something else that indicates the status to the user, such as change the LED state.
+
+        Called by :meth:`recognize` when recording begins.
+        """
         logger.info('Start listening.')
 
     def stop_listening(self):
+        """
+        By default, this simply prints "Stop listening" to the log.
+
+        This method is provided as a convenience method that you can override in a derived class to
+        do something else that indicates the status to the user, such as change the LED state.
+
+        Called by :meth:`recognize` when recording ends.
+        """
         logger.info('Stop listening.')

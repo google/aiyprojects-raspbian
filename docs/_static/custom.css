@@ -8,6 +8,7 @@ code,
     border: none;
     padding: .1em .3em;
     font-size: 80%;
+    font-weight: bold;
     color: #263238;
 }
 
@@ -25,6 +26,7 @@ code,
 /* Remove bottom padding from table around parameter list */
 .rst-content table.field-list td {
     padding-bottom: 0;
+    vertical-align: top;
 }
 
 /* floating elements (images) */

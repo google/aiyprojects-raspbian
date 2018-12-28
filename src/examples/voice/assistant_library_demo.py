@@ -13,12 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Run a recognizer using the Google Assistant Library.
+"""Activates the Google Assistant with hotword detection, using the Google Assistant Library.
 
 The Google Assistant Library has direct access to the audio API, so this Python
-code doesn't need to record audio. Hot word detection "OK, Google" is supported.
+code doesn't need to record audio.
 
-It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
+.. note:
+
+    This example depends on hotword detection (such as "Okay Google") to activate the Google
+    Assistant, which is supported only with Raspberry Pi 2/3. If you're using a Pi Zero, this
+    code won't work. Instead, you must use the button or another type of trigger, as shown
+    in assistant_library_with_button_demo.py.
 """
 
 import logging
