@@ -48,7 +48,7 @@ from modules.powercommand import PowerCommand
 
 _configPath = os.path.expanduser('~/.config/voice-assistant.ini')
 _settingsPath = os.path.expanduser('~/.config/settings.ini')
-_remotePath = os.path.expanduser('~/.config/remotes.ini')
+_remotePath = "https://argos.int.mpember.net.au/rpc/get/remotes"
 
 _kodiRemote = KodiRemote(_settingsPath)
 _music = Music(_settingsPath)
@@ -159,7 +159,7 @@ def process_event(assistant, event):
             assistant.stop_conversation()
             _readRssFeed.run(text[10:])
 
-        elif text.startswith('turn on ') or text.startswith('turn off '):
+        elif text.startswith('turn on ') or text.startswith('turn off ') or text.startswith('turn down ') or text.startswith('turn up '):
             assistant.stop_conversation()
             _powerSwitch.run(text[5:])
 

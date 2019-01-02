@@ -2,10 +2,12 @@ import configparser
 import logging
 
 import aiy.audio
+import requests
+import json
 
 from modules.mqtt import Mosquitto
 
-# PowerSwitch: Send HTTP command to RF switch website
+# PowerSwitch: Send MQTT command to control remote devices
 # ================================
 #
 
@@ -14,13 +16,27 @@ class PowerSwitch(object):
     """ Control power sockets"""
 
     def __init__(self, configPath, remotePath):
+        self.configPath = configPath
         self.remotePath = remotePath
         self.mqtt = Mosquitto(configPath)
 
     def run(self, voice_command):
-        self.config = configparser.ConfigParser()
-        self.config.read(self.remotePath)
-        self.devices = self.config.sections()
+
+        try:
+            if self.remotePath.startswith("http"):
+                logging.warning('Loading remote device list')
+                response = requests.get(self.remotePath)
+                self.config = json.loads(response.text.lower())
+
+            else:
+                logging.warning('Loading local device list')
+                self.config = json.loads(open(self.remotePath).read())
+
+        except:
+            logging.warning('Failed to load remote device list')
+            return
+
+        self.devices = self.config["remotes"]
 
         devices = None
         action = None
@@ -29,8 +45,7 @@ class PowerSwitch(object):
             logging.info('Enumerating switchable devices')
             aiy.audio.say('Available switches are')
             for device in self.devices:
-                if device != 'GPIO':
-                    aiy.audio.say(str(device))
+                aiy.audio.say(device["names"][0])
             return
 
         elif voice_command.startswith('on '):
@@ -40,6 +55,14 @@ class PowerSwitch(object):
         elif voice_command.startswith('off '):
             action = 'off'
             devices = voice_command[4:].split(' and ')
+
+        elif voice_command.startswith('up '):
+            action = 'up'
+            devices = voice_command[3:].split(' and ')
+
+        elif voice_command.startswith('down '):
+            action = 'down'
+            devices = voice_command[5:].split(' and ')
 
         else:
             aiy.audio.say('Unrecognised command')
@@ -52,22 +75,30 @@ class PowerSwitch(object):
                self.processCommand(device, action)
 
     def processCommand(self, device, action):
-        if device.startswith('the '):
 
+        config = configparser.ConfigParser()
+        config.read(self.configPath)
+
+        if device.startswith('the '):
             device = device[4:]
 
-        if device in self.devices:
+        for deviceobj in self.devices:
 
-            code = self.config[device].getint('code')
+            if device in deviceobj["names"]:
 
-            if action == 'off' and self.config[device].getboolean('toggle', fallback=False) is not True:
-               code = code - 8;
+                logging.info('Device found: ' + device)
 
-            logging.info('Code to send: ' + str(code))
+                if action in deviceobj["codes"]:
+                    logging.info('Code found for "' + action + '" action')
+                    self.mqtt.command(config["mqtt"].get("power_topic","power/code"), deviceobj["codes"][action])
+                else:
+                    aiy.audio.say(device + ' does not support command ' + action)
+                    logging.warning('Device "' + device + '" does not support command: ' + action)
 
-            self.mqtt.command('/power/code', code)
+                return
 
-        else:
-            aiy.audio.say('Unrecognised switch')
-            logging.warning('Unrecognised device: ' + device)
+            logging.info('Device not matched')
+
+        aiy.audio.say('Unrecognised switch')
+        logging.warning('Unrecognised device: ' + device)
 
