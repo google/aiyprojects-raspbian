@@ -18,11 +18,18 @@ from enum import Enum
 from http.server import BaseHTTPRequestHandler
 from itertools import cycle
 
-from picamera import PiVideoFrameType
-
-import aiy.vision.streaming.proto.messages_pb2 as pb2
+from .proto import messages_pb2 as pb2
 
 logger = logging.getLogger(__name__)
+
+class NAL:
+    CODED_SLICE_NON_IDR =  1  # Coded slice of a non-IDR picture
+    CODED_SLICE_IDR     =  5  # Coded slice of an IDR picture
+    SEI                 =  6  # Supplemental enhancement information (SEI)
+    SPS                 =  7  # Sequence parameter set
+    PPS                 =  8  # Picture parameter set
+
+ALLOWED_NALS = (NAL.CODED_SLICE_NON_IDR, NAL.CODED_SLICE_IDR, NAL.SPS, NAL.PPS, NAL.SEI)
 
 def _shutdown(sock):
     try:
@@ -225,12 +232,13 @@ class StreamingServer:
 
     def write(self, data):
         """Called by camera thread for each compressed frame."""
-        frame_type = self._camera.frame.frame_type
-        states = {client.send_video(frame_type, data) for client in self._enabled_clients}
-
-        if ClientState.ENABLED_NEEDS_SPS in states:
-            logger.info('Requesting key frame')
-            self._camera.request_key_frame()
+        assert data[0:4] == b'\x00\x00\x00\x01'
+        frame_type = data[4] & 0b00011111
+        if frame_type in ALLOWED_NALS:
+            states = {client.send_video(frame_type, data) for client in self._enabled_clients}
+            if ClientState.ENABLED_NEEDS_SPS in states:
+                logger.info('Requesting key frame')
+                self._camera.request_key_frame()
 
 class ClientLogger(logging.LoggerAdapter):
     def process(self, msg, kwargs):
@@ -276,7 +284,7 @@ class _Client:
             if self._state == ClientState.DISABLED:
                 pass
             elif self._state == ClientState.ENABLED_NEEDS_SPS:
-                if frame_type == PiVideoFrameType.sps_header:
+                if frame_type == NAL.SPS:
                     dropped = self._queue_video(data)
                     if not dropped:
                         self._state = ClientState.ENABLED
