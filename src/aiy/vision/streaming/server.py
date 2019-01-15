@@ -13,7 +13,6 @@ import sys
 import threading
 import time
 
-from collections import namedtuple
 from enum import Enum
 from http.server import BaseHTTPRequestHandler
 from itertools import cycle
@@ -23,19 +22,117 @@ from .proto import messages_pb2 as pb2
 logger = logging.getLogger(__name__)
 
 class NAL:
-    CODED_SLICE_NON_IDR =  1  # Coded slice of a non-IDR picture
-    CODED_SLICE_IDR     =  5  # Coded slice of an IDR picture
-    SEI                 =  6  # Supplemental enhancement information (SEI)
-    SPS                 =  7  # Sequence parameter set
-    PPS                 =  8  # Picture parameter set
+    CODED_SLICE_NON_IDR = 1  # Coded slice of a non-IDR picture
+    CODED_SLICE_IDR     = 5  # Coded slice of an IDR picture
+    SEI                 = 6  # Supplemental enhancement information (SEI)
+    SPS                 = 7  # Sequence parameter set
+    PPS                 = 8  # Picture parameter set
 
-ALLOWED_NALS = (NAL.CODED_SLICE_NON_IDR, NAL.CODED_SLICE_IDR, NAL.SPS, NAL.PPS, NAL.SEI)
+ALLOWED_NALS = {NAL.CODED_SLICE_NON_IDR,
+                NAL.CODED_SLICE_IDR,
+                NAL.SPS,
+                NAL.PPS,
+                NAL.SEI}
+
+def StartMessage(resolution):
+    width, height = resolution
+    return pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000),
+                           start=pb2.Start(width=width, height=height))
+
+def StopMessage():
+    return pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000),
+                           stop=pb2.Stop())
+
+def VideoMessage(data):
+    return pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000),
+                           video=pb2.Video(data=data))
+
+def OverlayMessage(svg):
+    return pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000),
+                           overlay=pb2.Overlay(svg=svg))
+
+def _parse_server_message(data):
+    message = pb2.ServerBound()
+    message.ParseFromString(data)
+    return message
 
 def _shutdown(sock):
     try:
         sock.shutdown(socket.SHUT_RDWR)
     except OSError:
         pass
+
+def _read_asset(path):
+    if path == '/':
+        path = 'index.html'
+    elif path[0] == '/':
+        path = path[1:]
+
+    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'assets'))
+    asset_path = os.path.abspath(os.path.join(base_path, path))
+
+    if os.path.commonpath((base_path, asset_path)) != base_path:
+        return None, None
+
+    if path.endswith('.html'):
+        content_type = 'text/html; charset=utf-8'
+    elif path.endswith('.js'):
+        content_type = 'application/javascript; charset=utf-8'
+    elif path.endswith('.wasm'):
+        content_type = 'application/wasm'
+    else:
+        content_type = 'application/octet-stream'
+
+    try:
+        with open(asset_path, 'rb') as f:
+            return f.read(), content_type
+    except Exception:
+        return None, None
+
+
+class HTTPRequest(BaseHTTPRequestHandler):
+
+    def __init__(self, request_buf):
+        self.rfile = io.BytesIO(request_buf)
+        self.raw_requestline = self.rfile.readline()
+        self.parse_request()
+
+
+def _read_http_request(sock):
+    request = bytearray()
+    while b'\r\n\r\n' not in request:
+        buf = sock.recv(2048)
+        if not buf:
+            break
+        request.extend(buf)
+    return request
+
+
+def _http_ok(content, content_type):
+    header = (
+        'HTTP/1.1 200 OK\r\n'
+        'Content-Length: %d\r\n'
+        'Content-Type: %s\r\n'
+        'Connection: Keep-Alive\r\n\r\n'
+    ) % (len(content), content_type)
+    return header.encode('ascii') + content
+
+
+def _http_switching_protocols(token):
+    accept_token = token.encode('ascii') + b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+    accept_token = hashlib.sha1(accept_token).digest()
+    header = (
+        'HTTP/1.1 101 Switching Protocols\r\n'
+        'Upgrade: WebSocket\r\n'
+        'Connection: Upgrade\r\n'
+        'Sec-WebSocket-Accept: %s\r\n\r\n'
+    ) % base64.b64encode(accept_token).decode('ascii')
+    return header.encode('ascii')
+
+
+def _http_not_found():
+    return 'HTTP/1.1 404 Not Found\r\n\r\n'.encode('ascii')
+
 
 @contextlib.contextmanager
 def Socket(port):
@@ -48,6 +145,7 @@ def Socket(port):
     finally:
         _shutdown(sock)
         sock.close()
+
 
 class DroppingQueue:
 
@@ -212,11 +310,11 @@ class StreamingServer:
                         sock, addr = ready.accept()
                         name = '%s:%d' % addr
                         if ready is tcp_socket:
-                            client = _ProtoClient(name, sock, self._commands, self._camera.resolution)
+                            client = ProtoClient(name, sock, self._commands, self._camera.resolution)
                         elif ready is web_socket:
-                            client = _WsProtoClient(name, sock, self._commands, self._camera.resolution)
+                            client = WsProtoClient(name, sock, self._commands, self._camera.resolution)
                         elif ready is annexb_socket:
-                            client = _AnnexbClient(name, sock, self._commands)
+                            client = AnnexbClient(name, sock, self._commands)
                         logger.info('New %s connection from %s', client.TYPE, name)
 
                         self._clients.add(client).start()
@@ -254,7 +352,7 @@ class ClientCommand(Enum):
     ENABLE = 2
     DISABLE = 3
 
-class _Client:
+class Client:
     def __init__(self, name, sock, command_queue):
         self._lock = threading.Lock()  # Protects _state.
         self._state = ClientState.DISABLED
@@ -262,8 +360,8 @@ class _Client:
         self._socket = sock
         self._commands = command_queue
         self._tx_q = DroppingQueue(15)
-        self._rx_thread = threading.Thread(target=self._rx_thread_run)
-        self._tx_thread = threading.Thread(target=self._tx_thread_run)
+        self._rx_thread = threading.Thread(target=self._rx_run)
+        self._tx_thread = threading.Thread(target=self._tx_run)
 
     def start(self):
         self._rx_thread.start()
@@ -309,7 +407,7 @@ class _Client:
             self._logger.warning('Running behind, dropping messages')
         return dropped
 
-    def _tx_thread_run(self):
+    def _tx_run(self):
         try:
             while True:
                 message = self._tx_q.get()
@@ -323,7 +421,7 @@ class _Client:
         # Tx thread stops the client in any situation.
         self._send_command(ClientCommand.STOP)
 
-    def _rx_thread_run(self):
+    def _rx_run(self):
         try:
             while True:
                 message = self._receive_message()
@@ -336,48 +434,42 @@ class _Client:
             # Rx thread stops the client only if error happened.
             self._send_command(ClientCommand.STOP)
 
+    def _receive_bytes(self, num_bytes):
+        received = bytearray()
+        while len(received) < num_bytes:
+            buf = self._socket.recv(num_bytes - len(received))
+            if not buf:
+                return buf
+            received.extend(buf)
+        return received
+
     def _queue_video(self, data):
         raise NotImplementedError
 
     def _queue_overlay(self, svg):
         raise NotImplementedError
 
-    def _receive_message(self):
-        raise NotImplementedError
-
     def _send_message(self, message):
         raise NotImplementedError
 
-    def _handle_message(self, message):
+    def _receive_message(self):
         raise NotImplementedError
 
-class _ProtoClient(_Client):
+    def _handle_message(self, message):
+        pass
+
+class ProtoClient(Client):
     TYPE = 'tcp'
 
     def __init__(self, name, sock, command_queue, resolution):
         super().__init__(name, sock, command_queue)
         self._resolution = resolution
 
-    def _queue_start(self, resolution):
-        message = pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000))
-        message.start.width, message.start.height = resolution
-        return self._queue_message(message)
-
-    def _queue_stop(self):
-        message = pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000))
-        message.timestamp_us = int(time.monotonic() * 1000000)
-        message.stop.SetInParent()
-        return self._queue_message(message, replace_last=True)
-
     def _queue_video(self, data):
-        message = pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000))
-        message.video.data = data
-        return self._queue_message(message)
+        return self._queue_message(VideoMessage(data))
 
     def _queue_overlay(self, svg):
-        message = pb2.ClientBound(timestamp_us=int(time.monotonic() * 1000000))
-        message.overlay.svg = svg
-        return self._queue_message(message)
+        return self._queue_message(OverlayMessage(svg))
 
     def _handle_message(self, message):
         which = message.WhichOneof('message')
@@ -397,27 +489,18 @@ class _ProtoClient(_Client):
                 if enabled:
                     self._logger.info('Enabling client')
                     self._state = ClientState.ENABLED_NEEDS_SPS
-                    self._queue_start(self._resolution)
+                    self._queue_message(StartMessage(self._resolution))
                     self._send_command(ClientCommand.ENABLE)
                 else:
                     self._logger.info('Disabling client')
                     self._state = ClientState.DISABLED
-                    self._queue_stop()
+                    self._queue_message(StopMessage(), replace_last=True)
                     self._send_command(ClientCommand.DISABLE)
 
     def _send_message(self, message):
         buf = message.SerializeToString()
         self._socket.sendall(struct.pack('!I', len(buf)))
         self._socket.sendall(buf)
-
-    def _receive_bytes(self, num_bytes):
-        received = bytearray()
-        while len(received) < num_bytes:
-            buf = self._socket.recv(num_bytes - len(received))
-            if not buf:
-                return buf
-            received.extend(buf)
-        return received
 
     def _receive_message(self):
         buf = self._receive_bytes(4)
@@ -427,12 +510,10 @@ class _ProtoClient(_Client):
         buf = self._receive_bytes(num_bytes)
         if not buf:
             return None
-        message = pb2.ServerBound()
-        message.ParseFromString(buf)
-        return message
+        return _parse_server_message(buf)
 
 
-class _WsProtoClient(_ProtoClient):
+class WsProtoClient(ProtoClient):
     TYPE = 'web'
 
     class WsPacket:
@@ -504,9 +585,7 @@ class _WsProtoClient(_ProtoClient):
                         joined = bytearray()
                         for p in packets:
                             joined.extend(p.payload)
-                        message = pb2.ServerBound()
-                        message.ParseFromString(joined)
-                        return message
+                        return _parse_server_message(joined)
                 elif packet.opcode == 8:
                     # Close.
                     self._logger.info('WebSocket close requested')
@@ -524,6 +603,7 @@ class _WsProtoClient(_ProtoClient):
                 else:
                     self._logger.info('Dropping opcode %d', packet.opcode)
         except Exception:
+            self._logger.exception('Error while processing websocket request')
             return None
 
     def _receive_packet(self):
@@ -554,78 +634,30 @@ class _WsProtoClient(_ProtoClient):
             buf = packet.serialize()
         self._socket.sendall(buf)
 
-    class HTTPRequest(BaseHTTPRequestHandler):
-        def __init__(self, request_buf):
-            self.rfile = io.BytesIO(request_buf)
-            self.raw_requestline = self.rfile.readline()
-            self.parse_request()
-
     def _process_web_request(self):
-        response_template = (
-            'HTTP/1.1 200 OK\r\n'
-            'Content-Length: %(content_length)s\r\n'
-            'Connection: Keep-Alive\r\n\r\n'
-        )
-
-        header_buf = bytearray()
-        while b'\r\n\r\n' not in header_buf:
-            buf = self._socket.recv(2048)
-            if not buf:
-                raise Exception('Socket closed while receiving header')
-            header_buf.extend(buf)
-            if len(header_buf) >= 10 * 1024:
-                raise Exception('HTTP header too large')
-        request = self.HTTPRequest(header_buf)
-
+        request = _read_http_request(self._socket)
+        request = HTTPRequest(request)
         connection = request.headers['Connection']
         upgrade = request.headers['Upgrade']
         if 'Upgrade' in connection and upgrade == 'websocket':
-            self._handshake(request)
+            sec_websocket_key = request.headers['Sec-WebSocket-Key']
+            self._queue_message(_http_switching_protocols(sec_websocket_key))
+            self._logger.info('Upgraded to WebSocket')
             return False
 
         if request.command == 'GET':
-            content = self._get_asset(request.path)
-            response_hdr = response_template % {'content_length': len(content)}
-            response = bytearray(response_hdr.encode('ascii'))
-            response.extend(content)
-            self._queue_message(response)
+            content, content_type = _read_asset(request.path)
+            if content is None:
+                self._queue_message(_http_not_found())
+            else:
+                self._queue_message(_http_ok(content, content_type))
             self._queue_message(None)
             return True
 
         raise Exception('Unsupported request')
 
-    def _handshake(self, request):
-        magic = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
-        response_template = (
-            'HTTP/1.1 101 Switching Protocols\r\n'
-            'Upgrade: WebSocket\r\n'
-            'Connection: Upgrade\r\n'
-            'Sec-WebSocket-Accept: %(sec_key)s\r\n\r\n'
-        )
 
-        sec_key = request.headers['Sec-WebSocket-Key']
-        sec_key = sec_key.encode('ascii') + magic.encode('ascii')
-        sec_key = base64.b64encode(hashlib.sha1(sec_key).digest()).decode('ascii')
-        response = response_template % {'sec_key': sec_key}
-        self._queue_message(response.encode('ascii'))
-        self._logger.info('Upgraded to WebSocket')
-
-    def _get_asset(self, path):
-        if not path or '..' in path:
-            return 'Nice try'.encode('ascii')
-        if path == '/':
-            path = 'index.html'
-        elif path[0] == '/':
-            path = path[1:]
-        path = os.path.join(os.path.dirname(__file__), 'assets', path)
-        try:
-            with open(path, 'rb') as asset:
-                return asset.read()
-        except Exception:
-            return b''
-
-
-class _AnnexbClient(_Client):
+class AnnexbClient(Client):
     TYPE = 'annexb'
 
     def __init__(self, name, sock, command_queue):
@@ -633,20 +665,11 @@ class _AnnexbClient(_Client):
         self._state = ClientState.ENABLED_NEEDS_SPS
         self._send_command(ClientCommand.ENABLE)
 
-    def _queue_start(self, resolution):
-        pass
-
-    def _queue_stop(self):
-        pass
-
     def _queue_video(self, data):
         return self._queue_message(data)
 
     def _queue_overlay(self, svg):
-        pass
-
-    def _handle_message(self, message):
-        pass
+        pass  # Ignore overlays.
 
     def _send_message(self, message):
         self._socket.sendall(message)
