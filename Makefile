@@ -14,7 +14,6 @@ all:
 	@echo "make test-vision-examples - Run vision example tests"
 	@echo "make test-vision          - Run all vision tests"
 	@echo "make clean                - Remove generated files"
-	@echo "make deb                  - Generate Debian package"
 
 test-vision-images:
 	$(MAKE) -C src/tests/images
@@ -49,9 +48,6 @@ test-vision: test-vision-images
 		$(VISION_LATENCY_TESTS) \
 		$(VISION_MODEL_TESTS) \
 		$(VISION_EXAMPLE_TESTS)
-
-deb:
-	dpkg-buildpackage -b -rfakeroot -us -uc -tc
 
 lint:
 	find src -iname "*.py" | grep -v pb2 | xargs $(PYTHON) -m pylint --rcfile .pylintrc
