@@ -1,6 +1,9 @@
+build
+dist
 __pycache__
 *.pyc
 .DS_Store
 .debhelper
 docs/_build
 src/tests/images/*.jpg
+*.egg-info

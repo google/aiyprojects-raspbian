@@ -1,0 +1,9 @@
+recursive-include checkpoints *
+recursive-include docs *
+recursive-include src/examples *
+recursive-include src/tests *
+
+include README.md
+include CONTRIBUTING.md
+include LICENSE
+include Makefile

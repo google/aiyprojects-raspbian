@@ -62,6 +62,9 @@ joy-demo-%:
 joy-demo-log:
 	journalctl -u joy_detection_demo.service -b -f
 
+pep8-diff:
+	autopep8 --max-line-length=100 --diff `find src -iname "*.py" | grep -v pb2`
+
 clean:
 	rm -f $(CURDIR)/src/tests/images/*.jpg
 	rm -rf $(CURDIR)/docs/_build
