@@ -185,22 +185,36 @@ Cloud Speech** only recognizes speech (no talk-back), but supports far more
 languages.
 
 Usage of these APIs changes constantly. Here is a summary of the steps for using
-**Google Assistant**, as of 2018-07-13:
+**Google Assistant**, as of 2019-02-13:
 
-1. Create a Project, Enable API, Enable activity controls
+1. Create a Project
 
-2. Register device model, Download credentials file (check `project_id`)
+2. Enable Google Assistant API
 
-3. Install Python packages:
-   - `google-assistant-library`
-   - `google-assistant-sdk[samples]`
-   - `google-auth-oauthlib[tool]`
-   - `google-cloud-speech`
+3. Configure OAuth consent screen (must fill in **Support email** and
+   **Application Homepage link**)
 
-4. Use `google-oauthlib-tool` to authenticate once
+4. Enable activity controls
 
-5. Use `googlesamples-assistant-devicetool` to register your Raspberry Pi. A few
-   useful commands may be:
+5. Register device model, Download credentials file (check `project_id`)
+
+6. Install system dependencies:
+    ```
+    $ sudo apt-get install portaudio19-dev libffi-dev libssl-dev libmpg123-dev
+    ```
+
+7. Install Python packages:
+    ```
+    $ sudo pip3 install google-assistant-library==1.0.0 \
+                        google-assistant-sdk[samples]==0.5.1 \
+                        google-auth-oauthlib[tool] \
+                        google-cloud-speech
+    ```
+
+8. Use `google-oauthlib-tool` to authenticate once
+
+9. Use [`googlesamples-assistant-devicetool`](https://developers.google.com/assistant/sdk/reference/device-registration/device-tool)
+   to register your Raspberry Pi. A few useful commands may be:
    ```
    $ googlesamples-assistant-devicetool --project-id <Project ID> register-device \
    --model <Model ID> \
