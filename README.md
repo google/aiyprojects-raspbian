@@ -1,4 +1,9 @@
-# AIY Projects
+# AIY Projects for DWG Team 1
+
+## Members
+@koseoyoung @joowce @JaneYi @hjbc0921
+
+## Newly added functions
 
 ## Overview
 
