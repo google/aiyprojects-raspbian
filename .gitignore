@@ -1,6 +1,7 @@
 __pycache__
 *.pyc
 .DS_Store
+.idea/
 .debhelper
 docs/_build
 src/tests/images/*.jpg
