@@ -18,13 +18,14 @@ import argparse
 import locale
 import logging
 import time
-import random
 
-from aiy.board import Board, Led
 from aiy.cloudspeech import CloudSpeechClient
 import aiy.voice.tts
+from aiy.leds import (Leds, Pattern, RgbLeds, Color)
 
-from aiy.leds import (Leds, Pattern, PrivacyLed, RgbLeds, Color)
+from controller.game import (updown, deohagi, gugudan)
+import code.game as GAME_CODE
+
 
 def get_hints(language_code):
     if language_code.startswith('en_'):
@@ -34,93 +35,29 @@ def get_hints(language_code):
                 'goodbye')
     return None
 
+
 def locale_language():
     language, _ = locale.getdefaultlocale()
     return language
 
-def updown():
-    #듣기 위해 setup 해줘야하는 환경을 전역으로 선언해야할 듯 
 
-    int final_ans = random.randint(1,100)
-    int count = 1
-    aiy.voice.tts.say("Random number from one to one hundred is set")
-    aiy.voice.tts.say("Start to guess")
-    while True:
-        #잘 못 알아 들었을 경우 예외 처리 해야함  
-        logging.info('You said: "%d"' % guess_ans)
-
-        #updown 의 경우에는 답을 맞출때까지 끝낼 수 없다고 가정 
-        if (guess_ans > final_ans) :
-            #leds.update(Leds.rgb_on(Color.RED))
-            #board.led.state = Led.BLINK
-            aiy.voice.tts.say("Up")
-            count ++
+def say(text):
+    aiy.voice.tts.say(text)
 
 
-        elif (guess_ans < final_ans) :
-            #leds.update(Leds.rgb_on(Color.RED))
-            #board.led.state = Led.BLINK
-            aiy.voice.tts.say("Down")
-            count ++
-
-        elif (guess_ans == final_ans) :
-            #leds.update(Leds.rgb_on(Color.BLUE))
-            #board.led.state = Led.BLINK
-            aiy.voice.tts.say("Correct answer")
-            aiy.voice.tts.say("You are correct by %d times", count)
-            break
-	
-
-
-def gugudan():
-    while True: #일단 2~15단 안에서???
-        n1 = random.randint(2,15)
-        n2 = random.randint(2,15)
-        ans = n1*n2
-
-         #n1곱하기n2는? 이라고 말해야하는데 저 숫자 어떻게말하지
-        aiy.voice.tts.say("")
-
-        logging.info('You said: "%s"' % text)
-        text = text.lower()
-
-        if '그만' in text:
-            break
-        
-        elif text==ans: #이거도 어떻게.....??
-            leds.update(Leds.rgb_on(Color.BLUE))
-            board.led.state = Led.BLINK
-            aiy.voice.tts.say("Correct answer")
-
+def recognize (client, hints, language):
+    text = None
+    while not text:
+        if hints:
+            logging.info('Say something, e.g. %s.' % ', '.join(hints))
         else:
-            leds.update(Leds.rgb_on(Color.RED))
-            board.led.state = Led.BLINK
-            aiy.voice.tts.say("Wrong answer")
+            logging.info('Say something.')
+        text = client.recognize(language_code=language,
+                                hint_phrases=hints)
+        if text is None:
+            logging.info('You said nothing.')
 
-def deohagi():
-    while True:
-        n1 = random.randint(1,999)
-        n2 = random.randint(1,999)
-        ans = n1+n2
-
-         #n1더하기n2는?
-        aiy.voice.tts.say("")
-
-        logging.info('You said: "%s"' % text)
-        text = text.lower()
-
-        if '그만' in text:
-            break
-        
-        elif text==ans:
-            leds.update(Leds.rgb_on(Color.BLUE))
-            board.led.state = Led.BLINK
-            aiy.voice.tts.say("Correct answer")
-
-        else:
-            leds.update(Leds.rgb_on(Color.RED))
-            board.led.state = Led.BLINK
-            aiy.voice.tts.say("Wrong answer")
+    return text.lower()
 
 
 def main():
@@ -133,40 +70,42 @@ def main():
     logging.info('Initializing for language %s...', args.language)
     hints = get_hints(args.language)
     client = CloudSpeechClient()
-    with Board() as board:
-        while True:
-            if hints:
-                logging.info('Say something, e.g. %s.' % ', '.join(hints))
-            else:
-                logging.info('Say something.')
-            text = client.recognize(language_code=args.language,
-                                    hint_phrases=hints)
-            if text is None:
-                logging.info('You said nothing.')
-                continue
 
+    def check_word (t, words):
+        return any(word in t for word in words)
+
+    with Leds() as leds:
+        def hear():
+            return recognize(client, hints, args.language)
+
+        def success():
+            leds.update(Leds.rgb_on(Color.BLUE))
+
+        def fail():
+            leds.update(Leds.rgb_on(Color.RED))
+
+        while True:
+            text = hear()
             logging.info('You said: "%s"' % text)
-            text = text.lower()
-            if '구구단' in text:
+
+            if GAME_CODE.MAIN.GUGUDAN in text:
                 leds.update(Leds.rgb_on(Color.GREEN))
-                #board.led.state = Led.ON
-                aiy.voice.tts.say("Start gugudan")
+                say("Start gugudan")
                 time.sleep(1)
-                gugudan()
-            elif '더하기' in text:
+                gugudan(say, hear, success, fail)
+            elif GAME_CODE.MAIN.DEOHAGI in text:
                 leds.update(Leds.rgb_on(Color.PURPLE))
-                #board.led.state = Led.ON
-                aiy.voice.tts.say("Start deohagi")
+                say("Start deohagi")
                 time.sleep(1)
-                deohagi()
-            elif '업다운' in text:
+                deohagi(say, hear, success, fail)
+            elif GAME_CODE.MAIN.UPDOWN in text:
                 leds.update(Leds.rgb_on(Color.YELLOW))
-                #board.led.state = Led.ON
-                aiy.voice.tts.say("Start updown")
+                say("Start updown")
                 time.sleep(1)
-				updown()
-            elif '잘가' in text:
+                updown(say, hear, success, fail)
+            elif check_word(text, GAME_CODE.MAIN.END):
                 break
+
 
 if __name__ == '__main__':
     main()
