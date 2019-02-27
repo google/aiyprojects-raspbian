@@ -38,6 +38,40 @@ def locale_language():
     language, _ = locale.getdefaultlocale()
     return language
 
+def updown():
+    #듣기 위해 setup 해줘야하는 환경을 전역으로 선언해야할 듯 
+
+    int final_ans = random.randint(1,100)
+    int count = 1
+    aiy.voice.tts.say("Random number from one to one hundred is set")
+    aiy.voice.tts.say("Start to guess")
+    while True:
+        #잘 못 알아 들었을 경우 예외 처리 해야함  
+        logging.info('You said: "%d"' % guess_ans)
+
+        #updown 의 경우에는 답을 맞출때까지 끝낼 수 없다고 가정 
+        if (guess_ans > final_ans) :
+            #leds.update(Leds.rgb_on(Color.RED))
+            #board.led.state = Led.BLINK
+            aiy.voice.tts.say("Up")
+            count ++
+
+
+        elif (guess_ans < final_ans) :
+            #leds.update(Leds.rgb_on(Color.RED))
+            #board.led.state = Led.BLINK
+            aiy.voice.tts.say("Down")
+            count ++
+
+        elif (guess_ans == final_ans) :
+            #leds.update(Leds.rgb_on(Color.BLUE))
+            #board.led.state = Led.BLINK
+            aiy.voice.tts.say("Correct answer")
+            aiy.voice.tts.say("You are correct by %d times", count)
+            break
+	
+
+
 def gugudan():
     while True: #일단 2~15단 안에서???
         n1 = random.randint(2,15)
@@ -130,7 +164,7 @@ def main():
                 #board.led.state = Led.ON
                 aiy.voice.tts.say("Start updown")
                 time.sleep(1)
-                #updown()
+				updown()
             elif '잘가' in text:
                 break
 
