@@ -91,17 +91,14 @@ def main():
             if GAME_CODE.MAIN.GUGUDAN in text:
                 leds.update(Leds.rgb_on(Color.GREEN))
                 say("Start gugudan")
-                time.sleep(1)
                 gugudan(say, hear, success, fail)
             elif GAME_CODE.MAIN.DEOHAGI in text:
                 leds.update(Leds.rgb_on(Color.PURPLE))
                 say("Start deohagi")
-                time.sleep(1)
                 deohagi(say, hear, success, fail)
             elif GAME_CODE.MAIN.UPDOWN in text:
                 leds.update(Leds.rgb_on(Color.YELLOW))
                 say("Start updown")
-                time.sleep(1)
                 updown(say, hear, success, fail)
             elif check_word(text, GAME_CODE.MAIN.END):
                 break
