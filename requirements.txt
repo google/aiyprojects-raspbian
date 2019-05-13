@@ -1,6 +1,0 @@
-google-assistant-library
-google-assistant-grpc
-google-cloud-speech
-google-auth-oauthlib
-pyasn1
-grpcio
