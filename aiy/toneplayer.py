@@ -12,7 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Simple melodic music player for the piezo buzzer."""
+"""
+A simple melodic music player for the piezo buzzer.
+
+This API is designed for the Vision Kit, but has no dependency on the Vision
+Bonnet, so may be used without it. It only requires a piezo buzzer connected to
+:any:`aiy.pins.BUZZER_GPIO_PIN`.
+"""
 
 
 import time
@@ -21,7 +27,7 @@ import re
 from aiy._drivers._buzzer import PWMController
 
 
-class Rest(object):
+class Rest:
     """Simple internal class to represent a musical rest note.
 
     Used in part with the TonePlayer class, this object represents a period of
@@ -84,7 +90,7 @@ class Note(Rest):
         return self.name + str(self.octave)
 
 
-class TonePlayer(object):
+class TonePlayer:
     """Class to play a simplified music notation via a PWMController.
 
     This class makes use of a very simple music notation to play simple musical

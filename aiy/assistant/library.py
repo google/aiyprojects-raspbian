@@ -12,14 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Wrapper around google.assistant.library.
+"""This is a wrapper for ``google.assistant.library`` that handles model and device
+registration based on the project name in your `assistant.json` file.
 
-Handles model and device registration."""
+All APIs from ``google.assistant.library`` are available through this module, such as
+``Assistant.start()`` to start the assistant, and ``Assistant.start_conversation()`` to start
+a conversation, but they are not documented here. Instead refer to the
+`Google Assistant Library for Python documentation
+<https://developers.google.com/assistant/sdk/reference/library/python/>`_.
+
+For example code, see :github:`src/examples/voice/assistant_library_demo.py`.
+"""
 
 import google.assistant.library
 
-import aiy.assistant.device_helpers as device_helpers
-
+from aiy.assistant import device_helpers
 
 class Assistant(google.assistant.library.Assistant):
     """Client for the Google Assistant Library.

@@ -34,7 +34,7 @@ _DEVICE_ID_FILE = os.path.join(
 
 
 def _get_project_id():
-    with open(aiy.assistant.auth_helpers.assistant_credentials_file_used) as f:
+    with open(aiy.assistant.auth_helpers._ASSISTANT_CREDENTIALS_FILE) as f:
         client_secrets_data = json.load(f)
         return client_secrets_data["installed"]["project_id"]
 

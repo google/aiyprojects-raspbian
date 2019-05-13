@@ -11,41 +11,51 @@ I suggest you try the examples in the following order:
 
     **Required credential file:** `/home/pi/assistant.json`
 
-    **LED:** short end to ground, long end to GPIO 25
+    **LED:** short end to ground, long end to GPIO 17
 
-    **Usage:** Say "OK, Google", ask it a question, then listen to its sometimes
-    hilarious responses. Notice how the LED changes.
+    **Run:** `python3 assistant_library_demo.py`
+
+    **Usage:** Say "OK, Google", ask it a question, then listen to its responses.
+    Notice how the LED changes.
 
 2. **assistant_library_with_local_commands_demo.py**
 
     **Required credential file:** `/home/pi/assistant.json`
 
-    **LED:** short end to ground, long end to GPIO 25
+    **LED:** short end to ground, long end to GPIO 17
+
+    **Run:** `python3 assistant_library_with_local_commands_demo.py`
 
     **Usage:** Say "OK, Google", converse as before, or say one of these commands:
 
-    - "power off": supposed to shutdown the pi, but I have commented out the
+    - "Power off": supposed to shutdown the pi, but I have commented out the
       actual shutdown system call
 
-    - "reboot": supposed to reboot the pi, but I have commented out the actual
+    - "Reboot": supposed to reboot the pi, but I have commented out the actual
       reboot system call
 
-    - "ip address": tells the internal IP address
+    - "IP address": tells the internal IP address
 
-    These commands use the `aiy.audio` module (which in turn uses the Pico
-    text-to-speech engine) to generate the verbal responses. You can obviously
-    hear the difference.
+    These commands use the `aiy.voice.tts` module (which in turn uses the Pico
+    text-to-speech engine) to generate verbal responses. You can obviously hear
+    the difference.
+
+    `sudo apt-get install libttspico-utils` to install Pico if you haven't done
+    so already.
 
 3. **assistant_grpc_demo.py**
 
     **Required credential file:** `/home/pi/assistant.json`
 
-    **LED:** short end to ground, long end to GPIO 25
+    **LED:** short end to ground, long end to GPIO 17
 
-    **Button:** one end to ground, one end to GPIO 23
+    **Button:** one end to ground, one end to GPIO 27
 
-    **Usage:** Press the button before speaking. Ask some questions. Say
-    "Goodbye" to exit.
+    **Run:** `python3 assistant_grpc_demo.py --language en-US`. If you don't
+    supply the language, it assumes the Pi's default language, which may not be
+    supported.
+
+    **Usage:** Press the button before speaking. Ask some questions.
 
 4. **cloudspeech_demo.py**
 
@@ -54,33 +64,17 @@ I suggest you try the examples in the following order:
 
     **Required credential file:** `/home/pi/cloud_speech.json`
 
-    **LED:** short end to ground, long end to GPIO 25
+    **LED:** short end to ground, long end to GPIO 17
 
-    **Button:** one end to ground, one end to GPIO 23
+    **Run:** `python3 cloudspeech_demo.py`
 
-    **Usage:** Press the button, say one of the commands and notice the LED
-    changes:
+    **Usage:** Say something to see it translate, or say one of the commands and
+    notice how the LED changes:
 
-    - "turn on the light"
+    - "Turn on the light"
 
-    - "turn off the light"
+    - "Turn off the light"
 
-    - "blink"
+    - "Blink the light"
 
     Say "Goodbye" to exit.
-
-## Utility modules
-
-There are `aiy.util.LED` and `aiy.util.Button`. You should be able to glance
-their basic usages from the examples. I encourage you to read the source code to
-learn more. They are not that complicated.
-
-And then there is the module `aiy.audio`. It allows you to say a sentence,
-record a wav file, and play a file. Some usages are as follows:
-
-```
-aiy.audio.say('Whatever you want to say')
-aiy.audio.record_to_wave('path/to/sound.wav', 5)
-aiy.audio.play_wave('path/to/sound.wav')
-aiy.audio.play_audio(open('path/to/sound.raw', 'rb').read())
-```

@@ -12,118 +12,93 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An API to access Google Speech recognition service."""
+"""
+APIs to simplify interaction with the `Google Cloud Speech-to-Text
+service <https://cloud.google.com/speech-to-text/>`_.
 
-import os.path
+Before calling these APIs, be sure you've saved your Google Cloud credentials
+at ``~/cloud_speech.json``. For more information, see `these setup instructions
+<https://aiyprojects.withgoogle.com/voice/#makers-guide--custom-voice-user-interface>`_.
 
-import aiy._apis._speech
-import aiy.audio
+This API is designed for the Voice Kit, but it has no dependency on the Voice
+HAT/Bonnet, so may be used without it.
+"""
 
-# Global variables. They are lazily initialized.
-_cloudspeech_recognizer = None
+import os
+import logging
 
-# Expected location of the CloudSpeech credentials file:
-CLOUDSPEECH_CREDENTIALS_FILE = os.path.expanduser('~/cloud_speech.json')
+os.environ['GRPC_POLL_STRATEGY'] = 'epoll1'
+from google.cloud import speech
+from google.oauth2 import service_account
 
+from aiy.voice.audio import AudioFormat, Recorder
 
-class _CloudSpeechRecognizer(object):
-    """A speech recognizer backed by the Google CloudSpeech APIs.
-    """
+END_OF_SINGLE_UTTERANCE = speech.types.StreamingRecognizeResponse.END_OF_SINGLE_UTTERANCE
+AUDIO_SAMPLE_RATE_HZ = 16000
+AUDIO_FORMAT=AudioFormat(sample_rate_hz=AUDIO_SAMPLE_RATE_HZ,
+                         num_channels=1,
+                         bytes_per_sample=2)
 
-    def __init__(self, credentials_file):
-        self._request = aiy._apis._speech.CloudSpeechRequest(credentials_file)
-        self._recorder = aiy.audio.get_recorder()
-        self._hotwords = []
+logger = logging.getLogger(__name__)
 
-    def recognize(self, immediate=False):
-        """Recognizes the user's speech and transcript it into text.
+# https://cloud.google.com/speech-to-text/docs/reference/rpc/google.cloud.speech.v1
+class CloudSpeechClient:
+    def __init__(self, service_accout_file=None):
+        if service_accout_file is None:
+            service_accout_file = os.path.expanduser('~/cloud_speech.json')
 
-        This function listens to the user's speech via the VoiceHat speaker. Then it
-        contacts Google CloudSpeech APIs and returns a textual transcript if possible.
-        If hotword list is populated this method will only respond if hotword is said.
+        credentials = service_account.Credentials.from_service_account_file(service_accout_file)
+        self._client = speech.SpeechClient(credentials=credentials)
 
-        Args:
-            immediate: ignore the hotword list, even if it has been populated
-                may be used to create a conversational experience, for example:
+    def _make_config(self, language_code, hint_phrases):
+        return speech.types.RecognitionConfig(
+            encoding=speech.types.RecognitionConfig.LINEAR16,
+            sample_rate_hertz=AUDIO_SAMPLE_RATE_HZ,
+            language_code=language_code,
+            speech_contexts=[speech.types.SpeechContext(phrases=hint_phrases)])
 
-                text = recognizer.recognize()
-                if 'call a friend' in text:
-                    aiy.audio.say('OK, which one?')
-                    friend = recognizer.recognize(immediate=True)
-                    make_a_call(friend)
-        """
-        self._request.reset()
-        self._request.set_endpointer_cb(self._endpointer_callback)
-        self._recorder.add_processor(self._request)
-        text = self._request.do_request().transcript
-        if immediate:
-            return text
-        elif self._hotwords and text:
-            text = text.lower()
-            loc_min = len(text)
-            hotword_found = ''
-            for hotword in self._hotwords:
-                loc_temp = text.find(hotword)
-                if loc_temp > -1 and loc_min > loc_temp:
-                    loc_min = loc_temp
-                    hotword_found = hotword
-            if hotword_found:
-                parse_text = text.split(hotword_found)[1]
-                return parse_text.strip()
-            else:
-                return ''
-        else:
-            return '' if self._hotwords else text
+    def recognize_bytes(self, data, language_code='en-US', hint_phrases=None):
+        """Data must be encoded according to the AUDIO_FORMAT."""
+        streaming_config=speech.types.StreamingRecognitionConfig(
+            config=self._make_config(language_code, hint_phrases),
+            single_utterance=True)
+        responses = self._client.streaming_recognize(
+            config=streaming_config,
+            requests=[speech.types.StreamingRecognizeRequest(audio_content=data)])
 
-    def expect_hotword(self, hotword_list):
-        """Enables hotword detection for a selected list
-        This method is optional and populates the list of hotwords
-        to be used for hotword activation.
+        for response in responses:
+            for result in response.results:
+                if result.is_final:
+                    return result.alternatives[0].transcript
 
-        For example, to create a recognizer for Google:
+        return None
 
-        recognizer.expect_hotword('Google')
-        recognizer.expect_hotword(['Google','Raspberry Pi'])
-        """
-        if isinstance(hotword_list, list):
-            for hotword in hotword_list:
-                self._hotwords.append(hotword.lower())
-        else:
-            self._hotwords.append(hotword_list.lower())
+    def recognize(self, language_code='en-US', hint_phrases=None):
+        streaming_config=speech.types.StreamingRecognitionConfig(
+            config=self._make_config(language_code, hint_phrases),
+            single_utterance=True)
 
-    def expect_phrase(self, phrase):
-        """Explicitly tells the engine that the phrase is more likely to appear.
+        with Recorder() as recorder:
+            chunks = recorder.record(AUDIO_FORMAT,
+                                     chunk_duration_sec=0.1,
+                                     on_start=self.start_listening,
+                                     on_stop=self.stop_listening)
 
-        This method is optional and makes speech recognition more accurate
-        especially when certain commands are expected.
+            requests = (speech.types.StreamingRecognizeRequest(audio_content=data) for data in chunks)
+            responses = self._client.streaming_recognize(config=streaming_config, requests=requests)
 
-        For example, a light control system may want to add the following commands:
+            for response in responses:
+                if response.speech_event_type == END_OF_SINGLE_UTTERANCE:
+                    recorder.done()
 
-        recognizer.expect_phrase('light on')
-        recognizer.expect_phrase('light off')
-        """
-        self._request.add_phrase(phrase)
+                for result in response.results:
+                    if result.is_final:
+                        return result.alternatives[0].transcript
 
-    def _endpointer_callback(self):
-        self._recorder.remove_processor(self._request)
+        return None
 
+    def start_listening(self):
+        logger.info('Start listening.')
 
-def get_recognizer():
-    """Returns a recognizer that uses Google CloudSpeech APIs.
-
-    Sample usage:
-        button = aiy.voicehat.get_button()
-        recognizer = aiy.cloudspeech.get_recognizer()
-        while True:
-            print('Press the button and speak')
-            button.wait_for_press()
-            text = recognizer.recognize()
-            if 'light on' in text:
-                turn_on_light()
-            elif 'light off' in text:
-                turn_off_light()
-    """
-    global _cloudspeech_recognizer
-    if not _cloudspeech_recognizer:
-        _cloudspeech_recognizer = _CloudSpeechRecognizer(CLOUDSPEECH_CREDENTIALS_FILE)
-    return _cloudspeech_recognizer
+    def stop_listening(self):
+        logger.info('Stop listening.')

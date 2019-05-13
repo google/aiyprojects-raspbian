@@ -26,46 +26,35 @@ import platform
 import subprocess
 import sys
 
-import aiy.assistant.auth_helpers
-from aiy.assistant.library import Assistant
-import aiy.audio
-from aiy.util import LED
 from google.assistant.library.event import EventType
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-)
-
-led = LED(channel=25)
-led.start()
-
+from aiy.assistant import auth_helpers
+from aiy.assistant.library import Assistant
+from aiy.util import Led
+from aiy.voice import tts
 
 def power_off_pi():
-    aiy.audio.say('Good bye!')
+    tts.say('Good bye!')
     # subprocess.call('sudo shutdown now', shell=True)
 
 
 def reboot_pi():
-    aiy.audio.say('See you in a bit!')
+    tts.say('See you in a bit!')
     # subprocess.call('sudo reboot', shell=True)
 
 
 def say_ip():
     ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
-    aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
+    tts.say('My IP address is %s' % ip_address.decode('utf-8'))
 
 
-def process_event(assistant, event):
+def process_event(assistant, led, event):
+    logging.info(event)
     if event.type == EventType.ON_START_FINISHED:
-        led.set_state(LED.BEACON_DARK)
-        if sys.stdout.isatty():
-            print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
-
+        led.state = Led.BEACON_DARK  # Ready.
+        print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
-        print(event)
-        led.set_state(LED.ON)
-
+        led.state = Led.ON  # Listening.
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         print('You said:', event.args['text'])
         text = event.args['text'].lower()
@@ -78,30 +67,23 @@ def process_event(assistant, event):
         elif text == 'ip address':
             assistant.stop_conversation()
             say_ip()
-
     elif event.type == EventType.ON_END_OF_UTTERANCE:
-        print(event)
-        led.set_state(LED.PULSE_QUICK)
-
+        led.state = Led.PULSE_QUICK  # Thinking.
     elif (event.type == EventType.ON_CONVERSATION_TURN_FINISHED
           or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
           or event.type == EventType.ON_NO_RESPONSE):
-        print(event)
-        led.set_state(LED.BEACON_DARK)
-
+        led.state = Led.BEACON_DARK  # Ready.
     elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
         sys.exit(1)
 
 
 def main():
-    if platform.machine() == 'armv6l':
-        print('Cannot run hotword demo on Pi Zero!')
-        exit(-1)
+    logging.basicConfig(level=logging.INFO)
 
-    credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
-    with Assistant(credentials) as assistant:
+    credentials = auth_helpers.get_assistant_credentials()
+    with Led(channel=17) as led, Assistant(credentials) as assistant:
         for event in assistant.start():
-            process_event(assistant, event)
+            process_event(assistant, led, event)
 
 
 if __name__ == '__main__':

@@ -15,42 +15,43 @@
 
 """A demo of the Google Assistant GRPC recognizer."""
 
+import argparse
+import locale
 import logging
+import signal
+import sys
 
-import aiy.assistant.grpc
-import aiy.audio
-from aiy.util import Button, LED
+from aiy.assistant.grpc import AssistantServiceClientWithLed
+from aiy.util import Led, Button
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-)
+def volume(string):
+    value = int(string)
+    if value < 0 or value > 100:
+        raise argparse.ArgumentTypeError('Volume must be in [0...100] range.')
+    return value
 
+def locale_language():
+    language, _ = locale.getdefaultlocale()
+    return language
 
 def main():
-    button = Button(channel=23)
-    led = LED(channel=25)
-    led.set_state(LED.PULSE_QUICK)
-    led.start()
+    logging.basicConfig(level=logging.DEBUG)
+    signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(0))
 
-    assistant = aiy.assistant.grpc.get_assistant()
-    with aiy.audio.get_recorder():
+    parser = argparse.ArgumentParser(description='Assistant service example.')
+    parser.add_argument('--language', default=locale_language())
+    parser.add_argument('--volume', type=volume, default=100)
+    args = parser.parse_args()
+
+    with Led(channel=17) as led, Button(channel=27) as button:
+        assistant = AssistantServiceClientWithLed(led=led,
+                                                  volume_percentage=args.volume,
+                                                  language_code=args.language)
         while True:
-            led.set_state(LED.BEACON_DARK)
-            print('Press the button and speak')
+            logging.info('Press button to start conversation...')
             button.wait_for_press()
-            led.set_state(LED.ON)
-            print('Listening...')
-            text, audio = assistant.recognize()
-            if text:
-                if text == 'goodbye':
-                    led.set_state(LED.PULSE_QUICK)
-                    print('Bye!')
-                    break
-                print('You said "', text, '"')
-            if audio:
-                aiy.audio.play_audio(audio)
-
+            logging.info('Conversation started!')
+            assistant.conversation()
 
 if __name__ == '__main__':
     main()

@@ -30,7 +30,7 @@ def HzToPeriodUsec(freq_hz):
     return USEC / freq_hz
 
 
-class PWMController(object):
+class PWMController:
     """Controller that simplifies the interface to pwm-soft Linux driver.
 
     Simple usage:

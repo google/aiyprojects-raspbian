@@ -184,15 +184,13 @@ speech *and* talk back intelligently, but supports fewer languages. **Google
 Cloud Speech** only recognizes speech (no talk-back), but supports far more
 languages.
 
-Usage of these APIs changes constantly. Here is a summary of the steps for using
-**Google Assistant**, as of 2019-02-13:
+Here is a summary of the steps for using **Google Assistant**, as of 2019-05-12:
 
 1. Create a Project
 
 2. Enable Google Assistant API
 
-3. Configure OAuth consent screen (must fill in **Support email** and
-   **Application Homepage link**)
+3. Configure OAuth consent screen (must fill in **Support email**)
 
 4. Enable activity controls
 
@@ -205,7 +203,7 @@ Usage of these APIs changes constantly. Here is a summary of the steps for using
 
 7. Install Python packages:
     ```
-    $ sudo pip3 install google-assistant-library==1.0.0 \
+    $ sudo pip3 install google-assistant-library==1.0.1 \
                         google-assistant-sdk[samples]==0.5.1 \
                         google-auth-oauthlib[tool] \
                         google-cloud-speech
@@ -251,9 +249,7 @@ Kit](https://github.com/google/aiyprojects-raspbian) source code:
 Kit](https://aiyprojects.withgoogle.com/vision) and associated software, which
 are of no concern to this project. I have removed those.
 
-2. No Voice Hat stuff: This project does not rely on the Voice Hat.
+2. No Voice Hat stuff: This project does not rely on the Voice Hat. The
+`aiy.board` module has been removed.
 
-3. Expose LED and Button: There are, nonetheless, some useful underlying utility
-classes. I have exposed them in the `aiy.util` module.
-
-4. Allow using custom credentials file path.
+3. The class `Led` and `Button` have been moved to the `aiy.util` module.
