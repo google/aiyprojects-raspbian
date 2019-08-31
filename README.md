@@ -1,9 +1,9 @@
 # AIY Voice Only
 
 [Google AIY Voice Kit](https://aiyprojects.withgoogle.com/voice) is a cool
-project.  The unfortunate thing is it locks you into its custom hardware. I have
-separated its software to work on Raspberry Pi (3B and 3B+) independently,
-just using a normal speaker and microphone.
+project.  But it locks you into its custom hardware. I have separated its
+software to work on Raspberry Pi (3B and 3B+) independently, just using a normal
+speaker and microphone.
 
 The following instructions aim at:
 
@@ -71,36 +71,13 @@ pcm.!default {
 pcm.mic {
   type plug
   slave {
-    pcm "hw:<card number>,<device number>"
+    pcm "hw:1,0"   # card number, device number
   }
 }
 pcm.speaker {
   type plug
   slave {
-    pcm "hw:<card number>,<device number>"
-  }
-}
-```
-
-For example, if your mic is at **card 1, device 0**, that block should look
-like:
-
-```
-pcm.mic {
-  type plug
-  slave {
-    pcm "hw:1,0"
-  }
-}
-```
-
-If your speaker is at **card 0, device 0**, that block should look like:
-
-```
-pcm.speaker {
-  type plug
-  slave {
-    pcm "hw:0,0"
+    pcm "hw:0,0"   # card number, device number
   }
 }
 ```
@@ -110,12 +87,8 @@ pcm.speaker {
 Sound may be output via HDMI or headphone jack. We want to use the headphone
 jack.
 
-Enter `sudo raspi-config`. Select **Advanced Options**, then **Audio**. You are
-presented with three options:
-
-- `Auto` should work
-- `Force 3.5mm (headphone) jack` should definitely work
-- `Force HDMI` won't work
+Enter `sudo raspi-config`. Select **Advanced Options**, then **Audio**. Choose
+**Force 3.5mm (headphone) jack**.
 
 ## Turn up the volume
 
