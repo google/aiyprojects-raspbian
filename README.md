@@ -176,6 +176,7 @@ Here is a summary of the steps for using **Google Assistant**, as of 2019-05-12:
 
 7. Install Python packages:
     ```
+    $ sudo pip3 install --upgrade pip setuptools wheel
     $ sudo pip3 install google-assistant-library==1.0.1 \
                         google-assistant-sdk[samples]==0.5.1 \
                         google-auth-oauthlib[tool] \
