@@ -30,20 +30,26 @@ import sys
 import time
 import json
 
-import aiy.assistant.auth_helpers
-import aiy.assistant.device_helpers
-from google.assistant.library import Assistant
-import aiy.audio
-import aiy.voicehat
+import os.path
+import pathlib2 as pathlib
+import configargparse
+
+import google.oauth2.credentials
+
+# from google.assistant.library import Assistant
+# from google.assistant.library.file_helpers import existing_file
+# from google.assistant.library.device_helpers import register_device
 from google.assistant.library.event import EventType
 
-import os.path
-import configargparse
+from aiy.assistant import auth_helpers
+from aiy.assistant.library import Assistant
+from aiy.board import Board, Led
+from aiy.voice import tts
 
 from modules.kodi import KodiRemote
 from modules.music import Music, PodCatcher
 from modules.readrssfeed import ReadRssFeed
-from modules.powerswitch import PowerSwitch
+from modules.mqtt import MQTTSwitch
 from modules.powercommand import PowerCommand
 
 _configPath = os.path.expanduser('~/.config/voice-assistant.ini')
@@ -54,7 +60,21 @@ _kodiRemote = KodiRemote(_settingsPath)
 _music = Music(_settingsPath)
 _podCatcher = PodCatcher(_settingsPath)
 _readRssFeed = ReadRssFeed(_settingsPath)
-_powerSwitch = PowerSwitch(_settingsPath, _remotePath)
+_MQTTSwitch = MQTTSwitch(_settingsPath, _remotePath)
+
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
+
+WARNING_NOT_REGISTERED = """
+    This device is not registered. This means you will not be able to use
+    Device Actions or see your device in Assistant Settings. In order to
+    register this device follow instructions at:
+
+    https://developers.google.com/assistant/sdk/guides/library/python/embed/register-device
+"""
 
 def _createPID(pid_file='voice-recognizer.pid'):
 
@@ -83,26 +103,26 @@ def _volumeCommand(change):
 
         vol = max(0, min(100, vol))
         if vol == 0:
-            aiy.audio.say('Volume at %d %%.' % vol)
+            tts.say('Volume at %d %%.' % vol)
 
         subprocess.call('amixer -q set Master %d%%' % vol, shell=True)
-        aiy.audio.say('Volume at %d %%.' % vol)
+        tts.say('Volume at %d %%.' % vol)
 
     except (ValueError, subprocess.CalledProcessError):
         logging.exception('Error using amixer to adjust volume.')
 
-def process_event(assistant, event):
-    status_ui = aiy.voicehat.get_status_ui()
+def process_event(assistant, led, event):
 
     global _cancelAction
 
+    logging.info(event)
     if event.type == EventType.ON_START_FINISHED:
-        status_ui.status('ready')
-        if sys.stdout.isatty():
-            print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
+        led.state = Led.OFF  # Ready.
+        print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
+        
 
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
-        status_ui.status('listening')
+        led.state = Led.ON
 
     elif event.type == EventType.ON_ALERT_STARTED and event.args:
         logging.warning('An alert just started, type = ' + str(event.args['alert_type']))
@@ -129,9 +149,9 @@ def process_event(assistant, event):
                 _music.setConfirmPlayback(False)
                 _music.setPodcastURL(None)
 
-        elif text.startswith('music '):
-            assistant.stop_conversation()
-            _music.command('music', text[6:])
+#        elif text.startswith('music '):
+#            assistant.stop_conversation()
+#            _music.command('music', text[6:])
 
         elif text.startswith('podcast '):
             assistant.stop_conversation()
@@ -161,7 +181,7 @@ def process_event(assistant, event):
 
         elif text.startswith('turn on ') or text.startswith('turn off ') or text.startswith('turn down ') or text.startswith('turn up '):
             assistant.stop_conversation()
-            _powerSwitch.run(text[5:])
+            _MQTTSwitch.run(text[5:])
 
         elif text.startswith('switch to channel '):
             assistant.stop_conversation()
@@ -169,7 +189,7 @@ def process_event(assistant, event):
 
         elif text.startswith('switch '):
             assistant.stop_conversation()
-            _powerSwitch.run(text[7:])
+            _MQTTSwitch.run(text[7:])
 
         elif text.startswith('media center '):
             assistant.stop_conversation()
@@ -199,17 +219,33 @@ def process_event(assistant, event):
             assistant.stop_conversation()
             _kodiRemote.run(text)
 
+        elif text.startswith('play the lastest recording of '):
+            assistant.stop_conversation()
+            _kodiRemote.run('play recording ' + text[31:])
+
+        elif text.startswith('play the recording of '):
+            assistant.stop_conversation()
+            _kodiRemote.run('play recording ' + text[23:])
+
+        elif text.startswith('play recording of '):
+            assistant.stop_conversation()
+            _kodiRemote.run('play recording ' + text[18:])
+
+        elif text.startswith('play recording '):
+            assistant.stop_conversation()
+            _kodiRemote.run(text)
+
         elif text.startswith('tv '):
             assistant.stop_conversation()
             _kodiRemote.run(text)
 
         elif text in ['power off','shutdown','shut down','self destruct']:
             assistant.stop_conversation()
-            PowerCommand().run('shutdown')
+            PowerCommand('shutdown')
 
-        elif text == 'reboot':
+        elif text in ['restart', 'reboot']:
             assistant.stop_conversation()
-            _powerCommand('reboot')
+            PowerCommand('reboot')
 
         elif text == 'volume up':
             assistant.stop_conversation()
@@ -241,15 +277,15 @@ def process_event(assistant, event):
 
         elif text in ['brightness low', 'set brightness low']:
             assistant.stop_conversation()
-            aiy.voicehat.get_led().set_brightness(40)
+            led.brightness(0.4)
 
         elif text in ['brightness medium', 'set brightness medium']:
             assistant.stop_conversation()
-            aiy.voicehat.get_led().set_brightness(70)
+            led.brightness(0.7)
 
         elif text in ['brightness high', 'set brightness high', 'brightness full', 'set brightness full']:
             assistant.stop_conversation()
-            aiy.voicehat.get_led().set_brightness(100)
+            led.brightness(1)
 
     elif event.type == EventType.ON_RESPONDING_FINISHED:
         assistant.stop_conversation()
@@ -266,10 +302,12 @@ def process_event(assistant, event):
         logging.info(event.args)
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
-        status_ui.status('thinking')
+        led.state = Led.PULSE_QUICK
 
-    elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
-        status_ui.status('ready')
+    elif (event.type == EventType.ON_CONVERSATION_TURN_FINISHED
+          or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
+          or event.type == EventType.ON_NO_RESPONSE):
+        led.state = Led.OFF
 
     elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
         logging.info('EventType.ON_ASSISTANT_ERROR')
@@ -284,7 +322,6 @@ def process_event(assistant, event):
 
     else:
         logging.info(event.type)
-
 
 def main():
 
@@ -306,23 +343,23 @@ def main():
 
     args = parser.parse_args()
 
-    aiy.i18n.set_language_code(args.language)
     _createPID(args.pid_file)
-
-    logging.info('Setting brightness to %d %%' % args.brightness_max)
-    aiy.voicehat.get_led().set_brightness(args.brightness_max)
-
-    credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
-    model_id, device_id = aiy.assistant.device_helpers.get_ids_for_service(credentials)
 
     if args.daemon is True or sys.stdout.isatty() is not True:
         _podCatcher.start()
+        logging.info("Starting in daemon mode")
     else:
         logging.info("Starting in non-daemon mode")
 
-    with Assistant(credentials, model_id) as assistant:
+    credentials = auth_helpers.get_assistant_credentials()
+    with Board() as board, Assistant(credentials) as assistant:
+        logging.info('Setting brightness to %d %%' % args.brightness_max)
+        logging.info(board.led)
+        logging.info('Setting brightness to %d %%' % args.brightness_max)
+        # led.brightness(0.2)
+
         for event in assistant.start():
-            process_event(assistant, event)
+            process_event(assistant, board.led, event)
 
 if __name__ == '__main__':
     try:

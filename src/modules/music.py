@@ -1,4 +1,5 @@
 import configparser
+import os
 import logging
 import time
 import feedparser
@@ -7,8 +8,11 @@ import sqlite3
 
 from mpd import MPDClient, MPDError, CommandError, ConnectionError
 
-import aiy.audio
-import aiy.voicehat
+from aiy.voice import tts
+from aiy.voice import tts
+# from gpiozero import Button
+# from aiy.pins import BUTTON_GPIO_PIN
+from aiy.board import Board
 
 class PodCatcher(threading.Thread):
     def __init__(self, configpath):
@@ -16,10 +20,11 @@ class PodCatcher(threading.Thread):
         """
         threading.Thread.__init__(self)
         self.configPath = configpath
+        self.dbpath = '/run/user/%d/podcasts.sqlite' % os.getuid()
 
     def _connectDB(self):
         try:
-            conn = sqlite3.connect('/tmp/podcasts.sqlite')
+            conn = sqlite3.connect(self.dbpath)
             conn.cursor().execute('''
                 CREATE TABLE IF NOT EXISTS podcasts (
                     podcast TEXT NOT NULL,
@@ -134,14 +139,12 @@ class Music(object):
     """Interacts with MPD"""
 
     def __init__(self, configpath):
-        self._cancelAction = False
         self.configPath = configpath
         self._confirmPlayback = False
         self._podcastURL = None
         self.mpd = MPDClient(use_unicode=True)
 
     def command(self, module, voice_command, podcatcher=None):
-        self.resetVariables()
         self.mpd.connect("localhost", 6600)
 
         if module == 'music':
@@ -161,21 +164,30 @@ class Music(object):
         elif module == 'podcast':
             self.playPodcast(voice_command, podcatcher)
 
-        if self._cancelAction == False:
-            time.sleep(1)
-            button = aiy.voicehat.get_button()
-            button.on_press(self._buttonPressCancel)
+        logging.info('checking MPD status')
+
+        time.sleep(1)
+
+        logging.info('checking MPD status')
+
+        if self.mpd.status()['state'] != "stop":
+            logging.info('Initialising thread to monitor for button press')
+            cancel = threading.Event()
+            logging.info('Attaching Button object to GPIO')
+            self._board = Board()
+            logging.info('Attaching thread to Button object')
+            self._board.button.when_pressed = cancel.set
 
             # Keep alive until the user cancels music with button press
             while self.mpd.status()['state'] != "stop":
-                if self._cancelAction == True:
+                if cancel.is_set():
                     logging.info('stopping Music by button press')
                     self.mpd.stop()
                     self._podcastURL = None
                     break
 
                 time.sleep(0.1)
-            button.on_press(None)
+            self._board.button.when_pressed = None
             logging.info('Music stopped playing')
             self.mpd.clear()
 
@@ -194,18 +206,18 @@ class Music(object):
 
         if station == 'list':
             logging.info('Enumerating radio stations')
-            aiy.audio.say('Available stations are')
+            tts.say('Available stations are')
             for key in stations:
-                aiy.audio.say(key)
+                tts.say(key)
             return
 
         elif station not in stations:
             logging.info('Station not found: ' + station)
-            aiy.audio.say('radio station ' + station + ' not found')
+            tts.say('radio station ' + station + ' not found')
             return
 
         logging.info('streaming ' + station)
-        aiy.audio.say('tuning the radio to ' + station)
+        tts.say('tuning the radio to ' + station)
 
         self._cancelAction = False
 
@@ -230,33 +242,35 @@ class Music(object):
         else:
             if podcastID == 'list':
                 logging.info('Enumerating Podcasts')
-                aiy.audio.say('Available podcasts are')
+                tts.say('Available podcasts are')
                 for key in podcasts:
-                    aiy.audio.say('' + key)
+                    tts.say('' + key)
                 return
 
             elif podcastID in ['recent','today','today\'s','yesterday']:
                 podcasts = podcatcher.getPodcastInfo(podcastID, offset)
 
                 if len(podcasts) == 0:
-                    aiy.audio.say('No podcasts available')
+                    tts.say('No podcasts available')
                     return 
 
-                aiy.audio.say('Available podcasts are')
-                button = aiy.voicehat.get_button()
-                button.on_press(self._buttonPressCancel)
-                self._cancelAction = False
+                tts.say('Available podcasts are')
+                logging.info('Initialising thread to monitor for button press')
+                cancel = threading.Event()
+                logging.info('Attaching Button object to GPIO')
+                self._board = Board()
+                logging.info('Attaching thread to Button object')
+                self._board.button.when_pressed = cancel.set
 
                 for podcast in podcatcher.getPodcastInfo(podcastID, offset):
-                    if self._cancelAction:
+                    if cancel.is_set():
                         break
                     elif podcast['age'] < 49:
-                        aiy.audio.say('' + podcast['podcast'] + ' uploaded an episode ' + str(int(podcast['age'])) + ' hours ago')
+                        tts.say('' + podcast['podcast'] + ' uploaded an episode ' + str(int(podcast['age'])) + ' hours ago')
                     else:
-                        aiy.audio.say('' + podcast['podcast'] + ' uploaded an episode ' + str(int(podcast['age']/24)) + ' days ago')
+                        tts.say('' + podcast['podcast'] + ' uploaded an episode ' + str(int(podcast['age']/24)) + ' days ago')
 
-                button.on_press(None)
-                self._cancelAction = False
+                self._board.button.when_pressed = None
                 return
 
             elif podcastID.startswith('previous '):
@@ -265,7 +279,7 @@ class Music(object):
 
             if podcastID not in podcasts:
                 logging.info('Podcast not found: ' + podcastID)
-                aiy.audio.say('Podcast ' + podcastID + ' not found')
+                tts.say('Podcast ' + podcastID + ' not found')
                 return
 
             podcastInfo = podcatcher.getPodcastInfo(podcastID, offset)
@@ -280,13 +294,11 @@ class Music(object):
             logging.info('Episode URL: ' + podcastInfo[0]['url'])
             logging.info('Episode Age: ' + str(podcastInfo[0]['age']) + ' hours')
 
-            aiy.audio.say('Playing episode of ' + podcastInfo[0]['title'] + ' titled ' + podcastInfo[0]['ep_title'])
+            tts.say('Playing episode of ' + podcastInfo[0]['title'] + ' titled ' + podcastInfo[0]['ep_title'])
             if (podcastInfo[0]['age'] > 336):
-                aiy.audio.say('This episode is ' + str(int(podcastInfo[0]['age']/24)) + ' days old. Do you still want to play it?')
+                tts.say('This episode is ' + str(int(podcastInfo[0]['age']/24)) + ' days old. Do you still want to play it?')
                 self._confirmPlayback = True
                 return None
-
-            self._cancelAction = False
 
             self._podcastURL = podcastInfo[0]['url']
 
@@ -298,12 +310,9 @@ class Music(object):
             self.mpd.add(self._podcastURL)
             self.mpd.play()
         except ConnectionError as e:
-            aiy.audio.say('Error connecting to MPD service')
+            tts.say('Error connecting to MPD service')
 
         self._podcastURL = None
-
-    def _buttonPressCancel(self):
-        self._cancelAction = True
 
     def getConfirmPlayback(self):
         return self._confirmPlayback
@@ -316,6 +325,3 @@ class Music(object):
 
     def setPodcastURL(self, podcastURL):
         self._podcastURL = podcastURL
-
-    def resetVariables(self):
-        self._cancelAction = False

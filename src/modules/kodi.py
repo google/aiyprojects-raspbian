@@ -3,7 +3,7 @@ import logging
 
 from kodijson import Kodi, PLAYER_VIDEO
 
-import aiy.audio
+from aiy.voice import tts
 
 # KodiRemote: Send command to Kodi
 # ================================
@@ -24,10 +24,7 @@ class KodiRemote(object):
         config.read(self.configPath)
         settings = config['kodi']
 
-        kodiUsername = settings['username']
-        kodiPassword = settings['password']
-
-        number_mapping = [ ('10 ', 'ten '), ('9 ', 'nine ') ]
+        number_mapping = [ ('9 ', 'nine ') ]
 
         if self.kodi is None:
             logging.info('No current connection to a Kodi client')
@@ -43,19 +40,19 @@ class KodiRemote(object):
         try:
             self.kodi.JSONRPC.Ping()
         except:
-            aiy.audio.say('Unable to connect to client')
+            tts.say('Unable to connect to client')
             return
 
         if voice_command.startswith('tv '):
             result = self.kodi.PVR.GetChannels(channelgroupid='alltv')
             channels = result['result']['channels']
             if len(channels) == 0:
-                aiy.audio.say('No channels found')
+                tts.say('No channels found')
 
             elif voice_command == 'tv channels':
-                aiy.audio.say('Available channels are')
+                tts.say('Available channels are')
                 for channel in channels:
-                    aiy.audio.say(channel['label'])
+                    tts.say(channel['label'])
 
             else:
                 for k, v in number_mapping:
@@ -67,8 +64,8 @@ class KodiRemote(object):
 
                 else:
                     logging.info('No channel match found for ' + voice_command[3:] + '(' + str(len(channel)) + ')')
-                    aiy.audio.say('No channel match found for ' + voice_command[3:])
-                    aiy.audio.say('Say Kodi t v channels for a list of available channels')
+                    tts.say('No channel match found for ' + voice_command[3:])
+                    tts.say('Say Kodi t v channels for a list of available channels')
 
         elif voice_command.startswith('play unwatched ') or voice_command.startswith('play tv series '):
             voice_command = voice_command[15:]
@@ -81,17 +78,32 @@ class KodiRemote(object):
                             self.kodi.Player.Open(item={'episodeid':result['result']['episodes'][0]['episodeid']})
 
                         else:
-                            aiy.audio.say('No new episodes of ' + voice_command + ' available')
+                            tts.say('No new episodes of ' + voice_command + ' available')
                             logging.info('No new episodes of ' + voice_command + ' available')
 
                     else:
-                        aiy.audio.say('No new episodes of ' + voice_command + ' available')
+                        tts.say('No new episodes of ' + voice_command + ' available')
                         logging.info('No new episodes of ' + voice_command + ' available')
 
             else:
-                aiy.audio.say('No tv show found titled ' + voice_command)
+                tts.say('No tv show found titled ' + voice_command)
                 logging.info('No tv show found')
-                    
+
+        elif voice_command.startswith('play recording '):
+            voice_command = voice_command[15:]
+            result = self.kodi.PVR.GetRecordings(properties=["starttime"])
+            if 'recordings' in result['result']:
+                if len(result['result']['recordings']) > 0:
+                    recordings = sorted([recording for recording in result["result"]["recordings"] if recording["label"].lower() == voice_command], key = lambda x : x["starttime"], reverse=True)
+                    if len(recordings) > 0:
+                        self.kodi.Player.Open(item={'recordingid':int(recordings[0]["recordingid"])})
+                else:
+                    tts.say('No recording titled ' + voice_command)
+                    logging.info('No recording found')
+            else:
+                tts.say('No recordings found')
+                logging.info('No PVR recordings found')
+
         elif voice_command == 'stop':
             result = self.kodi.Player.Stop(playerid=1)
             logging.info('Kodi response: ' + str(result))
@@ -107,6 +119,6 @@ class KodiRemote(object):
             self.kodi.System.Shutdown()
 
         else:
-            aiy.audio.say('Unrecognised Kodi command')
+            tts.say('Unrecognised Kodi command')
             logging.warning('Unrecognised Kodi request: ' + voice_command)
             return
