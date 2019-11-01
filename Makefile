@@ -1,11 +1,12 @@
 PYTHON=python3
 
-.PHONY: all test-download test deb docs clean
+.PHONY: all test-download test docs clean
 
 all:
 	@echo "make lint                 - Run python code linter"
 	@echo "make joy-demo-start       - Start JoyDemo service"
 	@echo "make joy-demo-stop        - Stop JoyDemo service"
+	@echo "make joy-demo-restart     - Restart JoyDemo service"
 	@echo "make joy-demo-enable      - Enable JoyDemo service"
 	@echo "make joy-demo-disable     - Disable JoyDemo service"
 	@echo "make test-vision-images   - Download vision test images"
