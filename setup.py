@@ -22,7 +22,6 @@ setup(
         'google-auth-oauthlib>=0.2.0',
         'google-cloud-speech>=0.36.0',
         'gpiozero',
-        'paho-mqtt',
         'protobuf>=3.6.1',
         'picamera',
         'Pillow',
