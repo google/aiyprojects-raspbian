@@ -464,7 +464,7 @@ class DebouncingPoller:
 
 
 class HatPin(Pin):
-    """A Pin implemenation that supports pins controlled by the hat's MCU.
+    """A Pin implementation that supports pins controlled by the hat's MCU.
 
     Only one HatPin should exist at a given time for a given pin system wide.
     Behavior is completely unpredictable if more than one pin exists concurrently.
@@ -481,6 +481,7 @@ class HatPin(Pin):
 
     def __init__(self, spec, pwm=False):
         super(HatPin, self).__init__()
+        self.spec = spec
         self.gpio_pin = None
         self.pwm_pin = None
         self.pwm_active = False
@@ -497,6 +498,10 @@ class HatPin(Pin):
         self._set_bounce(.001)
         # Start out with gpio enabled for compatibility.
         self._enable_gpio()
+
+    @property
+    def number(self):
+        return self.spec
 
     def _enable_pwm(self):
         if self._closed:
@@ -650,6 +655,12 @@ class HybridFactory(Factory):
             'No registered factory was able to construct a pin for the given '
             'specification')
 
+    def ticks(self):
+        return time.monotonic()
+
+    def ticks_diff(self, later, earlier):
+        return max(0, later - earlier)
+
 
 class HatFactory(Factory):
     """Factory for pins accessed through the hat's MCU."""
@@ -677,4 +688,4 @@ class HatFactory(Factory):
 # This overrides the default factory being used by all gpiozero devices. It will
 # defer to the previous default for all non-hat pins.
 hat_factory = HatFactory()
-Device.pin_factory = HybridFactory(hat_factory, Device.pin_factory)
+Device.pin_factory = HybridFactory(hat_factory, Device._default_pin_factory())
