@@ -41,9 +41,9 @@ assembly guides and makers guides, go to
    :caption: Other docs
    :maxdepth: 2
 
-   Change log <changes>
    Source code (GitHub) <https://github.com/google/aiyprojects-raspbian>
-   Raspbian setup (GitHub) <https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/HACKING.md>
+   Change log (GitHub) <https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/CHANGES.md>
+   Software setup (GitHub) <https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/HACKING.md>
    Contribution guide (GitHub) <https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/CONTRIBUTING.md>
 
 API indices

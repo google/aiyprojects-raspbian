@@ -14,8 +14,8 @@ assembly guide and other maker guides at [aiyprojects.withgoogle.com].
 If you just need the Python API reference, see [aiyprojects.readthedocs.io].
 Also have a look at the [example code][aiy-github-examples].
 
-If you need to update your kit's system image (whether you're using Google's provided image or
-you're starting with Raspbian), read the [system updates guide][HACKING.md].
+If you want to flash the latest AIY system image or install AIY packages on an existing
+Raspbian system, read the [system updates guide][HACKING.md].
 
 ## Releases
 
@@ -52,7 +52,7 @@ or provides incorrect responses), try the following:
 [HACKING.md]: HACKING.md
 [CONTRIBUTING.md]: CONTRIBUTING.md
 [downloads]: https://github.com/google/aiyprojects-raspbian/releases
-[changelog]: https://aiyprojects.readthedocs.io/en/latest/changes.html
+[changelog]: CHANGES.md
 
 [aiyprojects.withgoogle.com]: https://aiyprojects.withgoogle.com
 [aiyprojects.readthedocs.io]: https://aiyprojects.readthedocs.io
