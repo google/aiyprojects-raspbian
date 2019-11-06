@@ -11,31 +11,26 @@ PLANTS  = 'inaturalist_plants'
 INSECTS = 'inaturalist_insects'
 BIRDS   = 'inaturalist_birds'
 
-class Model(namedtuple('Model', ('labels_file',
+class Model(namedtuple('Model', ('labels',
                                  'compute_graph_file',
                                  'input_shape',
                                  'input_normalizer',
                                  'output_name'))):
-    def labels(self):
-        if not hasattr(self, '_labels'):
-          setattr(self, '_labels', utils.load_labels(self.labels_file))
-        return self._labels
-
     def compute_graph(self):
         return utils.load_compute_graph(self.compute_graph_file)
 
 _MODELS = {
-   PLANTS:  Model(labels_file='mobilenet_v2_192res_1.0_inat_plant_labels.txt',
+   PLANTS:  Model(labels=utils.load_labels('mobilenet_v2_192res_1.0_inat_plant_labels.txt'),
                   compute_graph_file='mobilenet_v2_192res_1.0_inat_plant.binaryproto',
                   input_shape=(1, 192, 192, 3),
                   input_normalizer=(128.0, 128.0),
                   output_name='prediction'),
-   INSECTS: Model(labels_file='mobilenet_v2_192res_1.0_inat_insect_labels.txt',
+   INSECTS: Model(labels=utils.load_labels('mobilenet_v2_192res_1.0_inat_insect_labels.txt'),
                   compute_graph_file='mobilenet_v2_192res_1.0_inat_insect.binaryproto',
                   input_shape=(1, 192, 192, 3),
                   input_normalizer=(128.0, 128.0),
                   output_name='prediction'),
-   BIRDS:   Model(labels_file='mobilenet_v2_192res_1.0_inat_bird_labels.txt',
+   BIRDS:   Model(labels=utils.load_labels('mobilenet_v2_192res_1.0_inat_bird_labels.txt'),
                   compute_graph_file='mobilenet_v2_192res_1.0_inat_bird.binaryproto',
                   input_shape=(1, 192, 192, 3),
                   input_normalizer=(128.0, 128.0),
@@ -45,7 +40,7 @@ _MODELS = {
 
 def sparse_configs(model_type, top_k=None, threshold=0.0):
     this_model = _MODELS[model_type]
-    num_labels = len(this_model.labels())
+    num_labels = len(this_model.labels)
     return {
         this_model.output_name: ThresholdingConfig(logical_shape=[num_labels],
                                                    threshold=threshold,
@@ -66,7 +61,7 @@ def get_classes(result, top_k=None, threshold=0.0):
     assert len(result.tensors) == 1
 
     this_model = _MODELS[result.model_name]
-    labels = this_model.labels()
+    labels = this_model.labels
 
     tensor = result.tensors[this_model.output_name]
     probs, shape = tensor.data, tensor.shape
@@ -81,7 +76,7 @@ def get_classes_sparse(result):
     assert len(result.tensors) == 1
 
     this_model = _MODELS[result.model_name]
-    labels = this_model.labels()
+    labels = this_model.labels
 
     tensor = result.tensors[this_model.output_name]
     indices, probs = tuple(tensor.indices), tuple(tensor.data)
