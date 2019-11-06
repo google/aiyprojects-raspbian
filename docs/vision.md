@@ -12,11 +12,10 @@ you can extend the kit with your own software and hardware.
 Also see the [Vision Kit assembly guide](
 https://aiyprojects.withgoogle.com/vision/).
 
-## API modules
+## Software
 
 To execute ML models and perform other actions with the Vision Kit, the
-system image includes the ``aiy`` Python library with the following modules
-designed for the Vision Kit:
+system image includes the Python library with the following modules:
 
 * [`aiy.toneplayer`](aiy.toneplayer.html):
 A simple melodic music player for the piezo buzzer.
@@ -39,15 +38,15 @@ LED.
 Pin definitions for the bonnet's extra GPIO pins, for use with gpiozero.
 
 
-## Bonnet hardware
+## Vision Bonnet
 
-The Voice Kit includes the following Voice Bonnet hardware.
+### Hardware
 
-* SOC: Myriad 2450
-* MCU: ATSAMD09D14 [I2C address: 0x51]
-* LED Driver: KTD2027A [I2C address: 0x30]
-* Crypto (optional): ATECC608A [I2C address: 0x60]
-* IMU: BMI160
+* SOC: `Myriad 2450`
+* MCU: `ATSAMD09D14` [I&sup2;C address: `0x51`]
+* LED Driver: `KTD2027A` [I&sup2;C address: `0x30`]
+* Crypto (optional): `ATECC608A` [I&sup2;C address: `0x60`]
+* IMU: `BMI160`
 
 ### Drivers
 

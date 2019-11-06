@@ -45,7 +45,7 @@ Bonnet and Voice Bonnet/HAT's button connector. For example:
 
       Sets the button LED brightness
 
-      :param value: The brighness, between 0.0 and 1.0
+      :param value: The brightness, between 0.0 and 1.0
 
    .. py:attribute:: state
 

@@ -70,4 +70,4 @@ Compatible with Voice HAT and Vision Bonnet.
 Compatible with Voice HAT.
 
 [github-releases]: https://github.com/google/aiyprojects-raspbian/releases
-[system-updates]: HACKING.html
+[system-updates]: https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/HACKING.md

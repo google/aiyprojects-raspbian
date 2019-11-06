@@ -18,12 +18,12 @@ If you prefer to update an existing Raspbian image yourself, follow the steps be
 
 Add AIY package repo:
 ```
-echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee /etc/apt/sources.list.d/aiyprojects.list
+echo "deb https://packages.cloud.google.com/apt aiyprojects-stable main" | tee /etc/apt/sources.list.d/aiyprojects.list
 ```
 
 Add Google package keys from https://www.google.com/linuxrepositories/:
 ```
-wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 ```
 
 Update and install the latest system updates (including kernel):

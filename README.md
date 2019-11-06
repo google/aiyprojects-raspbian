@@ -15,7 +15,7 @@ If you just need the Python API reference, see [aiyprojects.readthedocs.io].
 Also have a look at the [example code][aiy-github-examples].
 
 If you need to update your kit's system image (whether you're using Google's provided image or
-you're starting with Raspbian), read the [system updates guide][hacking].
+you're starting with Raspbian), read the [system updates guide][HACKING.md].
 
 ## Releases
 
@@ -24,7 +24,7 @@ you're starting with Raspbian), read the [system updates guide][hacking].
 
 ## Bugs & Support
 
-If you've found a bug, please [review the known issues and report a new one][issues].
+If you've found a bug, please [review the known issues and report a new one][aiy-github-issues].
 
 If you've fixed a bug yourself, please send us a pull request!
 For details, read [CONTRIBUTING.md].
@@ -40,7 +40,6 @@ If you're having trouble assembling your kit or running the demos, try the follo
 If you've found a problem with the Assistant API (for example, it crashes
 or provides incorrect responses), try the following:
 
-* [Assistant G+ community][assistant-google-plus]
 * [Assistant Stack Overflow][assistant-stack-overflow]
 * [Assistant GitHub Issues][assistant-github-issues]
 
@@ -50,23 +49,21 @@ or provides incorrect responses), try the following:
   <img width="15%" src="https://aiyprojects.withgoogle.com/static/images/icons/aiy-circular-logo.svg">
 </p>
 
-[hacking]: https://aiyprojects.readthedocs.io/en/latest/HACKING.html
+[HACKING.md]: HACKING.md
 [CONTRIBUTING.md]: CONTRIBUTING.md
 [downloads]: https://github.com/google/aiyprojects-raspbian/releases
-[changelog]: https://aiyprojects.readthedocs.io/en/latest/CHANGES.html
+[changelog]: https://aiyprojects.readthedocs.io/en/latest/changes.html
 
 [aiyprojects.withgoogle.com]: https://aiyprojects.withgoogle.com
 [aiyprojects.readthedocs.io]: https://aiyprojects.readthedocs.io
 [aiy-vision]: https://aiyprojects.withgoogle.com/vision/
 [aiy-voice]: https://aiyprojects.withgoogle.com/voice/
 
-[issues]: https://github.com/google/aiyprojects-raspbian/issues
 [help-docs]: https://aiyprojects.withgoogle.com/help
 [aiy-forums]: https://www.raspberrypi.org/forums/viewforum.php?f=114
 [aiy-stack-overflow]: https://stackoverflow.com/questions/tagged/google-aiy
 [aiy-github-issues]: https://github.com/google/aiyprojects-raspbian/issues
 [aiy-github-examples]: https://github.com/google/aiyprojects-raspbian/tree/aiyprojects/src/examples
 
-[assistant-google-plus]: https://plus.google.com/communities/117537996116836200696
 [assistant-stack-overflow]: https://stackoverflow.com/questions/tagged/google-assistant-sdk
 [assistant-github-issues]: https://github.com/googlesamples/assistant-sdk-python/issues

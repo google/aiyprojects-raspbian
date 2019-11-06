@@ -2,26 +2,22 @@
 
 <img src="_static/images/voice-kit.png" class="attempt-right" alt="" width="200"/>
 
-The AIY Voice Kit is a
-do-it-yourself intelligent speaker built with a Raspberry Pi and the Voice
-Bonnet (or Voice HAT if using the V1 Voice Kit).
+The AIY Voice Kit is a do-it-yourself intelligent speaker built with a
+Raspberry Pi and the Voice Bonnet (or Voice HAT if using the V1 Voice Kit).
 
 After you assemble the kit and run the included demos,
 you can extend the kit with your own software and hardware.
 
-Also see the [Voice Kit assembly guide](
-https://aiyprojects.withgoogle.com/voice/).
+Also see the [Voice Kit assembly guide](https://aiyprojects.withgoogle.com/voice/).
 
-## API modules
+## Software
 
-To interact with the Google Assistant, convert speech to text,
-and perform other actions with the Voice Kit, the
-system image includes the ``aiy`` Python library with the following modules
-designed for the Voice Kit:
+To interact with the Google Assistant, convert speech to text, and perform other
+actions with the Voice Kit, the system image includes Python library with the
+following modules:
 
 * [`aiy.assistant`](aiy.assistant.html):
-A collection of modules that simplify interaction with the
-Google Assistant API.
+A collection of modules that simplify interaction with the Google Assistant API.
 * [`aiy.cloudspeech`](aiy.cloudspeech.html):
 APIs to simplify interaction with the Google Cloud Speech-to-Text service.
 * [`aiy.voice.audio`](aiy.voice.audio.html):
@@ -36,16 +32,15 @@ LED.
 * [`aiy.pins`](aiy.pins.html):
 Pin definitions for the bonnet's extra GPIO pins, for use with gpiozero.
 
+## Voice Bonnet (Voice Kit V2)
 
-## V2 Bonnet hardware
+### Hardware
 
-The V2 Voice Kit includes the following Voice Bonnet hardware.
-
-* Audio Codec: ALC5645 [I2C address: 0x1A]
-* MCU: ATSAMD09D14 [I2C address: 0x52]
-* LED Driver: KTD2027B [I2C address: 0x31]
-* Crypto (optional): ATECC608A [I2C address: 0x62]
-* Microphone: SPH1642HT5H-1 x 2
+* Audio Codec: `ALC5645` [I&sup2;C address: `0x1A`]
+* MCU: `ATSAMD09D14` [I&sup2;C address: `0x52`]
+* LED Driver: `KTD2027B` [I&sup2;C address: `0x31`]
+* Crypto (optional): `ATECC608A` [I&sup2;C address: `0x62`]
+* Microphone: `SPH1642HT5H-1` x 2
 
 ### Drivers
 
@@ -85,12 +80,17 @@ The V2 Voice Kit includes the following Voice Bonnet hardware.
 Also see the [Voice Bonnet on pinout.xyz](https://pinout.xyz/pinout/aiy_voice_bonnet).
 
 
-## V1 HAT hardware
+## Voice HAT (Voice Kit V1)
 
-The V1 Voice Kit includes the following Voice HAT hardware.
+### Hardware
 
-* Audio Amplifier: MAX98357A
-* Microphone: ICS-43432 x 2
+* Audio Amplifier: `MAX98357A`
+* Microphone: `ICS-43432` x 2
+
+### Schematics
+
+* [Main Board](https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/schematics/voice_hat/voice_hat.pdf)
+* [Microphone Board](https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/schematics/voice_hat/voice_hat_mic.pdf)
 
 ### Drivers
 

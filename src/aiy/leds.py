@@ -36,8 +36,7 @@ For more examples, see `leds_example.py
 
 These APIs are only for the RGB LED in the button and the Vision Kit's privacy LED.
 To control LEDs you've attached to the bonnet's GPIO pins or the LEDs named
-``LED_1`` and ``LED_2`` on the Vision/Voice Bonnet, instead use
-:mod:`aiy.pins`.
+``LED_1`` and ``LED_2`` on the Vision/Voice Bonnet, instead use :mod:`aiy.pins`.
 """
 
 import math
@@ -103,7 +102,7 @@ class Color:
 
 
 class Pattern:
-    """Defines an LED blinking pattern. Pass an instance of this to
+    r"""Defines an LED blinking pattern. Pass an instance of this to
     :attr:`Leds.pattern`.
 
     Args:
@@ -119,8 +118,8 @@ class Pattern:
     .. code-block:: text
 
         rise_ms /----------\ fall_ms
-               /            \ 
-              /  on_percent  \ 
+               /            \
+              /  on_percent  \
              #--------------------------------#
                           period_ms
 
