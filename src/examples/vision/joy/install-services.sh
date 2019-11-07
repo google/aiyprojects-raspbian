@@ -16,6 +16,6 @@
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-ln -s ${SCRIPT_DIR}/joy_detection_demo.service /lib/systemd/system/joy_detection_demo.service
+ln -fs ${SCRIPT_DIR}/joy_detection_demo.service /lib/systemd/system/joy_detection_demo.service
 systemctl daemon-reload
 systemctl enable joy_detection_demo.service
