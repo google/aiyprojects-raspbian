@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='aiy-projects-python',
-    version='1.3',
+    version='1.4',
     description='AIY Python API',
     long_description='A set of Python APIs designed for the AIY Voice Kit and AIY Vision Kit, which help you build intelligent systems that can understand what they hear and see.',
     author='AIY Team',
