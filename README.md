@@ -59,8 +59,7 @@ card 1: Device [USB PnP Audio Device], device 0: USB Audio [USB Audio]
 ## Make them the defaults
 
 Create a new file named `.asoundrc` in the home directory (`/home/pi`). Put in
-the following contents, replacing `<card number>` and `<device number>` with the
-appropriate numbers.
+the following contents. Adjust the `card,device` number if needed.
 
 ```
 pcm.!default {
