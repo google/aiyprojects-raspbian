@@ -25,8 +25,8 @@ import math
 import re
 import time
 
-from aiy._drivers._buzzer import PWMController
-from aiy.toneplayer import Note
+from .toneplayer import Note
+from ._buzzer import PWMController
 
 
 class Command:

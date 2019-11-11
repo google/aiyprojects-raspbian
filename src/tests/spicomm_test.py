@@ -5,13 +5,13 @@ import unittest
 
 import aiy.vision.proto.protocol_pb2 as pb2
 
-from aiy._drivers._spicomm import SPICOMM_DEV
-from aiy._drivers._spicomm import SPICOMM_IOCTL_TRANSACT
-from aiy._drivers._spicomm import SPICOMM_IOCTL_TRANSACT_MMAP
+from aiy.vision._spicomm import SPICOMM_DEV
+from aiy.vision._spicomm import SPICOMM_IOCTL_TRANSACT
+from aiy.vision._spicomm import SPICOMM_IOCTL_TRANSACT_MMAP
 
-from aiy._drivers._spicomm import AsyncSpicomm
-from aiy._drivers._spicomm import SyncSpicomm
-from aiy._drivers._spicomm import SyncSpicommMmap
+from aiy.vision._spicomm import AsyncSpicomm
+from aiy.vision._spicomm import SyncSpicomm
+from aiy.vision._spicomm import SyncSpicommMmap
 
 
 @contextlib.contextmanager

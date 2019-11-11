@@ -19,8 +19,7 @@ import os
 import socket
 import struct
 
-from aiy._drivers import _spicomm
-
+from . import _spicomm
 
 class _SpiTransport:
     """Communicate with VisionBonnet over SPI bus."""

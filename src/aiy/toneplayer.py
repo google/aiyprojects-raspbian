@@ -20,11 +20,10 @@ Bonnet, so may be used without it. It only requires a piezo buzzer connected to
 :any:`aiy.pins.BUZZER_GPIO_PIN`.
 """
 
-
-import time
 import re
+import time
 
-from aiy._drivers._buzzer import PWMController
+from ._buzzer import PWMController
 
 
 class Rest:

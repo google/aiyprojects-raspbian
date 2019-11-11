@@ -28,8 +28,8 @@ import logging
 import time
 from collections import namedtuple
 
-import aiy.vision.proto.protocol_pb2 as pb2
-from aiy._drivers._transport import make_transport
+from .proto import protocol_pb2 as pb2
+from ._transport import make_transport
 
 logger = logging.getLogger(__name__)
 
