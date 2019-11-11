@@ -74,19 +74,13 @@ docs-clean:
 docs-open:
 	$(PYTHON) -m webbrowser -t "file://$(MAKEFILE_DIR)/docs/_build/html/index.html"
 
-.PHONY: joy-demo-enable \
-        joy-demo-disable \
-        joy-demo-start \
-        joy-demo-stop \
-        joy-demo-restart \
-        joy-demo-status \
-        joy-demo-log
+.PHONY: joy-demo-log
 
 joy-demo-%:
 	sudo systemctl $* joy_detection_demo.service
 
 joy-demo-log:
-	journalctl -u joy_detection_demo.service -b -f
+	sudo journalctl -u joy_detection_demo.service -b -f
 
 .PHONY: lint pep8-diff
 lint:
