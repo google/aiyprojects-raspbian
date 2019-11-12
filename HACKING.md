@@ -32,13 +32,13 @@ Before you start, be sure you have the latest version of [Raspbian][raspbian].
 Add AIY package repo:
 
 ```bash
-echo "deb https://packages.cloud.google.com/apt aiyprojects-stable main" | tee /etc/apt/sources.list.d/aiyprojects.list
+echo "deb https://packages.cloud.google.com/apt aiyprojects-stable main" | sudo tee /etc/apt/sources.list.d/aiyprojects.list
 ```
 
 Add Google package keys:
 
 ```bash
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 ```
 
 Update and install the latest system updates (including kernel):
@@ -56,6 +56,8 @@ sudo reboot
 
 ### 2. Install optional packages
 
+#### RGB Button Driver
+
 This package is needed only if you're using the light-up RGB button that's included with
 the Vision/Voice Bonnet:
 
@@ -63,11 +65,25 @@ the Vision/Voice Bonnet:
 sudo apt-get install -y leds-ktd202x-dkms
 ```
 
+Run `sudo modprobe leds_ktd202x` to load the driver and `sudo modprobe -r leds_ktd202x` to
+unload it. Vision/Voice Bonnet does this automatically via built-in device tree overlay
+saved in the board's EEPROM.
+
+#### Piezo Buzzer Driver
+
 This package is needed only if you're using the piezo buzzer included with the Vision Bonnet:
 
 ```bash
 sudo apt-get install -y pwm-soft-dkms
 ```
+
+#### Pi Zero Ethernet-over-USB
+
+This package is needed only if you're using Ethernet-over-USB on Pi Zero:
+```bash
+sudo apt-get install -y aiy-usb-gadget
+```
+Default Pi IP address is `192.168.11.2`, host IP address will be assigned automatically.
 
 ### 3. Install required packages
 
@@ -95,6 +111,16 @@ Install the optimized `protobuf` library for better performance:
 sudo apt-get install -y aiy-python-wheels
 ```
 
+Enable camera module:
+```bash
+echo "start_x=1" | sudo tee -a /boot/config.txt
+```
+
+Set GPU memory to 128MB:
+```bash
+echo "gpu_mem=128" | sudo tee -a /boot/config.txt
+```
+
 Reboot:
 
 ```bash
@@ -107,12 +133,29 @@ Then verify that `dmesg` output contains `Myriad ready` message:
 dmesg | grep -i "Myriad ready"
 ```
 
+You can also verify that camera is working fine by watching video on the
+connected monitor:
+```bash
+raspivid -t 0
+```
+
+Or use `ffplay` to get video output on the host machine:
+```bash
+ssh pi@raspberrypi.local "raspivid --nopreview --timeout 0 -o -" | ffplay -loglevel panic -
+```
+
 #### Install Voice Bonnet/HAT packages
 
 Install the bonnet/HAT drivers:
 
 ```bash
 sudo apt-get install -y aiy-voicebonnet-soundcard-dkms
+```
+
+Disable built-in audio:
+
+```bash
+sudo sed -i -e "s/^dtparam=audio=on/#\0/" /boot/config.txt
 ```
 
 Install PulseAudio:
@@ -123,7 +166,8 @@ sudo mkdir -p /etc/pulse/daemon.conf.d/
 echo "default-sample-rate = 48000" | sudo tee /etc/pulse/daemon.conf.d/aiy.conf
 ```
 
-Install the Raspberry-Pi-compatible `google-assistant-library`:
+If you want to use Google Assistant, install the Raspberry-Pi-compatible
+`google-assistant-library` python library:
 
 ```bash
 sudo apt-get install -y aiy-python-wheels
