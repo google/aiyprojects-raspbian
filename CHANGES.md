@@ -5,6 +5,23 @@ This page describes the changes in each release.
 To update your kit, see the [system updates guide][system-updates].
 All system images can be downloaded from the [GitHub releases page][github-releases].
 
+## AIY Kits Release 2019-11-13
+
+Compatible with Voice HAT, Voice Bonnet, and Vision Bonnet.
+
+Based on the [Raspbian Buster with desktop][raspbian].
+
+**Fixes**
+
+* Fix driver compilation errors on the latest Raspbian
+* Fix HACKING.md instructions
+* Fix gpiozero integration
+
+**Improvements**
+
+* Debian packages are now hosted at https://packages.cloud.google.com/
+* Original Raspbian image is modified in the minimal way (no unnecessary packages)
+
 ## AIY Kits Release 2018-11-16
 
 Compatible with Voice HAT, Voice Bonnet, and Vision Bonnet.
@@ -71,3 +88,4 @@ Compatible with Voice HAT.
 
 [github-releases]: https://github.com/google/aiyprojects-raspbian/releases
 [system-updates]: https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/HACKING.md
+[raspbian]: https://www.raspberrypi.org/downloads/raspbian/
