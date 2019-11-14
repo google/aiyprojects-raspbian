@@ -85,6 +85,14 @@ sudo apt-get install -y aiy-usb-gadget
 ```
 Default Pi IP address is `192.168.11.2`, host IP address will be assigned automatically.
 
+#### Support for AIY Projects app
+
+In order to make the Pi work with the [AIY Projects][aiy-app] app:
+
+```bash
+sudo apt-get install -y aiy-bt-prov-server
+```
+
 ### 3. Install required packages
 
 Use the following commands to install packages for either the
@@ -215,9 +223,8 @@ git clone https://github.com/google/aiyprojects-raspbian.git AIY-projects-python
 And now install the Python library in editable mode:
 
 ```bash
-sudo pip3 install -e AIY-projects-python/src
+sudo pip3 install -e AIY-projects-python
 ```
-
 
 ## Appendix: List of all AIY Debian packages
 
@@ -262,8 +269,6 @@ wheel (until [this issue][protobuf-issue] is fixed) along with [Google Assistant
   * `snd_aiy_voicebonnet`
 
 
-
-
 [changelog]: CHANGES.md
 [raspbian]: https://www.raspberrypi.org/downloads/raspbian/
 [image-flash]: https://www.raspberrypi.org/documentation/installation/installing-images/
@@ -275,3 +280,4 @@ wheel (until [this issue][protobuf-issue] is fixed) along with [Google Assistant
 [kernel-pwm]: https://www.kernel.org/doc/Documentation/pwm.txt
 [kernel-gpio]: https://www.kernel.org/doc/Documentation/gpio/sysfs.txt
 [kernel-iio]: https://www.kernel.org/doc/Documentation/driver-api/iio/core.rst
+[aiy-app]: https://play.google.com/store/apps/details?id=com.google.android.apps.aiy
