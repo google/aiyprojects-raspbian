@@ -156,7 +156,9 @@ speech *and* talk back intelligently, but supports fewer languages. **Google
 Cloud Speech** only recognizes speech (no talk-back), but supports far more
 languages.
 
-Here is a summary of the steps for using **Google Assistant**, as of 2019-05-12:
+Here is a summary of the steps for using **Google Assistant**, as of 2019-11-27.
+Always pay attention to the **Project ID** on top of the page to make sure you
+are in the right project.
 
 1. Create a Project
 
@@ -170,19 +172,24 @@ Here is a summary of the steps for using **Google Assistant**, as of 2019-05-12:
 
 6. Install system dependencies:
     ```
-    $ sudo apt-get install portaudio19-dev libffi-dev libssl-dev libmpg123-dev
+    $ sudo apt-get install portaudio19-dev libffi-dev libssl-dev
     ```
 
-7. Install Python packages:
+7. Install Python packages (downgrade to `google-assistant-library==1.0.0` for Raspbian Buster):
     ```
     $ sudo pip3 install --upgrade pip setuptools wheel
     $ sudo pip3 install google-assistant-library==1.0.1 \
+                        google-assistant-grpc==0.2.0 \
                         google-assistant-sdk[samples]==0.5.1 \
                         google-auth-oauthlib[tool] \
                         google-cloud-speech
     ```
 
-8. Use `google-oauthlib-tool` to authenticate once
+8. Use `google-oauthlib-tool` to authenticate:
+   ```
+   $ google-oauthlib-tool --scope https://www.googleapis.com/auth/assistant-sdk-prototype \
+      --save --headless --client-secrets /path/to/client_secret_client-id.json
+   ```
 
 9. Use [`googlesamples-assistant-devicetool`](https://developers.google.com/assistant/sdk/reference/device-registration/device-tool)
    to register your Raspberry Pi. A few useful commands may be:
@@ -208,7 +215,9 @@ integrate it manually:
 2. Set environment variable `PYTHONPATH` so Python can find the `aiy` package
 
 3. You may have to install the Pico text-to-speech engine, `libttspico-utils`,
-   to allow it to generate speech dynamically
+   to allow it to generate speech dynamically (If `apt-get install libttspico-utils`
+   doesn't work, manually download and install deb packages `libttspico-data`,
+   `libttspico0`, and `libttspico-utils` separately)
 
 The best way to experience the software is to try it.
 **[Let's go to the examples.](https://github.com/nickoala/aiy-voice-only/tree/aiyprojects/examples/voice)**

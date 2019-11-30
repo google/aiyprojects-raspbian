@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Auth helpers for Google Assistant API."""
+"""Authentication helper for the Google Assistant API."""
 
 import json
 import logging
@@ -127,6 +127,25 @@ User's Guide for more info.""")
 
 
 def get_assistant_credentials(credentials_file=None):
+    """
+    Retreives the OAuth credentials required to access the Google Assistant API.
+
+    If you're using :mod:`aiy.assistant.library`, you must call this function and pass the result
+    to the :class:`~aiy.assistant.library.Assistant` constructor.
+
+    If you're using :mod:`aiy.assistant.grpc`, you do not need this function because the
+    :class:`~aiy.assistant.grpc.AssistantServiceClient` calls this during initialization (using the
+    credentials file at ``~/assistant.json``).
+
+    Args:
+        credentials_file: Absolute path to your JSON credentials file.
+            If None, it looks for the file at ``~/assistant.json``.
+            To get a credentials file, `follow these instructions
+            <https://aiyprojects.withgoogle.com/voice#google-assistant--get-credentials>`_.
+
+    Returns:
+        The device OAuth credentials, as a ``google.oauth2.credentials.Credentials`` object.
+    """
     if not credentials_file:
         credentials_file = _ASSISTANT_CREDENTIALS_FILE
     return _try_to_get_credentials(credentials_file)

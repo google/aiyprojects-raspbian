@@ -7,3 +7,4 @@ MANIFEST
 dist/
 .pypirc
 .remote-sync.json
+links.txt
