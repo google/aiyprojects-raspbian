@@ -175,7 +175,7 @@ are in the right project.
     $ sudo apt-get install portaudio19-dev libffi-dev libssl-dev
     ```
 
-7. Install Python packages (downgrade to `google-assistant-library==1.0.0` for Raspbian Buster):
+7. Install Python packages:
     ```
     $ sudo pip3 install --upgrade pip setuptools wheel
     $ sudo pip3 install google-assistant-library==1.0.1 \
@@ -184,6 +184,8 @@ are in the right project.
                         google-auth-oauthlib[tool] \
                         google-cloud-speech
     ```
+   On Raspbian Buster, you likely have to downgrade to `google-assistant-library==1.0.0`
+   for it to work.
 
 8. Use `google-oauthlib-tool` to authenticate:
    ```
