@@ -78,3 +78,7 @@ I suggest you try the examples in the following order:
     - "Blink the light"
 
     Say "Goodbye" to exit.
+
+    **Cantonese**: `python3 cloudspeech_demo.py --language yue-Hant-HK` and try
+    to modify the code to make it respond to 開燈, 熄燈, 關燈, 閃燈, 眨燈, 拜拜,
+    再見.
