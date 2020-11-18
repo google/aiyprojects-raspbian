@@ -176,7 +176,10 @@ class Player(Service):
         self._toneplayer = TonePlayer(gpio, bpm)
 
     def process(self, sound):
-        self._toneplayer.play(*sound)
+        try:
+            self._toneplayer.play(*sound)
+        except:
+            logger.exception('Cannot play %s sound', sound)
 
     def play(self, sound):
         self.submit(sound)
