@@ -76,6 +76,7 @@ import os
 from collections import namedtuple
 from copy import deepcopy
 from os import listdir
+import subprocess
 import time
 from gpiozero import Device
 from gpiozero import Factory
@@ -90,7 +91,11 @@ from gpiozero.exc import PinSetInput
 from gpiozero.exc import PinUnsupported
 from gpiozero.threads import GPIOThread
 
-PIN_OFFSET = 497  # 497 = 512 (total gpio count) - 15 (our gpio count).
+def get_pin_offset():
+    cmd = 'cat /sys/module/gpio_aiy_io/drivers/platform:gpio-aiy-io/gpio-aiy-io/gpio/gpiochip*/base'
+    return int(subprocess.run(cmd, shell=True, capture_output=True).stdout.strip())
+
+PIN_OFFSET = get_pin_offset()
 
 class GpioSpec(namedtuple('GpioSpec', ['base', 'offset', 'name', 'active_low'])):
     @property
