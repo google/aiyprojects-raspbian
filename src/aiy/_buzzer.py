@@ -87,7 +87,7 @@ class PWMController:
         return '%s/pwm%d' % (self.PWM_SOFT_BASE_PATH, pwm_number)
 
     def _wait_for_access(self, path):
-        retry_count = 5
+        retry_count = 7
         retry_time = 0.01
         while not os.access(path, os.W_OK) and retry_count != 0:
             retry_count -= 1
