@@ -129,6 +129,11 @@ Set GPU memory to 128MB:
 echo "gpu_mem=128" | sudo tee -a /boot/config.txt
 ```
 
+Make sure to *not* use GPIO6 for SPI0 (required since 5.4 kernel):
+```bash
+echo "dtoverlay=spi0-1cs,cs0_pin=7" | sudo tee -a /boot/config.txt
+```
+
 Reboot:
 
 ```bash
