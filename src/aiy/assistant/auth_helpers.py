@@ -72,7 +72,7 @@ def _credentials_flow_interactive(client_secrets_path):
         # Use chromium-browser by default. Raspbian Stretch uses Epiphany by
         # default but that seems to cause issues:
         # https://github.com/google/aiyprojects-raspbian/issues/269
-        webbrowser.register('chromium-browser', None, webbrowser.Chrome('chromium-browser'), -1)
+        webbrowser.register('chromium-browser', None, webbrowser.Chrome('chromium-browser'), preferred=True)
         credentials = flow.run_local_server()
     else:
         credentials = flow.run_console()
