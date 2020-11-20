@@ -5,6 +5,17 @@ This page describes the changes in each release.
 To update your kit, see the [system updates guide][system-updates].
 All system images can be downloaded from the [GitHub releases page][github-releases].
 
+## AIY Kits Release 2020-11-20
+
+Compatible with Voice HAT, Voice Bonnet, and Vision Bonnet.
+
+Based on the [Raspberry Pi OS with desktop][raspberry-pi-os] from August 20th 2020.
+
+**Fixes**
+
+* Driver compilation errors on the latest Raspberry Pi OS
+* HACKING.md instructions for Vision Bonnet and Voice HAT
+
 ## AIY Kits Release 2019-11-13
 
 Compatible with Voice HAT, Voice Bonnet, and Vision Bonnet.
@@ -89,3 +100,4 @@ Compatible with Voice HAT.
 [github-releases]: https://github.com/google/aiyprojects-raspbian/releases
 [system-updates]: https://github.com/google/aiyprojects-raspbian/blob/aiyprojects/HACKING.md
 [raspbian]: https://www.raspberrypi.org/downloads/raspbian/
+[raspberry-pi-os]: https://www.raspberrypi.org/software/operating-systems/
