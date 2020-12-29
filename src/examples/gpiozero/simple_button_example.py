@@ -2,7 +2,7 @@
 """Example code that demonstrates using a standard pin along with a hat pin.
 
 The button uses a standard GPIO pin through the raspberry pi's memory mapped io,
-while the led uses the hat's sysfs driver. This implemenation difference is
+while the led uses the hat's sysfs driver. This implementation difference is
 transparent to the user.
 
 The demo will light up the on board LED whenever the user presses the button.
