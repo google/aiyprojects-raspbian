@@ -1,0 +1,4 @@
+DEVPATH=="/class/pwm-soft", ACTION=="add", RUN+="/bin/chgrp -R gpio /sys%p", RUN+="/bin/chmod -R ug+rw /sys%p"
+DEVPATH=="/class/pwm-soft", ACTION=="change", ENV{TRIGGER}!="none", RUN+="/bin/chgrp -R gpio /sys%p", RUN+="/bin/chmod -R ug+rw /sys%p"
+SUBSYSTEM=="pwm-soft", ACTION=="add", RUN+="/bin/chgrp -R gpio /sys%p", RUN+="/bin/chmod -R ug+rw /sys%p"
+SUBSYSTEM=="pwm-soft", ACTION=="change", ENV{TRIGGER}!="none", RUN+="/bin/chgrp -R gpio /sys%p", RUN+="/bin/chmod -R ug+rw /sys%p"

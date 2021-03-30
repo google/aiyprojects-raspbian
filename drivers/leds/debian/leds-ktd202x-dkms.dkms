@@ -1,0 +1,7 @@
+PACKAGE_VERSION="#MODULE_VERSION#"
+PACKAGE_NAME="leds-ktd202x"
+
+BUILT_MODULE_NAME[0]="leds-ktd202x"
+DEST_MODULE_LOCATION[0]="/kernel/drivers/leds/"
+
+AUTOINSTALL="yes"

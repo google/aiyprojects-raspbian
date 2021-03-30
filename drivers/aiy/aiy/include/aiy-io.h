@@ -1,0 +1,167 @@
+/*
+ * AIY GPIO/PWM Driver
+ *
+ * Author: Henry Herman <henryherman@google.com>
+ *         Copyright 2017
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ */
+
+#ifndef __MFD_AIY_GPIO_H__
+#define __MFD_AIY_GPIO_H__
+
+#include <linux/gpio.h>
+#include <linux/pwm.h>
+#include <linux/regmap.h>
+
+// Bit Offset for setting output level or reading input level
+#define AIY_GPIO_PIN_PA02_OFFSET (0)
+#define AIY_GPIO_PIN_PA03_OFFSET (1)
+#define AIY_GPIO_PIN_PA04_OFFSET (2)
+#define AIY_GPIO_PIN_PA05_OFFSET (3)
+#define AIY_GPIO_PIN_PA06_OFFSET (4)
+#define AIY_GPIO_PIN_PA07_OFFSET (5)
+#define AIY_GPIO_PIN_PA08_OFFSET (6)
+#define AIY_GPIO_PIN_PA09_OFFSET (7)
+#define AIY_GPIO_PIN_PA10_OFFSET (8)
+#define AIY_GPIO_PIN_PA11_OFFSET (9)
+#define AIY_GPIO_PIN_PA16_OFFSET (10)
+#define AIY_GPIO_PIN_PA17_OFFSET (11)
+#define AIY_GPIO_PIN_PA24_OFFSET (12)
+#define AIY_GPIO_PIN_PA25_OFFSET (13)
+#define AIY_GPIO_PIN_PA27_OFFSET (14)
+
+// Registers
+// GPIO Mode Config Registers
+#define AIY_REG_GPIO_BASE_MODE (0x00)
+#define AIY_REG_GPIO_MODE_PA02 (AIY_REG_GPIO_BASE_MODE + 0x00)
+#define AIY_REG_GPIO_MODE_PA03 (AIY_REG_GPIO_BASE_MODE + 0x01)
+#define AIY_REG_GPIO_MODE_PA04 (AIY_REG_GPIO_BASE_MODE + 0x02)
+#define AIY_REG_GPIO_MODE_PA05 (AIY_REG_GPIO_BASE_MODE + 0x03)
+#define AIY_REG_GPIO_MODE_PA06 (AIY_REG_GPIO_BASE_MODE + 0x04)
+#define AIY_REG_GPIO_MODE_PA07 (AIY_REG_GPIO_BASE_MODE + 0x05)
+#define AIY_REG_GPIO_MODE_PA08 (AIY_REG_GPIO_BASE_MODE + 0x06)
+#define AIY_REG_GPIO_MODE_PA09 (AIY_REG_GPIO_BASE_MODE + 0x07)
+#define AIY_REG_GPIO_MODE_PA10 (AIY_REG_GPIO_BASE_MODE + 0x08)
+#define AIY_REG_GPIO_MODE_PA11 (AIY_REG_GPIO_BASE_MODE + 0x09)
+#define AIY_REG_GPIO_MODE_PA16 (AIY_REG_GPIO_BASE_MODE + 0x0a)
+#define AIY_REG_GPIO_MODE_PA17 (AIY_REG_GPIO_BASE_MODE + 0x0b)
+#define AIY_REG_GPIO_MODE_PA24 (AIY_REG_GPIO_BASE_MODE + 0x0c)
+#define AIY_REG_GPIO_MODE_PA25 (AIY_REG_GPIO_BASE_MODE + 0x0d)
+#define AIY_REG_GPIO_MODE_PA27 (AIY_REG_GPIO_BASE_MODE + 0x0e)
+// PWM Config Registers
+#define AIY_REG_DUTY_CYCLE_OFFSET (0x00)
+#define AIY_REG_PERIOD_OFFSET (0x02)
+
+#define AIY_REG_PWM_BASE (0x0f)
+
+#define AIY_REG_PWM_PA04_BASE (AIY_REG_PWM_BASE + 0x00)
+#define AIY_REG_PWM_PA04_DUTY_CYCLE \
+	(AIY_REG_PWM_PA04_BASE + AIY_REG_DUTY_CYCLE_OFFSET)
+#define AIY_REG_PWM_PA04_PERIOD (AIY_REG_PWM_PA04_BASE + AIY_REG_PERIOD_OFFSET)
+
+#define AIY_REG_PWM_PA05_BASE (AIY_REG_PWM_BASE + 0x04)
+#define AIY_REG_PWM_PA05_DUTY_CYCLE \
+	(AIY_REG_PWM_PA05_BASE + AIY_REG_DUTY_CYCLE_OFFSET)
+#define AIY_REG_PWM_PA05_PERIOD (AIY_REG_PWM_PA05_BASE + AIY_REG_PERIOD_OFFSET)
+
+#define AIY_REG_PWM_PA10_BASE (AIY_REG_PWM_BASE + 0x08)
+#define AIY_REG_PWM_PA10_DUTY_CYCLE \
+	(AIY_REG_PWM_PA10_BASE + AIY_REG_DUTY_CYCLE_OFFSET)
+#define AIY_REG_PWM_PA10_PERIOD (AIY_REG_PWM_PA10_BASE + AIY_REG_PERIOD_OFFSET)
+
+#define AIY_REG_PWM_PA11_BASE (AIY_REG_PWM_BASE + 0x0c)
+#define AIY_REG_PWM_PA11_DUTY_CYCLE \
+	(AIY_REG_PWM_PA11_BASE + AIY_REG_DUTY_CYCLE_OFFSET)
+#define AIY_REG_PWM_PA11_PERIOD (AIY_REG_PWM_PA11_BASE + AIY_REG_PERIOD_OFFSET)
+
+#define AIY_REG_PWM_PRESCALER_BASE (AIY_REG_PWM_BASE + 0x10)
+#define AIY_REG_PWM0_PRESCALER (AIY_REG_PWM_PRESCALER_BASE + 0x00)
+#define AIY_REG_PWM1_PRESCALER (AIY_REG_PWM_PRESCALER_BASE + 0x01)
+
+// GPIO Level Control
+#define AIY_REG_GPIO_LEVEL_BASE (0x21)
+#define AIY_REG_GPIO_OUTPUT_LEVEL (AIY_REG_GPIO_LEVEL_BASE + 0x00)
+#define AIY_REG_GPIO_OUTPUT_LEVEL_1 (AIY_REG_GPIO_LEVEL_BASE + 0x01)
+// GPIO Level Read
+#define AIY_REG_GPIO_INPUT_LEVEL (AIY_REG_GPIO_LEVEL_BASE + 0x02)
+#define AIY_REG_GPIO_INPUT_LEVEL_1 (AIY_REG_GPIO_LEVEL_BASE + 0x03)
+// ADC Samples
+#define AIY_REG_ADC_BASE (0x25)
+#define AIY_REG_ADC_VALUE_PA02 (AIY_REG_ADC_BASE + 0x00)
+#define AIY_REG_ADC_VALUE_PA02_1 (AIY_REG_ADC_BASE + 0x01)
+#define AIY_REG_ADC_VALUE_PA03 (AIY_REG_ADC_BASE + 0x02)
+#define AIY_REG_ADC_VALUE_PA03_1 (AIY_REG_ADC_BASE + 0x03)
+#define AIY_REG_ADC_VALUE_PA06 (AIY_REG_ADC_BASE + 0x04)
+#define AIY_REG_ADC_VALUE_PA06_1 (AIY_REG_ADC_BASE + 0x05)
+#define AIY_REG_ADC_VALUE_PA07 (AIY_REG_ADC_BASE + 0x06)
+#define AIY_REG_ADC_VALUE_PA07_1 (AIY_REG_ADC_BASE + 0x07)
+
+#define AIY_REG_ADC_VALUE_PA04 (AIY_REG_ADC_BASE + 0x08)
+#define AIY_REG_ADC_VALUE_PA04_1 (AIY_REG_ADC_BASE + 0x09)
+#define AIY_REG_ADC_VALUE_PA05 (AIY_REG_ADC_BASE + 0x0a)
+#define AIY_REG_ADC_VALUE_PA05_1 (AIY_REG_ADC_BASE + 0x0b)
+#define AIY_REG_ADC_VALUE_PA10 (AIY_REG_ADC_BASE + 0x0c)
+#define AIY_REG_ADC_VALUE_PA10_1 (AIY_REG_ADC_BASE + 0x0d)
+#define AIY_REG_ADC_VALUE_PA11 (AIY_REG_ADC_BASE + 0x0e)
+#define AIY_REG_ADC_VALUE_PA11_1 (AIY_REG_ADC_BASE + 0x0f)
+
+// Error Code
+#define AIY_REG_ERROR_CODE_BASE (0x35)
+#define AIY_REG_ERROR_CODE (AIY_REG_ERROR_CODE_BASE + 0x0)
+#define AIY_REG_ERROR_CODE_1 (AIY_REG_ERROR_CODE_BASE + 0x1)
+#define AIY_REG_ERROR_CODE_2 (AIY_REG_ERROR_CODE_BASE + 0x2)
+#define AIY_REG_ERROR_CODE_3 (AIY_REG_ERROR_CODE_BASE + 0x3)
+
+// Message
+#define AIY_STATUS_MESSAGE_SIZE 8
+#define AIY_REG_MESSAGE_BASE (0x39)
+
+#define AIY_GPIO_MAX_REGISTERS 0x40
+
+#define AIY_GPIO_PIN_COUNT 15
+
+enum aiy_gpio_mode {
+	AIY_GPIO_MODE_INPUT_HIZ = 0,
+	AIY_GPIO_MODE_INPUT_PULL_UP = 1,
+	AIY_GPIO_MODE_INPUT_PULL_DOWN = 2,
+	AIY_GPIO_MODE_OUTPUT = 3,
+	AIY_GPIO_MODE_PWM = 4,
+	AIY_GPIO_MODE_ADC = 5,
+	AIY_GPIO_MODE_SERVO = 6,
+	AIY_GPIO_MODE_UPDATE = 7,
+};
+
+enum aiy_pin_usage_option {
+	AIY_PIN_OPTION_UNUSED = 0,
+	AIY_PIN_OPTION_USED_GPIO,
+	AIY_PIN_OPTION_USED_PWM,
+	AIY_PIN_OPTION_USED_ADC
+};
+
+#define AIY_BOARD_TYPE_NAME_VOICEBONNET "voice"
+#define AIY_BOARD_TYPE_NAME_VISIONBONNET "vision"
+
+enum aiy_board_type { AIY_BOARD_TYPE_VOICEBONNET, AIY_BOARD_TYPE_VISIONBONNET };
+
+struct aiy_io_i2c {
+	struct regmap *regmap;
+	struct mutex lock;
+	enum aiy_pin_usage_option pin_usage[AIY_GPIO_PIN_COUNT];
+	enum aiy_board_type type;
+};
+
+int aiy_io_request_pin(struct aiy_io_i2c *aiy, unsigned int offset,
+		       enum aiy_pin_usage_option pin_usage);
+
+int aiy_io_free_pin(struct aiy_io_i2c *aiy, unsigned int offset,
+		    enum aiy_pin_usage_option pin_usage);
+
+#endif

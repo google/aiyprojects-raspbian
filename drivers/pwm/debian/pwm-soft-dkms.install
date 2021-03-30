@@ -1,0 +1,1 @@
+debian/modules-load.d/pwm-soft.conf /usr/lib/modules-load.d

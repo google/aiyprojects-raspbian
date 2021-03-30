@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+# export DH_VERBOSE=1
+
+VERSION=$(shell dpkg-parsechangelog | grep '^Version:' | cut -d' ' -f2 | cut -d- -f1)
+
+%:
+	dh $@ --with dkms
+
+override_dh_install:
+	dh_install *.c Makefile usr/src/leds-ktd202x-$(VERSION)/
+
+override_dh_dkms:
+	dh_dkms -V $(VERSION)
+
+override_dh_auto_clean:
+override_dh_auto_build:
+override_dh_auto_install:

@@ -1,0 +1,17 @@
+aiy-voicebonnet-soundcard-dkms (3.0-1) stable; urgency=medium
+
+  * Update driver to support 5.4 kernel.
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Mon, 16 Nov 2020 01:36:00 -0800
+
+aiy-voicebonnet-soundcard-dkms (2.0-1) stable; urgency=medium
+
+  * Update driver to support 4.19 kernel.
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Wed, 06 Nov 2019 16:36:24 -0800
+
+aiy-voicebonnet-soundcard-dkms (1.0-2) stable; urgency=medium
+
+  * Proper debian package based on dh_dkms.
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Thu, 30 Aug 2018 15:28:07 -0700

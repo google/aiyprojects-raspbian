@@ -1,0 +1,11 @@
+aiy-vision-dkms (1.2-1) stable; urgency=medium
+
+  * Proper order of cleanup calls in visionbonnet_destroy().
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Mon, 16 Nov 2020 01:36:00 -0800
+
+aiy-vision-dkms (1.1-1) stable; urgency=medium
+
+  * Proper debian package based on dh_dkms.
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Thu, 30 Aug 2018 15:28:07 -0700

@@ -1,0 +1,7 @@
+PACKAGE_VERSION="#MODULE_VERSION#"
+PACKAGE_NAME="aiy-vision"
+
+BUILT_MODULE_NAME[0]="aiy-vision"
+DEST_MODULE_LOCATION[0]="/kernel/drivers/staging/myriad"
+
+AUTOINSTALL="yes"

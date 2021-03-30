@@ -1,0 +1,11 @@
+aiy-dkms (2.0-1) stable; urgency=medium
+
+  * Update drivers to support 4.19 kernel.
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Wed, 06 Nov 2019 16:36:24 -0800
+
+aiy-dkms (1.1-2) stable; urgency=medium
+
+  * Proper debian package based on dh_dkms.
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Thu, 30 Aug 2018 15:28:07 -0700

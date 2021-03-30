@@ -1,0 +1,12 @@
+Source: aiy-vision-dkms
+Section: misc
+Priority: optional
+Maintainer: AIY Projects <support-aiyprojects@google.com>
+Build-Depends: debhelper (>= 10), dkms
+Standards-Version: 3.8.1
+
+Package: aiy-vision-dkms
+Architecture: all
+Depends: raspberrypi-kernel-headers, aiy-dkms, aiy-vision-firmware, dkms (>= 1.95), ${misc:Depends}
+Description: AIY Vision DKMS driver.
+ Required driver for Vision Bonnet board.

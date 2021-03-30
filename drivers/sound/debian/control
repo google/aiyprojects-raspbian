@@ -1,0 +1,12 @@
+Source: aiy-voicebonnet-soundcard-dkms
+Section: misc
+Priority: optional
+Maintainer: AIY Projects <support-aiyprojects@google.com>
+Build-Depends: debhelper (>= 10), dkms
+Standards-Version: 3.8.1
+
+Package: aiy-voicebonnet-soundcard-dkms
+Architecture: all
+Depends: raspberrypi-kernel-headers, dkms (>= 1.95), ${misc:Depends}
+Description: AIY Voice DKMS driver.
+ Required driver for Voice Bonnet board.

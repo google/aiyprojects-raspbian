@@ -1,0 +1,11 @@
+aiy-overlay-voice (1.0-1) stable; urgency=medium
+
+  * Update debian package.
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Wed, 14 Nov 2018 13:56:08 -0800
+
+aiy-overlay-voice (1.0-0) stable; urgency=medium
+
+  * Initial release.
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Mon, 04 Jun 2018 21:03:54 -0700

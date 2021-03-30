@@ -1,0 +1,11 @@
+PACKAGE_VERSION="#MODULE_VERSION#"
+PACKAGE_NAME="aiy-voicebonnet-soundcard"
+
+BUILT_MODULE_NAME[0]="snd-aiy-voicebonnet"
+DEST_MODULE_LOCATION[0]="/kernel/sound/drivers"
+BUILT_MODULE_NAME[1]="rt5645"
+DEST_MODULE_LOCATION[1]="/kernel/sound/soc/codecs"
+BUILT_MODULE_NAME[2]="rl6231"
+DEST_MODULE_LOCATION[2]="/kernel/sound/soc/codecs"
+
+AUTOINSTALL="yes"

@@ -1,0 +1,7 @@
+PACKAGE_VERSION="#MODULE_VERSION#"
+PACKAGE_NAME="pwm-soft"
+
+BUILT_MODULE_NAME[0]="pwm-soft"
+DEST_MODULE_LOCATION[0]="/kernel/drivers/pwm/"
+
+AUTOINSTALL="yes"

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#!/bin/sh
+
+set -e
+
+#DEBHELPER#
+
+case "$1" in
+    configure)
+        if [ -z "$2" ]; then
+            dtc -W no-unit_address_vs_reg -@ -O dtb -o /boot/overlays/aiy-voicebonnet.dtbo \
+                /opt/aiy/overlay-voice/aiy-voicebonnet-overlay.dts
+        fi
+        ;;
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 0
+    ;;
+esac

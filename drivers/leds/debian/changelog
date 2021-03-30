@@ -1,0 +1,11 @@
+leds-ktd202x-dkms (1.2-1) stable; urgency=medium
+
+  * Fix swapped tfall and trise register names.
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Wed, 09 Jan 2019 11:50:40 -0800
+
+leds-ktd202x-dkms (1.1-2) stable; urgency=medium
+
+  * Proper debian package based on dh_dkms.
+
+ -- Dmitry Kovalev <dkovalev@google.com>  Thu, 30 Aug 2018 15:28:07 -0700

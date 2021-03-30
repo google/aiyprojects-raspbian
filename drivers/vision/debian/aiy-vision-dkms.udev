@@ -1,0 +1,1 @@
+KERNEL=="vision_spicomm", SUBSYSTEM=="spicomm", TAG+="systemd"

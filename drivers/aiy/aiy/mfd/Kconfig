@@ -1,0 +1,7 @@
+menuconfig CONFIG_AIY_IO_I2C
+	tristate "AIY IO I2C Support"
+	help
+	  Say Y here if you want to use AIY IO I2C.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called aiy-io-i2c.

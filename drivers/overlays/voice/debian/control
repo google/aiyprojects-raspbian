@@ -1,0 +1,11 @@
+Source: aiy-overlay-voice
+Section: misc
+Priority: optional
+Maintainer: AIY Projects <support-aiyprojects@google.com>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 3.8.1
+
+Package: aiy-overlay-voice
+Architecture: all
+Depends: raspberrypi-kernel, device-tree-compiler (>= 1.4), ${misc:Depends}
+Description: Device tree overlay for AIY Voice Bonnet.

@@ -1,0 +1,18 @@
+/dts-v1/;
+/plugin/;
+/ {
+  compatible = "brcm,bcm2708";
+  fragment@0 {
+    target = <&i2c_arm>;
+    __overlay__ {
+      #address-cells = <1>;
+      #size-cells = <0>;
+      status = "okay";
+      aiy-io-i2c@52 {
+        compatible = "google,aiy-io-i2c";
+        reg = <0x52>;
+        status = "okay";
+      };
+    };
+  };
+};

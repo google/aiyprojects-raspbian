@@ -1,0 +1,81 @@
+// Definitions for Google voiceHAT v1 soundcard overlay
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2708";
+
+	fragment@0 {
+		target = <&i2s>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@1 {
+		target = <&i2c_arm>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			aiy-io-i2c@52 {
+				compatible = "google,aiy-io-i2c";
+				reg = <0x52>;
+				type = "voice";
+				status = "okay";
+
+				aiy_gpio: aiy-gpio {
+					compatible = "google,gpio-aiy-io";
+					gpio-controller;
+					#gpio-cells = <2>;
+				};
+			};
+
+			rt5645: rt5645@1a {
+				compatible = "realtek,rt5645";
+				reg = <0x1a>;
+				realtek,dmic1-data-pin = <0>;
+				realtek,dmic2-data-pin = <0>;
+				realtek,jd-mode = <0>;
+				realtek,jd-invert;
+				interrupt-parent = <&gpio>;
+				interrupts = <24 3>;
+				hp-detect-gpios = <&gpio 24 0>;
+			};
+
+			ktd2026@31 {
+				compatible = "kinetic,ktd2026";
+				reg = <0x31>;
+				status = "okay";
+			};
+
+		};
+	};
+
+	fragment@2 {
+		target = <&gpio>;
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&hp_detect_pins>;
+
+			hp_detect_pins: hp_detect_pins {
+				brcm,pins = <24>;
+				brcm,function = <0>; /* GPIO in */
+				brcm,pull = <0>; /* disable pull-down/up */
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&sound>;
+		__overlay__ {
+			compatible = "google,aiy-voicebonnet";
+			i2s-controller = <&i2s>;
+			aiy-voicebonnet,audio-codec = <&rt5645>;
+			google,model = "aiy-voicebonnet";
+			mic-switch-gpios = <&aiy_gpio 0 0>;
+			status = "okay";
+		};
+	};
+};

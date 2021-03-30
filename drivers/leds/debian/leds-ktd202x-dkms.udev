@@ -1,0 +1,2 @@
+SUBSYSTEM=="leds", ACTION=="add", RUN+="/bin/chgrp -R gpio /sys%p", RUN+="/bin/chmod -R ug+rw /sys%p", RUN+="/bin/chgrp -R gpio /sys%p/device/", RUN+="/bin/chmod -R ug+rw /sys%p/device/"
+SUBSYSTEM=="leds", ACTION=="change", ENV{TRIGGER}!="none", RUN+="/bin/chgrp -R gpio /sys%p", RUN+="/bin/chmod -R ug+rw /sys%p"

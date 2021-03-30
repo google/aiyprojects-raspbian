@@ -1,0 +1,85 @@
+// Definitions for Google visionbonnet v1 overlay
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2708";
+
+	fragment@0 {
+		target = <&spi0>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@1 {
+		target = <&spidev0>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@2 {
+		target = <&gpio>;
+		__overlay__ {
+			aiyvision_pins: aiyvision_pins {
+				brcm,pins = <6 13 26 8>;
+				brcm,function = <0 0 0 1>;
+				brcm,pull = <0 2 0 2>;
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&spi0_cs_pins>;
+		__overlay__ {
+			brcm,pins = <>;
+		};
+	};
+
+	fragment@4 {
+		target = <&i2c_arm>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			aiy_io: aiy-io-i2c@51 {
+				compatible = "google,aiy-io-i2c";
+				reg = <0x51>;
+				type = "vision";
+				status = "okay";
+				aiy_gpio: aiy-gpio {
+					compatible = "google,gpio-aiy-io";
+					gpio-controller;
+					#gpio-cells = <2>;
+				};
+			};
+			ktd2026@30 {
+				compatible = "kinetic,ktd2026";
+				reg = <0x30>;
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@5 {
+		target = <&spi0>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			aiyvision@0 {
+				compatible = "google,visionbonnet";
+				pinctrl-names = "default";
+				pinctrl-0 = <&aiyvision_pins>;
+				spi-max-frequency = <8000000>;
+				vision-gpios = <&gpio 13 0>,
+						<&gpio 6 0>,
+						<&gpio 26 0>,
+						<&gpio 8 0>;
+				aiy-gpios = <&aiy_gpio 7 0>;
+				reg = <0>;
+				status = "okay";
+			};
+		};
+	};
+};

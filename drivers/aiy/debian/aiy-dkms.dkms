@@ -1,0 +1,21 @@
+PACKAGE_VERSION="#MODULE_VERSION#"
+PACKAGE_NAME="aiy"
+CLEAN="make clean"
+
+BUILT_MODULE_NAME[0]="aiy-io-i2c"
+DEST_MODULE_LOCATION[0]="/kernel/drivers/mfd"
+BUILT_MODULE_LOCATION[0]="./aiy/mfd"
+
+BUILT_MODULE_NAME[1]="pwm-aiy-io"
+DEST_MODULE_LOCATION[1]="/kernel/drivers/pwm"
+BUILT_MODULE_LOCATION[1]="./aiy/pwm"
+
+BUILT_MODULE_NAME[2]="gpio-aiy-io"
+DEST_MODULE_LOCATION[2]="/kernel/drivers/gpio"
+BUILT_MODULE_LOCATION[2]="./aiy/gpio"
+
+BUILT_MODULE_NAME[3]="aiy-adc"
+DEST_MODULE_LOCATION[3]="/kernel/drivers/iio/adc"
+BUILT_MODULE_LOCATION[3]="./aiy/iio/adc"
+
+AUTOINSTALL="yes"
