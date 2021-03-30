@@ -36,16 +36,16 @@ static struct snd_soc_jack_pin headset_jack_pin = {
 
 static int snd_rpi_aiy_voicebonnet_init(struct snd_soc_pcm_runtime *rtd) {
 	int ret;
-	struct snd_soc_component *component = rtd->codec_dai->component;
+	struct snd_soc_dai *codec_dai = asoc_rtd_to_codec(rtd, 0);
 
-	rt5645_sel_asrc_clk_src(component,
+	rt5645_sel_asrc_clk_src(codec_dai->component,
 		RT5645_DA_STEREO_FILTER |
 		RT5645_AD_STEREO_FILTER |
 		RT5645_DA_MONO_L_FILTER |
 		RT5645_DA_MONO_R_FILTER,
 		RT5645_CLK_SEL_I2S1_ASRC);
 
-	ret = snd_soc_dai_set_sysclk(rtd->codec_dai, RT5645_SCLK_S_MCLK,
+	ret = snd_soc_dai_set_sysclk(codec_dai, RT5645_SCLK_S_MCLK,
 				     PLATFORM_CLOCK, SND_SOC_CLOCK_IN);
 	if (ret < 0) {
 		dev_err(rtd->card->dev, "can't set sysclk: %d\n", ret);
@@ -60,31 +60,33 @@ static int snd_rpi_aiy_voicebonnet_init(struct snd_soc_pcm_runtime *rtd) {
 		return ret;
 	}
 
-	return rt5645_set_jack_detect(component, &headset_jack, NULL, NULL);
+	return rt5645_set_jack_detect(
+		codec_dai->component, &headset_jack, NULL, NULL);
 }
 
 static int snd_rpi_aiy_voicebonnet_hw_params(
 	struct snd_pcm_substream *substream, struct snd_pcm_hw_params *params) {
 	int ret = 0;
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+	struct snd_soc_dai *codec_dai = asoc_rtd_to_codec(rtd, 0);
 	unsigned int freq = params_rate(params) * 512;
 
 	/* set codec PLL source to the 24.576MHz (MCLK) platform clock */
-	ret = snd_soc_dai_set_pll(rtd->codec_dai, 0, RT5645_PLL1_S_MCLK,
+	ret = snd_soc_dai_set_pll(codec_dai, 0, RT5645_PLL1_S_MCLK,
 				  PLATFORM_CLOCK, freq);
 	if (ret < 0) {
 		dev_err(rtd->dev, "can't set codec pll: %d\n", ret);
 		return ret;
 	}
 
-	ret = snd_soc_dai_set_sysclk(rtd->codec_dai, RT5645_SCLK_S_PLL1, freq,
+	ret = snd_soc_dai_set_sysclk(codec_dai, RT5645_SCLK_S_PLL1, freq,
 				     SND_SOC_CLOCK_IN);
 	if (ret < 0) {
 		dev_err(rtd->dev, "can't set codec sysclk in: %d\n", ret);
 		return ret;
 	}
 
-	ret = snd_soc_dai_set_sysclk(rtd->codec_dai, RT5645_SCLK_S_PLL1, freq,
+	ret = snd_soc_dai_set_sysclk(codec_dai, RT5645_SCLK_S_PLL1, freq,
 				     SND_SOC_CLOCK_OUT);
 	if (ret < 0) {
 		dev_err(rtd->dev, "can't set codec sysclk out: %d\n", ret);
