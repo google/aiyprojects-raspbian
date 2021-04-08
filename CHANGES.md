@@ -5,6 +5,18 @@ This page describes the changes in each release.
 To update your kit, see the [system updates guide][system-updates].
 All system images can be downloaded from the [GitHub releases page][github-releases].
 
+## AIY Kits Release 2021-04-02
+
+Compatible with Voice HAT, Voice Bonnet, and Vision Bonnet.
+
+Based on the [Raspberry Pi OS with desktop][raspberry-pi-os] from March 4th 2021.
+
+**Fixes**
+
+* Sound driver compilation errors on the latest Raspberry Pi OS
+* Upgrade Colab TF version to 1.13.1
+* Driver source code added to this repository
+
 ## AIY Kits Release 2020-11-20
 
 Compatible with Voice HAT, Voice Bonnet, and Vision Bonnet.
