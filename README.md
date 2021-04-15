@@ -19,8 +19,10 @@ Raspbian system, read the [system updates guide][HACKING.md].
 
 ## Releases
 
-* [Image downloads][downloads]
+* [SD card image downloads][downloads]
 * [Change log][changelog]
+
+You can also build an SD card image yourself using [AIY Projects Tools][aiy-projects-tools].
 
 ## Bugs & Support
 
@@ -54,6 +56,7 @@ or provides incorrect responses), try the following:
 [downloads]: https://github.com/google/aiyprojects-raspbian/releases
 [changelog]: CHANGES.md
 
+[aiy-projects-tools]: https://github.com/google/aiyprojects-raspbian-tools
 [aiyprojects.withgoogle.com]: https://aiyprojects.withgoogle.com
 [aiyprojects.readthedocs.io]: https://aiyprojects.readthedocs.io
 [aiy-vision]: https://aiyprojects.withgoogle.com/vision/
