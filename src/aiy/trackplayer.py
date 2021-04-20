@@ -340,9 +340,6 @@ class TrackPlayer:
                             if isinstance(note_command, Command):
                                 last_command = note_command
                                 note_command.apply(self, controller, last_note, t)
-                                if self.playing:
-                                    print()
-                                    return
 
                         self.tick += 1
                         time.sleep(0.01)
