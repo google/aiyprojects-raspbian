@@ -47,7 +47,7 @@ class Rest:
 
     def to_length_secs(self):
         """Converts from musical notation to a period of time in seconds."""
-        return (self.bpm / 60.0) / self.period
+        return ( 60.0 / self.bpm ) / self.period
 
 
 class Note(Rest):
