@@ -32,12 +32,12 @@ import os
 import logging
 
 os.environ['GRPC_POLL_STRATEGY'] = 'epoll1'
-from google.cloud import speech
+from google.cloud import speech_v1 as speech
 from google.oauth2 import service_account
 
 from aiy.voice.audio import AudioFormat, Recorder
 
-END_OF_SINGLE_UTTERANCE = speech.types.StreamingRecognizeResponse.END_OF_SINGLE_UTTERANCE
+END_OF_SINGLE_UTTERANCE = speech.types.StreamingRecognizeResponse.SpeechEventType.END_OF_SINGLE_UTTERANCE
 AUDIO_SAMPLE_RATE_HZ = 16000
 AUDIO_FORMAT=AudioFormat(sample_rate_hz=AUDIO_SAMPLE_RATE_HZ,
                          num_channels=1,
@@ -64,7 +64,7 @@ class CloudSpeechClient:
 
     def _make_config(self, language_code, hint_phrases):
         return speech.types.RecognitionConfig(
-            encoding=speech.types.RecognitionConfig.LINEAR16,
+            encoding=speech.types.RecognitionConfig.AudioEncoding.LINEAR16,
             sample_rate_hertz=AUDIO_SAMPLE_RATE_HZ,
             language_code=language_code,
             speech_contexts=[speech.types.SpeechContext(phrases=hint_phrases)])
