@@ -146,7 +146,7 @@ html_static_path = ['_static']
 
 # Add our custom stylesheet. By default, Sphinx looks for this in _static/.
 def setup(app):
-    app.add_stylesheet('custom.css')
+    app.add_css_file('custom.css')
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
