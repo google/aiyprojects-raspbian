@@ -93,7 +93,12 @@ from gpiozero.threads import GPIOThread
 
 def get_pin_offset():
     cmd = 'cat /sys/module/gpio_aiy_io/drivers/platform:gpio-aiy-io/gpio-aiy-io/gpio/gpiochip*/base'
-    return int(subprocess.run(cmd, shell=True, capture_output=True).stdout.strip())
+    try:
+        return int(subprocess.run(cmd, shell=True, capture_output=True).stdout.strip())
+    except ValueError:
+        # Function was called on a device without the drivers installed, for example when generating
+        # Sphinx documentation.
+        return 0
 
 PIN_OFFSET = get_pin_offset()
 
